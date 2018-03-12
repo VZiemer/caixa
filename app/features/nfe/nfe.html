@@ -1,0 +1,164 @@
+<style>
+
+md-radio-button{
+  margin-bottom:2px;
+}
+</style>
+
+
+<section layout='column' flex layout-align="center center" class="login">
+  <form class="form-modal" ng-submit="buscar(busca)">
+  </form>
+  <md-toolbar class="md-table-toolbar md-default">
+      <div class="md-toolbar-tools">
+          <h2 flex md-truncate>Nota Fiscal</h2>
+          <span flex></span>
+          <md-button class="md-raised md-icon-button md-accent" ng-click="vm.Logout()">
+              <md-icon class="material-icons" style="color: blue;">help</md-icon>
+          </md-button>             
+          <!-- <md-button class="md-accent md-raised">Raised and Accent Button</md-button>
+          <md-button class="md-primary">Primary Button</md-button>
+          <md-button class="md-no-focus">No Focus Style</md-button>              -->
+      </div>      
+    </md-toolbar>
+    <md-content layout="column" layout-fill>
+      <md-card>        
+        <div layout="row">
+
+        </div>   
+        <md-content layout-padding>
+            <div>
+              <form name="cabecalhoForm">
+                <fieldset>
+                  <legend>Dados Gerais</legend>
+                  <div layout-gt-xs="row">
+
+                    <md-input-container class="md-block" flex-gt-xs="15">
+                      <label>Nota Fiscal</label>
+                      <input disabled md-no-asterisk name="Nota" ng-model="nota.Cabecalho.NOTA">
+                    </md-input-container>
+            
+                    <md-input-container >
+                      <label>Data</label>
+                      <md-datepicker name="data" md-hide-icons="calendar" ng-model="hoje"></md-datepicker>
+                    </md-input-container>
+  
+                    <md-input-container class="md-block" flex-gt-xs="15">
+                      <label>CFOP</label>
+                      <input md-no-asterisk name="cfop" ng-model="nota.Cabecalho.CFOP">
+                    </md-input-container>
+  
+                    <md-input-container class="md-icon-float md-icon-left md-block">
+                      <md-icon class="material-icons" style="color: rgb(44, 155, 58);">search</md-icon>
+                      <label>Nat. Operação</label>
+                      <input name ="natoper" ng-model="nota.Cabecalho.NATOPER" type="text">
+                    </md-input-container>
+  
+                    <md-input-container >
+                      <label>Data Saída</label>
+                      <md-datepicker name="dt_saida" md-hide-icons="calendar" ng-model="nota.Cabecalho.DT_SAIDA"></md-datepicker>
+                    </md-input-container>
+  
+                    <md-input-container class="md-block" flex-gt-xs>
+                      <label>Pedido</label>
+                      <input required disabled name="pedido" ng-model="nota.Cabecalho.PEDIDO">
+                    </md-input-container>
+
+                  </div> 
+                </fieldset>
+
+                <fieldset>
+                    <legend>Destinatário</legend>
+                    <div layout-gt-xs="row">
+  
+                      <md-input-container class="md-block" flex-gt-xs="10">
+                        <label>Código</label>
+                        <input md-no-asterisk name="codcli" ng-model="nota.Cabecalho.CODCLI">
+                      </md-input-container>
+
+                      <md-input-container class="md-icon-float md-icon-left md-block">
+                        <md-icon class="material-icons" style="color: rgb(44, 155, 58);">search</md-icon>
+                        <label>Razão Social</label>
+                        <input name ="nome" ng-model="nota.Cabecalho.NOME" type="text">
+                      </md-input-container>                      
+              
+                      <md-input-container >
+                        <label>Telefone</label>
+                        <input name ="fone" ng-model="nota.Cabecalho.FONE" type="text" ui-br-phone-number>                        
+                      </md-input-container>
+    
+                      <md-input-container class="md-block" flex-gt-xs="15">
+                        <label>CEP</label>
+                        <input md-no-asterisk name="cep" ng-model="nota.Cabecalho.CEP" ui-br-cep-mask>                     
+                      </md-input-container>
+                    </div> 
+
+                    <div layout-gt-xs="row">                      
+                      <md-input-container >
+                        <label>Endereço</label>
+                        <input name="endereco" ng-model="nota.Cabecalho.ENDERECO" max='255' min='1' md-maxlength="255" md-no-asterisk></input>
+                      </md-input-container>
+    
+                      <md-input-container class="md-block" flex-gt-xs>
+                        <label>Número</label>
+                        <input name="numero" ng-model="nota.Cabecalho.NUMERO" max='60' min='1' md-maxlength="60" md-no-asterisk>
+                      </md-input-container>
+
+                      <md-input-container class="md-block" flex-gt-xs>
+                        <label>Complemento</label>
+                        <input name="complemento" ng-model="nota.Cabecalho.COMPLEMENTO" max='60' min='1' md-maxlength="60" md-no-asterisk>
+                      </md-input-container>  
+                      
+                      <md-input-container class="md-block" flex-gt-xs>
+                        <label>Bairro</label>
+                        <input name="bairro" ng-model="nota.Cabecalho.BAIRRO" max='60' min='1' md-maxlength="60" md-no-asterisk>
+                      </md-input-container>                        
+                    </div> 
+
+                    <div layout-gt-xs="row">                      
+                      <md-input-container >
+                        <label>CNPJ / CPF</label>
+                        <input name="cgc" ng-model="nota.Cabecalho.CGC" ui-br-cpfcnpj-mask md-no-asterisk></input>
+                      </md-input-container>
+    
+                      <md-input-container class="md-block" flex-gt-xs>
+                        <label>I. E.</label>
+                        <input name="inscest" ng-model="nota.Cabecalho.IE" ui-br-ie-mask='PR' md-no-asterisk>
+                      </md-input-container>
+
+                      <md-input-container class="md-block" flex-gt-xs required>
+                          <label>Contribuinte</label>
+                          <md-select ng-model="nota.Cabecalho.INDIEDEST">
+                            <md-option value="C">Contribuinte</md-option>
+                            <md-option value="I">Isento</md-option>
+                            <md-option value="N">Não Contrib.</md-option>                                                        
+                          </md-select>
+                      </md-input-container>
+
+                      <md-input-container class="md-block" flex-gt-xs>
+                        <label>Cod</label>
+                        <input name="codcidade" ng-model="nota.Cabecalho.CODCIDADE" max='7' min='7' md-no-asterisk>
+                      </md-input-container>  
+
+                      <md-input-container class="md-block" flex-gt-xs>
+                        <label>Cidade</label>
+                        <input name="cidade" ng-model="nota.Cabecalho.CIDADE" max='60' min='1' md-maxlength="60" md-no-asterisk>
+                      </md-input-container>  
+
+                      <md-input-container class="md-block" flex-gt-xs>
+                        <label>Estado</label>
+                        <input name="estado" ng-model="nota.Cabecalho.ESTADO" max='2' min='1' md-no-asterisk>
+                      </md-input-container>    
+
+                    </div>                     
+                  </fieldset>                
+
+        
+              </form>
+            </div>
+          </md-content>               
+      </md-card>
+      <md-card>           
+      </md-card>
+    </md-content>
+  </section>

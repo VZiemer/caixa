@@ -1,0 +1,88 @@
+<style>
+  .md-checkbox {display:none}
+</style>
+<md-dialog class="fullscreen-dialog" aria-label="" layout='column'>
+    <form ng-cloak>
+      <md-toolbar>
+        <div class="md-toolbar-tools">
+          <h2>Vendas</h2>
+          <span flex></span>
+          <md-button class="md-icon-button" ng-click="cancel()">
+            <md-icon class="material-icons" style="color: white;">close</md-icon>
+          </md-button>
+        </div>
+      </md-toolbar>
+      <md-dialog-content >
+        <div class="md-dialog-content">
+          <form ng-submit="carregaVenda(venda)" action="#">
+            <md-input-container>
+              <label>Venda</label>
+              <input type="text" ng-model="venda" required >
+            </md-input-container> 
+            <input type='submit' value='ok' ng-click="carregaVenda(venda)">
+          </form>     
+          <!-- exact table from live demo -->
+          <md-table-container style="overflow: auto;" ng-style="{'height':'130px'}">
+            <table md-table md-row-select  > <!-- multiple -->
+              <thead fix-head md-head>
+                <tr md-row>
+                  <th md-column md-order-by="LCTO"><span>LCTO</span></th>
+                  <th md-column md-order-by="RAZÃO"><span>CLIENTE</span></th>
+                  <th md-column md-order-by="TOTAL">TOTAL</th>
+                </tr>
+              </thead>
+              <tbody md-body>
+                <tr md-row ng-repeat="x in Vendas" ng-style="{'height':'23px'}">
+                  <td md-cell>{{x.LCTO}}</td>
+                  <td md-cell>{{x.RAZAO}}</td>
+                  <td md-cell>{{x.TOTAL}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </md-table-container>
+        <!-- <md-table-pagination md-limit="" md-limit-options="[5, 10, 15]" md-page="" md-total="" md-on-paginate="" md-page-select></md-table-pagination>		 -->
+        <md-table-container style="overflow: auto;" ng-style="{'height':'200px'}">
+            <table md-table>
+              <thead fix-head md-head>
+                <tr md-row >
+                  <th md-column ><span>CODIGO</span></th>
+                  <th md-column ><span>QTD</span></th>
+                  <th md-column >DESCRICAO</th>
+                  <th md-column >VALOR</th>
+                   <th md-column >TOTAL</th>
+                </tr>
+              </thead>
+              <tbody md-body>
+                <tr md-row ng-repeat="item in prodNotas" ng-style="{'height':'23px'}">
+                  <td md-cell>{{item.CODPRO}}</td>
+                  <td md-cell>{{item.QTD}}</td>
+                  <td md-cell>{{item.DESCRICAO}}</td>
+                  <td md-cell>{{item.VALOR}}</td>
+                  <td md-cell>{{item.VALOR * item.QTD || currency}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </md-table-container>
+      </div>
+      </md-dialog-content>
+  
+      <md-dialog-actions layout="row" layout-align="end">
+        <!-- <md-button href="http://en.wikipedia.org/wiki/Mango" target="_blank" md-autofocus>
+          More on Wikipedia
+        </md-button> -->
+        <span flex></span>  
+        <md-button ng-click="InserePgto($event,{'ID_PAGAMENTO':10,'NOME':'BOLETO 15','EMPRESA':0,'TIPO':'BL','QTD_PARCELAS':5,'PERIODO':15,'PARCELAS_GER':5,'CODBAN':109,'ATIVO':1,'PARCELA_MIN':150,'PARCELA_MIN_GER':0})">
+          Boleto 15
+        </md-button>
+        <md-button ng-click="InserePgto($event,{'ID_PAGAMENTO':10,'NOME':'BOLETO 30','EMPRESA':0,'TIPO':'BL','QTD_PARCELAS':5,'PERIODO':30,'PARCELAS_GER':5,'CODBAN':109,'ATIVO':1,'PARCELA_MIN':150,'PARCELA_MIN_GER':0})">
+          Boleto 30
+        </md-button> 
+        <md-button ng-click="Faturas = []">
+          Á Vista
+        </md-button>                            
+        <md-button ng-click="ok()">
+          Gerar Nota
+        </md-button>
+      </md-dialog-actions>
+    </form>    
+  </md-dialog>

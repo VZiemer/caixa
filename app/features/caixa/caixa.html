@@ -1,0 +1,130 @@
+<style>
+    md-dialog.fullscreen-dialog {
+        max-width: 100%;
+        max-height: 100%;
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+    }  
+    md-toolbar.md-table-toolbar.alternate {
+      color: #1e88e5;
+      background-color: #e3f2fd;
+    }
+    md-toolbar.md-table-toolbar.alternate .md-toolbar-tools {
+      font-size: 13px;
+    }
+    md-card:first-child {
+      padding: 8px 8px 8px 24px;
+    }
+    .checkboxes > md-checkbox {
+      margin: 0;
+      padding: 16px;
+      min-width: 300px;
+      flex: 0 0 auto;
+    } 
+    md-dialog-actions {
+      bottom: 0;
+    }
+</style>
+<section layout='column' flex layout-align="center center" class="login" keyboard="vm.keys">
+    <!-- <form class="form-modal" ng-submit="buscar(busca)">
+    </form> -->
+    <md-toolbar class="md-table-toolbar md-default">
+        <div class="md-toolbar-tools">
+            <h2 flex md-truncate>Caixa</h2>
+            <span flex></span>
+            <md-button class="md-accent md-raised" ng-click="vm.reducaoZ($event)" >
+                <md-icon class="material-icons" style="color: green;">add</md-icon>
+                ReduçãoZ
+              </md-button> 
+              <md-button class="md-accent md-raised" ng-click="vm.acertaHora($event)" >
+                <md-icon class="material-icons" style="color: green;">add</md-icon>
+                Acertahora
+              </md-button>                                      
+            <!-- <md-button class="md-accent md-raised" ng-click="vm.novaVenda($event)" >
+              <md-icon class="material-icons" style="color: green;">add</md-icon>
+              Novo (F2)
+            </md-button>             -->
+            <md-button class="md-accent md-raised" ng-click="vm.Pagar($event)" ng-disabled="!venda.LCTO">
+              <md-icon class="material-icons" style="color: green;">add_shopping_cart</md-icon>
+              Pagamento (F5)
+            </md-button>
+            <md-button class="md-accent md-raised" ng-click="vm.abreVendas($event,'C')">
+                <md-icon class="material-icons" style="color: green;">menu</md-icon>
+                Pedidos (F3)
+            </md-button> 
+            <md-button class="md-accent md-raised" ng-click="vm.abreVendas($event,'R')">
+                <md-icon class="material-icons" style="color: green;">menu</md-icon>
+                Reservas (F4)
+            </md-button> 
+            <md-button class="md-accent md-raised" ng-click="vm.puxaLocal()">
+              <md-icon class="material-icons" style="color: green;">menu</md-icon>
+              Puxa Local
+            </md-button>
+            <md-button class="md-accent md-raised" ng-click="vm.NFe()">
+              <md-icon class="material-icons" style="color: green;">menu</md-icon>
+              NF-e
+            </md-button>                                       
+            <md-button class="md-raised md-icon-button md-accent" ng-click="vm.Logout()">
+                <md-icon class="material-icons" style="color: blue;">help</md-icon>
+            </md-button>             
+            <!-- <md-button class="md-accent md-raised">Raised and Accent Button</md-button>
+            <md-button class="md-primary">Primary Button</md-button>
+            <md-button class="md-no-focus">No Focus Style</md-button>              -->
+        </div>      
+      </md-toolbar>
+      <md-content layout="column" layout-fill>
+        <md-card>
+            <div layout="row">
+                <div flex layout="row" layout-align="start center">
+                  <md-button class="md-icon-button md-raised" ng-click="alteraValorVenda()" ng-if="param.admin">
+                      <md-icon class="material-icons" style="color: red;">create</md-icon>
+                  </md-button>
+                  <div layout="column" layout-align="start center">
+                    <span class="md-title">
+                      TOTAL: {{venda.TOTAL | currency:'R$ '}}                  
+                    </span>
+                    <span class="md-body-1" ng-if="venda.TOTALSDESC != venda.TOTAL" >sem desconto: {{venda.TOTALSDESC | currency:'R$ '}}</span>
+                  </div>
+                </div>
+                <div flex="20" layout-align="start center"><span class="md-title" >Data: {{venda.DATA | date:'dd/MM/yyyy'}}</span></div>
+            </div>          
+          <div layout="row">
+            <div flex layout-padding class="md-subhead" >Pedido: {{venda.LCTO}}</div>
+            <div flex layout-padding class="md-subhead" >Código: {{venda.CODCLI}}</div>
+            <div flex="40" layout-padding layout-wrap class="md-subhead">Cliente: {{venda.NOMECLI}}</div>
+            <div flex="25" layout-padding class="md-subhead">Vendedor: {{venda.NOMEVEND}}</div>
+          </div>          
+        </md-card>
+        <md-card>
+          <md-table-container style="overflow: auto;" ng-style="{'height':mainScreen-400+'px'}">
+              <table md-table>
+                <thead fix-head md-head>
+                  <tr md-row>
+                    <th md-column ng-if="param.admin"></th>
+                    <th md-column ><span>CODIGO</span></th>
+                    <th md-column ><span>QTD</span></th>
+                    <th md-column >DESCRICAO</th>
+                    <th md-column >VALOR UNIT.</th>
+                    <th md-column >VALOR TOTAL</th>
+                  </tr>
+                </thead>
+                <tbody md-body>
+                  <tr md-row ng-repeat="item in prodVenda">
+                    <td md-cell ng-if="param.admin">
+                      <md-button class="md-icon-button md-raised" ng-click="alteraValor($event,item,$index)">
+                          <md-icon class="material-icons" style="color: red;">create</md-icon>
+                      </md-button>
+                    </td>
+                    <td md-cell>{{item.CODIGO}}</td>
+                    <td md-cell>{{item.QTDPEDIDO}}</td>
+                    <td md-cell>{{item.DESCRICAO}}</td>
+                    <td md-cell>{{item.VALOR | currency}}</td>
+                    <td md-cell>{{item.TOTAL | currency}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </md-table-container>            
+        </md-card>
+      </md-content>
+    </section>

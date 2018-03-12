@@ -1,0 +1,32 @@
+<md-dialog class="dialog" aria-label="Mango (Fruit)" layout='column'>
+    <form ng-cloak>
+      <md-toolbar>
+        <div class="md-toolbar-tools">
+          <h2>CPF do clinte</h2>
+          <span flex></span>
+          <md-button class="md-icon-button" ng-click="cancel()">
+            <md-icon class="material-icons" style="color: white;">close</md-icon>
+          </md-button>
+        </div>
+      </md-toolbar>
+      <md-dialog-content >
+        <div class="md-dialog-content" layout="column">        
+          <!-- <md-card flex> -->
+            <md-input-container>
+              <label>CPF</label>
+              <input type="text" ui-br-cpfcnpj-mask ng-model="cliente" md-autofocus>
+            </md-input-container>                                                  
+          <!-- </md-card> -->
+        </div>
+      </md-dialog-content>
+      <md-dialog-actions layout="row" layout-align="end">
+        <!-- <md-button href="http://en.wikipedia.org/wiki/Mango" target="_blank" md-autofocus>
+          More on Wikipedia
+        </md-button> -->
+        <span flex></span>
+        <md-button ng-click="hide()">
+          OK
+        </md-button>
+      </md-dialog-actions>
+    </form>    
+  </md-dialog>

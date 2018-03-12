@@ -1,0 +1,76 @@
+<md-dialog class="dialog" aria-label="Mango (Fruit)" layout='column'>
+    <form ng-cloak>
+      <md-toolbar>
+        <div class="md-toolbar-tools">
+          <h2>Pagamento {{pagamento.NOME}}</h2>
+          <span flex></span>
+          <md-button class="md-icon-button" ng-click="cancel()">
+            <md-icon class="material-icons" style="color: white;">close</md-icon>
+          </md-button>
+        </div>
+      </md-toolbar>
+      <md-dialog-content >
+        <div class="md-dialog-content" layout="column" >        
+          <!-- <md-card flex> -->
+            <md-input-container>
+              <label>Á Pagar</label>
+              <input type="text" ui-money-mask="R$" ng-model="pagamento.VALORAPAGAR" md-autofocus ng-max="max">
+            </md-input-container>           
+            <md-input-container ng-if="pagamento.QTD_PARCELAS-1">
+                <label>Parcelas</label>
+                  <md-select ng-model="pagamento.PARCELAS" placeholder="Select a state">
+                    <md-option ng-value="x" ng-repeat="x in parcelas | limitTo:pagamento.QTD_PARCELAS">{{x}}x {{calculaParcela(x,pagamento.VALORAPAGAR) |currency:'R$'}}</md-option>
+                  </md-select>
+              </md-input-container>            
+            <md-input-container ng-if="pagamento.TIPO == 'DI'">
+              <label>Troco</label>
+              <input type="text" ng-value="pagamento.VALORAPAGAR - venda.PAGAR" disabled>
+            </md-input-container>              
+              <fieldset ng-if="pagamento.TIPO == 'CH'">
+                  <legend>Dados Cheque</legend>
+                  <div layout-gt-xs="row">  
+                    <md-input-container class="md-block" flex-gt-xs='15'>
+                      <label>Banco</label>
+                      <input md-no-asterisk name="banco" ng-model="pagamento.BANCO">
+                    </md-input-container>
+                    <md-input-container class="md-block" flex-gt-xs='15'>
+                      <label>Agência</label>
+                      <input md-no-asterisk name="agencia" ng-model="pagamento.AGENCIA">
+                    </md-input-container>  
+                    <md-input-container class="md-block" flex-gt-xs='25'>
+                      <label>Conta</label>
+                      <input md-no-asterisk name="conta" ng-model="pagamento.CONTA">
+                    </md-input-container> 
+                    <md-input-container class="md-block" flex-gt-xs>
+                      <label>Numero</label>
+                      <input md-no-asterisk name="numero" ng-model="pagamento.NRCHEQUE">
+                    </md-input-container>
+                  </div>
+                  <div layout-gt-xs="row">
+                    <md-input-container >
+                      <label>Bom Para</label>
+                      <md-datepicker name="dt_saida" md-hide-icons="calendar" ng-model="pagamento.VENCTO"></md-datepicker>
+                    </md-input-container>
+                    <md-input-container class="md-block" flex-gt-xs>
+                        <label>Titular</label>
+                        <input md-no-asterisk name="emnome" ng-model="pagamento.EMNOME">
+                      </md-input-container>                          
+                  </div>                  
+                </fieldset>              
+
+
+
+          <!-- </md-card> -->
+        </div>
+      </md-dialog-content>
+      <md-dialog-actions layout="row" layout-align="end">
+        <!-- <md-button href="http://en.wikipedia.org/wiki/Mango" target="_blank" md-autofocus>
+          More on Wikipedia
+        </md-button> -->
+        <span flex></span>
+        <md-button ng-click="paga(pagamento)">
+          OK
+        </md-button>
+      </md-dialog-actions>
+    </form>    
+  </md-dialog>

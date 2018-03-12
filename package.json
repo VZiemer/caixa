@@ -1,0 +1,62 @@
+{
+  "name": "caixa",
+  "productName": "Caixa",
+  "version": "1.0.1",
+  "description": "Sistema Loja",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "build": {
+    "appId": "florestalferragens",
+    "productName": "Florestal Ferragens",
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis-web",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        }
+      ]
+    },
+    "nsisWeb": {
+      "allowToChangeInstallationDirectory": true,
+      "oneClick": false
+    },
+    "icon": "build/icon.ico",
+    "publish": {
+      "provider": "github",
+      "host": "github.com",
+      "protocol": "https",
+      "owner": "VZiemer",
+      "token": "492410515ee0eb3b5c9302d422070e15bf85bdb2"
+    }
+  },
+  "repository": "https://github.com/VZiemer/caixa.git",
+  "keywords": [],
+  "author": "VZiemer",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "~1.6.2",
+    "electron-builder": "^19.49.0",
+    "node-gyp": "^3.6.2",
+    "rebuild": "^0.1.2"
+  },
+  "dependencies": {
+    "calendario": "^1.1.4",
+    "electron-config": "^1.0.0",
+    "electron-updater": "^2.17.6",
+    "ffi": "^2.2.0",
+    "iconv": "^2.3.0",
+    "ini": "^1.3.5",
+    "md-data-table": "^2.2.0",
+    "node-firebird": "^0.8.4",
+    "ref-array": "^1.2.0"
+  }
+}

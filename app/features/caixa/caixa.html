@@ -25,22 +25,18 @@
     md-dialog-actions {
       bottom: 0;
     }
+
 </style>
 <section layout='column' flex layout-align="center center" class="login" keyboard="vm.keys">
     <!-- <form class="form-modal" ng-submit="buscar(busca)">
     </form> -->
     <md-toolbar class="md-table-toolbar md-default">
         <div class="md-toolbar-tools">
-            <h2 flex md-truncate>Caixa</h2>
             <span flex></span>
             <md-button class="md-accent md-raised" ng-click="vm.reducaoZ($event)" >
                 <md-icon class="material-icons" style="color: green;">add</md-icon>
                 ReduçãoZ
-              </md-button> 
-              <md-button class="md-accent md-raised" ng-click="vm.acertaHora($event)" >
-                <md-icon class="material-icons" style="color: green;">add</md-icon>
-                Acertahora
-              </md-button>                                      
+              </md-button>                                     
             <!-- <md-button class="md-accent md-raised" ng-click="vm.novaVenda($event)" >
               <md-icon class="material-icons" style="color: green;">add</md-icon>
               Novo (F2)
@@ -58,7 +54,7 @@
                 Reservas (F4)
             </md-button> 
             <md-button class="md-accent md-raised" ng-click="vm.puxaLocal()">
-              <md-icon class="material-icons" style="color: green;">menu</md-icon>
+              <md-icon class="material-icons" style="color: green;">forward</md-icon>
               Puxa Local
             </md-button>
             <md-button class="md-accent md-raised" ng-click="vm.NFe()">
@@ -68,35 +64,32 @@
             <md-button class="md-raised md-icon-button md-accent" ng-click="vm.Logout()">
                 <md-icon class="material-icons" style="color: blue;">help</md-icon>
             </md-button>             
-            <!-- <md-button class="md-accent md-raised">Raised and Accent Button</md-button>
-            <md-button class="md-primary">Primary Button</md-button>
-            <md-button class="md-no-focus">No Focus Style</md-button>              -->
         </div>      
       </md-toolbar>
-      <md-content layout="column" layout-fill>
-        <md-card>
-            <div layout="row">
-                <div flex layout="row" layout-align="start center">
-                  <md-button class="md-icon-button md-raised" ng-click="alteraValorVenda()" ng-if="param.admin">
+      <md-content layout="row" layout-fill>
+        <md-card layout="column" flex="30">
+            <div layout="column" >
+                <div layout="row" flex layout-align="start center">
+                  <md-button class="md-icon-button md-raised small" ng-click="alteraValorVenda()" ng-if="param.admin">
                       <md-icon class="material-icons" style="color: red;">create</md-icon>
                   </md-button>
-                  <div layout="column" layout-align="start center">
+                  <div layout="column" layout-align="rigth center">
                     <span class="md-title">
                       TOTAL: {{venda.TOTAL | currency:'R$ '}}                  
                     </span>
                     <span class="md-body-1" ng-if="venda.TOTALSDESC != venda.TOTAL" >sem desconto: {{venda.TOTALSDESC | currency:'R$ '}}</span>
                   </div>
                 </div>
-                <div flex="20" layout-align="start center"><span class="md-title" >Data: {{venda.DATA | date:'dd/MM/yyyy'}}</span></div>
+                <div layout-align="start center"><span class="md-title" >Data: {{venda.DATA | date:'dd/MM/yyyy'}}</span></div>
             </div>          
-          <div layout="row">
-            <div flex layout-padding class="md-subhead" >Pedido: {{venda.LCTO}}</div>
-            <div flex layout-padding class="md-subhead" >Código: {{venda.CODCLI}}</div>
-            <div flex="40" layout-padding layout-wrap class="md-subhead">Cliente: {{venda.NOMECLI}}</div>
-            <div flex="25" layout-padding class="md-subhead">Vendedor: {{venda.NOMEVEND}}</div>
-          </div>          
+          <div layout="column"  >
+            <div flex layout-padding class="md-subhead" ><span class="md-title">Pedido: </span>{{venda.LCTO}}</div>
+            <div flex layout-padding class="md-subhead"><span class="md-title">Vendedor: </span>{{venda.NOMEVEND}}</div>
+            <div flex layout-padding class="md-subhead" ><span class="md-title">Código: </span>{{venda.CODCLI}}</div>
+            <div flex layout-padding layout-wrap class="md-subhead"><span class="md-title">Cliente: </span>{{venda.NOMECLI}}</div>
+            </div>                    
         </md-card>
-        <md-card>
+        <md-card layout="column" flex>
           <md-table-container style="overflow: auto;" ng-style="{'height':mainScreen-400+'px'}">
               <table md-table>
                 <thead fix-head md-head>

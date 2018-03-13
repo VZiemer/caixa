@@ -102,6 +102,13 @@ function Nota(versao,cUF,AAMM,CNPJ,mod,serie,nNF,tpEmis,finNFe) {
   }
 }
 
+Nota.prototype.InsereTransportador = function () {
+
+
+
+  
+}
+
 Nota.prototype.GravaBanco = function(produtos,nomexml,protocolo){
   let CFOP = '';
   let NATOPER = '';

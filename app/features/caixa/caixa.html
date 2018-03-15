@@ -63,7 +63,13 @@
             </md-button>                                       
             <md-button class="md-raised md-icon-button md-accent" ng-click="vm.Logout()">
                 <md-icon class="material-icons" style="color: blue;">help</md-icon>
-            </md-button>             
+            </md-button>
+            <md-button class="md-raised md-icon-button md-accent" ng-click="vm.numerocupom()">
+                Nucupom
+            </md-button>
+            <md-button class="md-raised md-icon-button md-accent" ng-click="vm.leiturax()">
+                leitura
+            </md-button>                                       
         </div>      
       </md-toolbar>
       <md-content layout="row" layout-fill>
@@ -80,9 +86,9 @@
                     <span class="md-body-1" ng-if="venda.TOTALSDESC != venda.TOTAL" >sem desconto: {{venda.TOTALSDESC | currency:'R$ '}}</span>
                   </div>
                 </div>
-                <div layout-align="start center"><span class="md-title" >Data: {{venda.DATA | date:'dd/MM/yyyy'}}</span></div>
             </div>          
-          <div layout="column"  >
+          <div layout="column">
+            <div flex layout-padding class="md-subhead"><span class="md-title" >Data: {{venda.DATA | date:'dd/MM/yyyy'}}</span></div>
             <div flex layout-padding class="md-subhead" ><span class="md-title">Pedido: </span>{{venda.LCTO}}</div>
             <div flex layout-padding class="md-subhead"><span class="md-title">Vendedor: </span>{{venda.NOMEVEND}}</div>
             <div flex layout-padding class="md-subhead" ><span class="md-title">Código: </span>{{venda.CODCLI}}</div>
@@ -90,7 +96,7 @@
             </div>                    
         </md-card>
         <md-card layout="column" flex>
-          <md-table-container style="overflow: auto;" ng-style="{'height':mainScreen-400+'px'}">
+          <md-table-container style="overflow-y: scroll;overflow-x: auto;" ng-style="{'height':mainScreen-300+'px'}">
               <table md-table>
                 <thead fix-head md-head>
                   <tr md-row>

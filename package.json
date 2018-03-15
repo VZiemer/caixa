@@ -1,26 +1,35 @@
 {
   "name": "caixa",
   "productName": "Caixa",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Sistema Loja",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
-  },
+    "start": "electron .",
+    "release": "build",
+    "publish": "build -p always"
+},
   "build": {
     "appId": "florestalferragens",
     "productName": "Florestal Ferragens",
+    "extraFiles": [ "config/"],
     "directories": {
       "buildResources": "build",
       "output": "dist"
     },
+    "publish": {
+      "provider": "github",
+      "owner": "VZiemer",
+      "repo": "caixa",
+      "token": "5b89b05ff3d9e8b8dc5ba00b8953332d2e4a0e24"
+    },    
     "win": {
       "target": [
         {
           "target": "nsis-web",
           "arch": [
-            "x64",
-            "ia32"
+            "ia32",
+            "x64"
           ]
         }
       ]
@@ -29,14 +38,7 @@
       "allowToChangeInstallationDirectory": true,
       "oneClick": false
     },
-    "icon": "build/icon.ico",
-    "publish": {
-      "provider": "github",
-      "host": "github.com",
-      "protocol": "https",
-      "owner": "VZiemer",
-      "token": "492410515ee0eb3b5c9302d422070e15bf85bdb2"
-    }
+    "icon": "build/icon.ico"
   },
   "repository": "https://github.com/VZiemer/caixa.git",
   "keywords": [],

@@ -167,6 +167,8 @@ angular
 .directive("keyboard", keyboard);
 
 function AppCtrl ($scope, $timeout, $mdSidenav,$location) {
+  $scope.appVersion = window.require('electron').remote.app.getVersion()
+
   var vm = this;
   vm.msgs = [];
   vm.keys = {

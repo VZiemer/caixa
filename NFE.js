@@ -1,11 +1,8 @@
 const ini = require ( 'ini' );
 const Firebird = require ('node-firebird');
 const fs = require('fs'); 
-
-var config = ini.parse(fs.readFileSync('./config.ini', 'utf-8'))
+var config = ini.parse(fs.readFileSync('config/config.ini', 'utf-8'))
 console.log(config)
-
-
 console.log(config.PASTA)
 let options = {};
 options.host = 'sistema.florestalferragens.com.br';
@@ -44,7 +41,6 @@ let produtos = [];
 let transportador = {};
 let verProc = '1.0.0';
 let chave = '';
-
 let TvBC=0,TvICMS=0,TvICMSDeson=0,TvBCST=0,TvST=0,TvProd=0,TvFrete=0,TvSeg=0,TvDesc=0,TvII=0,TvIPI=0,TvPIS=0,TvCOFINS=0,TvOutro=0;
 //FUNÇÕES AUXILIARES
 // completa uma string com um digito determinado á esquerda (0 á esquerda por exemplo)
@@ -101,14 +97,38 @@ function Nota(versao,cUF,AAMM,CNPJ,mod,serie,nNF,tpEmis,finNFe) {
     xJust : ''
   }
 }
-
-Nota.prototype.InsereTransportador = function () {
-
-
-
-  
+Nota.prototype.InsereVolume = function (qtd,esp,peso) {
+  this.Volume000 = {
+    'qVol':qtd,
+    'esp':esp,
+    'Marca':'',
+    'nVol':'',
+    'pesoL':'',
+    'pesoB':peso
+  }
 }
-
+Nota.prototype.InsereTransportador = function (tipofrete,nomeTransp) {
+  this.Transportador={
+    modFrete: tipofrete,  
+    CNPJCPF: '',    
+    xNome: nomeTransp,    
+    IE: '',    
+    xEnder: '',    
+    xMun: '',    
+    UF: '',    
+    vServ: '',    
+    vBCRet: '',    
+    pICMSRet: '',    
+    vICMSRet: '',    
+    CFOP: '',    
+    cMunFG: '',    
+    Placa: '',
+    UFPlaca: '',    
+    RNTC: '',   
+    vagao: '',    
+    balsa: ''
+  }
+}
 Nota.prototype.GravaBanco = function(produtos,nomexml,protocolo){
   let CFOP = '';
   let NATOPER = '';
@@ -132,7 +152,7 @@ Nota.prototype.GravaBanco = function(produtos,nomexml,protocolo){
     NATOPER = 'VENDA MERC FORA ESTADO';
   }
   let sql = "execute block as begin ";
-  sql= sql+"insert into nfe (nota,data,codcli,nome,cnpj,inscest,endereco,end_numero,bairro,cidade,estado,codcidade,fone,total,cancela,frete,entsai,basesubs,vlsubs,baseicms,valoricms,vlfrete,vldesconto,outrasdesp,cnf,finalidade,formapagto,indfinal,indiedest,cfop,natoper,nomexml,protocolo) values ("+this.Identificacao.nNF+",CURRENT_DATE,"+cliente.CODCLI+",'"+this.Destinatario.xNome+"',"+this.Destinatario.CNPJCPF+",'"+this.Destinatario.IE+"','"+this.Destinatario.xLgr+"','"+this.Destinatario.nro+"','"+this.Destinatario.xBairro+"','"+this.Destinatario.xMun+"','"+this.Destinatario.UF+"',"+cliente.CODCIDADE+",'"+this.Destinatario.Fone+"',"+this.Total.vNF+",'E','1','S',"+this.Total.vBCST+","+this.Total.vST+","+this.Total.vBC+","+this.Total.vICMS+","+this.Total.vFrete+","+this.Total.vDesc+","+this.Total.vOutro+",'"+this.Identificacao.cNF+"',"+this.Identificacao.finNFe+",1,"+this.Identificacao.indFinal+",'"+indIEDest+"','"+CFOP+"','"+NATOPER+"','"+nomexml+"','"+protocolo+"');";
+  sql= sql+"insert into nfe (nota,data,codcli,nome,cnpj,inscest,endereco,end_numero,bairro,cidade,estado,cep,codcidade,fone,total,cancela,frete,entsai,basesubs,vlsubs,baseicms,valoricms,vlfrete,vldesconto,outrasdesp,cnf,finalidade,formapagto,indfinal,indiedest,cfop,natoper,nomexml,protocolo,peso,itens,codtrans,orcto) values ("+this.Identificacao.nNF+",CURRENT_DATE,"+cliente.CODCLI+",'"+this.Destinatario.xNome+"',"+this.Destinatario.CNPJCPF+",'"+this.Destinatario.IE+"','"+this.Destinatario.xLgr+"','"+this.Destinatario.nro+"','"+this.Destinatario.xBairro+"','"+this.Destinatario.xMun+"','"+this.Destinatario.UF+"','"+this.Destinatario.CEP+"',"+cliente.CODCIDADE+",'"+this.Destinatario.Fone+"',"+this.Total.vNF+",'E','1','S',"+this.Total.vBCST+","+this.Total.vST+","+this.Total.vBC+","+this.Total.vICMS+","+this.Total.vFrete+","+this.Total.vDesc+","+this.Total.vOutro+",'"+this.Identificacao.cNF+"',"+this.Identificacao.finNFe+",1,"+this.Identificacao.indFinal+",'"+indIEDest+"','"+CFOP+"','"+NATOPER+"','"+nomexml+"','"+protocolo+"','"+this.Volume000.pesoB+"','"+this.Volume000.qVol+"','"+cliente.CODTRANSP+"',,'"+cliente.PEDIDO+"');";
 
   for(i=0;i<produtos.length;i++){
   let indice = zeroEsq(i+1,3,0);
@@ -146,7 +166,7 @@ Nota.prototype.GravaBanco = function(produtos,nomexml,protocolo){
     // db = DATABASE
     db.execute(sql, function(err, result) {
       // console.log(result[0].NOTA)
-      db.detach();
+      db.detach(function(){watcher.close()});
       // IMPORTANT: close the connection 
     });
   });
@@ -180,8 +200,8 @@ Nota.prototype.InsereEmitente = function(CNPJCPF,xNome,xFant,IE,CRT,xLgr,nro,xCp
 Nota.prototype.InsereDestinatario = function (CNPJCPF,xNome,IE,xLgr,nro,xCpl,xBairro,cMun,xMun,UF,CEP,cPais,xPais,Fone,Email) {
   let indIE = 1;
   let IEe = IE;
-  if (CNPJCPF.length==11) IEe = '';
-  if (!IEe || CNPJCPF.length==13) indIE = 9;
+  if (CNPJCPF.length==11) { indIE = 9; IEe = '';}
+  if (IEe == 'ISENTO') {indIE = 2; IEe = '';}
   if (UF == 'SP') {
     NATOPER = 'VENDA MERC NO ESTADO';
     this.Identificacao.natOp = NATOPER;
@@ -260,6 +280,12 @@ Nota.prototype.InsereDuplicatas = function(numero,valor,vencimento) {
     case '006':
         nfat = 'F'
         break;
+      case '007':
+        nfat = 'G'
+        break; 
+      case '008':
+        nfat = 'H'
+        break;               
 }  
   this['Duplicata'+numero] = {
     'nDup':this.Identificacao.nNF + nfat,
@@ -286,11 +312,11 @@ Nota.prototype.InsereProduto = function(indice,orig,sittrib,cod,descricao,ncm,un
    if(RegimeTrib == 1){ 
     if (sittrib == 101) {  // sem S.T.
       CSOSN = orig + '101';
-      totais.PRODICMS += valor;
+      totais.PRODICMS += dinheiro(valor * qtd );
     }
     if (sittrib == 060) {  // com S.T.
       CSOSN = orig + '500';
-      totais.PRODST += valor;
+      totais.PRODST += dinheiro(valor * qtd );
     }        
    }
    if (RegimeTrib == 2) { 
@@ -302,7 +328,7 @@ Nota.prototype.InsereProduto = function(indice,orig,sittrib,cod,descricao,ncm,un
       TvICMS += vICMS;
       CST = orig + '00';
       pICMS = aliq;
-      totais.PRODICMS += valor;
+      totais.PRODICMS += dinheiro(valor * qtd );
      }
      else if (sittrib == '060') {  // com S.T.
       vBC = 0;
@@ -311,7 +337,7 @@ Nota.prototype.InsereProduto = function(indice,orig,sittrib,cod,descricao,ncm,un
       TvICMS += vICMS;
       CST = orig + '60';
       pICMS = 0;
-      totais.PRODST += valor;
+      totais.PRODST += dinheiro(valor * qtd );
      }     
    }
    return {
@@ -489,8 +515,9 @@ Nota.prototype.InsereProduto = function(indice,orig,sittrib,cod,descricao,ncm,un
 exports.iniciaNota =  function (venda,produtos,faturas) {
   cliente = {
     'CODCLI':venda.CODCLI,
-    'CODCIDADE':venda.CODCIDADE
-
+    'CODCIDADE':venda.CODCIDADE,
+    'PEDIDO': venda.LCTO,
+    'CODTRANSP':venda.CODTRANSP
   }
   totais = {
   'TOTAL' : venda.TOTAL || 0,
@@ -504,33 +531,33 @@ exports.iniciaNota =  function (venda,produtos,faturas) {
 let numNota = '';
 let hoje = new Date();
 let AAMM = ''+hoje.getFullYear().toString().substr(-2) + '' +  zeroEsq(hoje.getMonth()+1,2,0)
-
 function faznota(){
   var NF = new Nota('3.10',52,AAMM,'49419732000100','55','001',numNota,'1','1');
   NF.InsereEmitente('49419732000100','FLORESTAL COMÉRCIO DE FERRAGENS LTDA EPP','FLORESTAL FERRAGENS','244147383110','2','RUA SALTO GRANDE','583','','JARDIM DO TREVO','3509502','CAMPINAS','SP','13040001','1058','BRASIL','32783644','35','3509502')
   NF.InsereDestinatario(venda.CGC,venda.RAZAO,venda.INSC,venda.ENDERECO,venda.NUMERO,venda.COMPLEMENTO,venda.BAIRRO,venda.CODIBGE,venda.CIDADE,venda.ESTADO,venda.CEP,'1058','BRASIL',venda.FONE,venda.EMAIL)
-
   faturas.forEach(function(item,index){
     NF.InsereDuplicatas(zeroEsq(index+1,3,0),item.valor,item.vencimento)  
   })
   produtos.forEach(function(item,index){
-    NF.InsereProduto(zeroEsq(index+1,3,0),item.ORIG,item.SITTRIB,item.CODINTERNO,item.DESCRICAO,item.NCM,item.UNIDADE,item.QTD,item.VALOR,item.ALIQ,item.CODPRO);
+  NF.InsereProduto(zeroEsq(index+1,3,0),item.ORIG,item.SITTRIB,item.CODPRO,item.DESCRICAO,item.NCM,item.UNIDADE,item.QTD,item.VALOR,item.ALIQ,item.CODPRO);
   })
+  NF.InsereTransportador(venda.TIPOFRETE,venda.TRANSPORTADOR )
+  NF.InsereVolume(venda.VOLUMES,'CX',venda.PESO)
   NF.CalculaTotais();
- 
-fs.watch(""+config.PASTA+"",{ persistent: true}, (eventType, filename) => {
+var watcher = fs.watch(""+config.PASTA+"",{ persistent: true}, (eventType, filename) => {
   console.log(filename);
   console.log(eventType);
   if (filename==config.RETORNO && eventType == 'change') {
-      fs.readFile(""+config.PASTA+"\\"+config.RETORNO+"", 'utf-8',(erro,resposta) => {
-        
+      fs.readFile(""+config.PASTA+"\\"+config.RETORNO+"", 'utf-8',(erro,resposta) => {     
         if (erro) {throw erro}
         // fs.unlinkSync(""+config.PASTA+"\\"+config.RETORNO+"");
         var retorno = ini.parse(resposta)
         console.log(retorno)
         cliente = {
           'CODCLI':'',
-          'CODCIDADE':''
+          'CODCIDADE':'',
+          'PEDIDO': '',
+          'CODTRANSP':''   
         }
         totais = {
         'TOTAL' : 0,
@@ -556,7 +583,6 @@ fs.watch(""+config.PASTA+"",{ persistent: true}, (eventType, filename) => {
       });        
   };
 });
-
   let textoini = ini.stringify(NF);
   console.log(textoini)
   fs.writeFile(""+config.PASTA+""+config.ARQUIVO+"",'NFe.CriarEnviarNFe("\n'+textoini+'\n",1)', (err) => {

@@ -13,8 +13,7 @@
     function VendasCtrl ($scope,$q,VendaSrvc,$mdDialog,$location) {
       $scope.param = remote.getGlobal('dados').param;
       const screenElectron = electron.screen;
-      $scope.mainScreen = screenElectron.getPrimaryDisplay().size.height;
-      console.log($scope.mainScreen);          
+      $scope.mainScreen = screenElectron.getPrimaryDisplay().workAreaSize.height;         
       $scope.venda = {
         'LCTO':null,
         'DATA':'',
@@ -100,7 +99,8 @@
         $scope.carregaVenda=function(venda) {
           console.log ("aaaaa")
           VendaSrvc.vendaNota(venda).then(function(response){
-              $scope.Vendas.push(response[0][0])
+            console.log(response)
+              // $scope.Vendas.push(response[0][0])
               if(!$scope.Venda.LCTO) {
                   $scope.Venda.BAIRRO=response[0][0].BAIRRO,
                   $scope.Venda.CEP=response[0][0].CEP,
@@ -115,23 +115,24 @@
                   $scope.Venda.ENDERECO=response[0][0].ENDERECO,
                   $scope.Venda.ESTADO=response[0][0].ESTADO,
                   $scope.Venda.FONE=response[0][0].FONE,
-                  $scope.Venda.FRETE=response[0][0].FRETE,
                   $scope.Venda.INSC=response[0][0].INSC,
                   $scope.Venda.LCTO=response[0][0].LCTO,
                   $scope.Venda.NUMERO=response[0][0].NUMERO,
                   $scope.Venda.RAZAO=response[0][0].RAZAO,
                   $scope.Venda.SEGURO=response[0][0].SEGURO,
                   $scope.Venda.TOTAL=response[0][0].TOTAL,
-                  $scope.Venda.PAGAR=$scope.Venda.TOTAL
+                  $scope.Venda.FRETE=response[0][0].FRETE,
+                  $scope.Venda.VOLUMES=response[0][0].VOLUMES,
+                  $scope.Venda.PESO=response[0][0].PESO,
+                  $scope.Venda.TRANSPORTADOR=response[0][0].TRANSPORTADOR,
+                  $scope.Venda.CODTRANSP=response[0][0].CODTRANSP,
+                  $scope.Venda.TIPOFRETE=response[0][0].TIPOFRETE
               }
-              else {
-                $scope.Venda.TOTAL += response[0][0].TOTAL;
-                $scope.Venda.PAGAR = $scope.Venda.TOTAL;
-                $scope.Venda.FRETE += response[0][0].FRETE;
-                $scope.Venda.DESCONTO += response[0][0].DESCONTO;
-                $scope.Venda.SEGURO += response[0][0].SEGURO;
-                console.log($scope.Venda)
-                }
+            response[0].forEach(function(valor,index,array){
+              if(valor.CODBAN==109 || valor.CODBAN == 209){
+                $scope.Faturas.push({'valor':valor.VALOR,'vencimento':valor.VENCIMENTO})
+              }
+            })                
             response[1].forEach(function(valor,index,array){
               $scope.prodNotas.push(valor)
             })

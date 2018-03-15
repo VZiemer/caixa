@@ -1,10 +1,5 @@
-const electron = require('electron')
+const {app, BrowserWindow, ipcMain, dialog} = require('electron');
 const autoUpdater = require("electron-updater").autoUpdater
-//teste
-// Module to control application life.
-const app = electron.app
-// Module to create native browser window.
-const BrowserWindow = electron.BrowserWindow
 global.dados={ 
   'configs' : {
     computador: '059ed89922706c792646',
@@ -72,11 +67,11 @@ function createWindow () {
     { 
       minimizable :true,
       fullscreen :false,
-      enableLargerThanScreen  :false,
+      enableLargerThanScreen:false,
       skipTaskbar:false,
       autoHideMenuBar:false,
       defaultFontFamily : 'monospace',
-      experimentalFeatures:true,
+      experimentalFeatures:false,
       webPreferences: {
         nativeWindowOpen: true
       }
@@ -91,7 +86,7 @@ function createWindow () {
     slashes: true
   }))
   // Open the DevTools.
-   mainWindow.webContents.openDevTools()
+  //  mainWindow.webContents.openDevTools()
   mainWindow.webContents.on('new-window', (event, url, frameName, disposition, options, additionalFeatures) => {
     if (frameName === 'modal') {
       //abre a janela de impressão
@@ -99,6 +94,7 @@ function createWindow () {
       event.preventDefault()
       event.newGuest = new BrowserWindow({ 
         minimizable :false,
+        movable:true,
         width: 300, 
         height: 500,
         fullscreen :false,
@@ -132,8 +128,28 @@ function createWindow () {
 // app.on('ready', function()  {
   
 // });
-app.on('ready', createWindow)
+app.on('ready', function() { createWindow();
+  if (process.env.NODE_ENV === 'development'){}
+  // Skip autoupdate check
+  else
+  autoUpdater.checkForUpdates()
+
+})
 // Quit when all windows are closed.
+autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
+  const dialogOpts = {
+    type: 'info',
+    buttons: ['Atualizar', 'Mais tarde'],
+    title: 'Atualização de Sistema',
+    message: process.platform === 'win32' ? releaseNotes : releaseName,
+    detail: 'Uma nova versão do sistema está disponível, deseja atualizar?'
+  }
+
+  dialog.showMessageBox(dialogOpts, (response) => {
+    if (response === 0) autoUpdater.quitAndInstall()
+  })
+})
+
 app.on('window-all-closed', function () {
   // On OS X it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
@@ -142,9 +158,6 @@ app.on('window-all-closed', function () {
   }
 })
 app.on('activate', function () {
-  autoUpdater.checkForUpdatesAndNotify();
-  // On OS X it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
   if (mainWindow === null) {
     createWindow()
   }

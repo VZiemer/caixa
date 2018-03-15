@@ -2,10 +2,11 @@ const ffi = require('ffi')
 var ref = require('ref')
 var os = require('os')
 var int = ref.types.int
-var nCupom = ref.alloc('string');
+// var nCupom = ref.alloc('string');
 var ArrayType = require('ref-array');
 var IntArray = ArrayType(int);
-var stringPtr = ref.refType(ref.types.CString);
+var stringPtr = ref.refType("string");
+var intPtr = ref.refType('int');
 let DLL = 'BEMAFI32';
 if (os.arch() == 'x64') DLL = 'BEMAFI64';
 console.log(os.arch());
@@ -29,7 +30,8 @@ const bemafi = ffi.Library(DLL, {
     'Bematech_FI_AbrePortaSerial':['int',[]],
     'Bematech_FI_FechaPortaSerial':['int',[]],
     'Bematech_FI_DataHoraImpressora':['int',['string','string']],
-    'Bematech_FI_NumeroCupom':['int',[stringPtr]]
+    'Bematech_FI_NumeroCupom':['int',[stringPtr]],
+    'Bematech_FI_MonitoramentoPapel':['int',[intPtr]],
 
   });
  
@@ -129,48 +131,28 @@ exports.gravaECF = function(dados){
 }
 
 exports.leituraX = function (){
-      bemafi.Bematech_FI_LeituraX()
+    console.log(bemafi.Bematech_FI_LeituraX())
+      
 }
 
 exports.reducaoZ = function (){
     bemafi.Bematech_FI_ReducaoZ('','')
 }
-exports.acertaHora = function (){
-    function formatDate() {
-        var d = new Date(),
-            month = '' + (d.getMonth() + 1),
-            day = '' + d.getDate(),
-            year = d.getFullYear().toString().substr(-2)
-      
-        if (month.length < 2) month = '0' + month;
-        if (day.length < 2) day = '0' + day;
-      
-        return [day, month, year].join('');
-      }
-      function formatTime() {
-        var d = new Date(),
-            hour = '' + (d.getHours() + 1),
-            minute = '' + d.getMinutes(),
-            second = d.getSeconds()
-      
-        if (hour.length < 2) month = '0' + hour;
-        if (minute.length < 2) day = '0' + minute;
-        if (second.length < 2) day = '0' + second;
-      
-        return [hour, minute, second].join('');
-      }
-
-    bemafi.Bematech_FI_DataHoraImpressora(formatDate(),formatTime())
-}
 exports.nuCupom = function (){
-    var nCupom = ref.alloc(stringPtr);
-    console.log(bemafi.Bematech_FI_NumeroCupom(nCupom)) 
+    // var nCupom = ref.allocCString('      ');
+    
+    var nCupom = ref.alloc(intPtr);
+    console.log(nCupom)
+    console.log(bemafi.Bematech_FI_MonitoramentoPapel(nCupom))
+    // bemafi.Bematech_FI_NumeroCupom(nCupom)
     // bemafi.Bematech_FI_NumeroCupom(nCupom);
     var x = nCupom.deref();
+    // console.log(bemafi.Bematech_FI_NumeroCupom())
     console.log(x)
-    // bemafi.Bematech_FI_NumeroCupom.async(nCupom,function(err,res){
-    //     console.log(res)
-    //     console.log(a)
-    //     return a
-    // });
+    console.log(nCupom)
+    // var dbPtrPtr = ref.alloc(sqlite3PtrPtr);
+    // libsqlite3.sqlite3_open("test.sqlite3", dbPtrPtr);
+    // var dbHandle = dbPtrPtr.deref();
+
+
 }

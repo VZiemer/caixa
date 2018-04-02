@@ -7,7 +7,7 @@ Pagamento = function (vl,tipo,venc,codban,banco,agencia,conta,nrcheque,emnome,pa
         venc = new Date(venc+1*24*60*60*1000);
     }
     return {
-   'valor' : vl.money(),
+   'valor' : vl,
     'tipo' : tipo,
     'vencimento' : venc,
     'pagto' : pagto,
@@ -20,12 +20,12 @@ Pagamento = function (vl,tipo,venc,codban,banco,agencia,conta,nrcheque,emnome,pa
     };
 }
 exports.Pagamentos = function (vlTot,vlParc,numParc,tipopag,periodo,codban,banco,agencia,conta,nrcheque,venctoch,emnome) {
-    var arred = new dinheiro.Money(dinheiro.toCents(vlTot- (vlParc*numParc)));
-    var parc = new dinheiro.Money(dinheiro.toCents(vlParc))
+    var arred = new dinheiro(vlTot- (vlParc*numParc));
+    var parc = new dinheiro(vlParc)
     var vencto =''
     var pagto = ''
     if (arred) {
-    parc1 = new dinheiro.Money(arred.cents + parc.cents);         
+    parc1 = new dinheiro(arred + parc);         
     }
     var parcelas = [];
     if (tipopag=='NP') {

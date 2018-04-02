@@ -32,10 +32,10 @@
                 </tr>
               </thead>
               <tbody md-body>
-                <tr md-row ng-repeat="x in Vendas" ng-style="{'height':'23px'}">
-                  <td md-cell>{{x.LCTO}}</td>
-                  <td md-cell>{{x.RAZAO}}</td>
-                  <td md-cell>{{x.TOTAL}}</td>
+                <tr md-row ng-style="{'height':'23px'}">
+                  <td md-cell>{{Venda.LCTO}}</td>
+                  <td md-cell>{{Venda.RAZAO}}</td>
+                  <td md-cell>{{Venda.TOTAL}}</td>
                 </tr>
               </tbody>
             </table>
@@ -70,16 +70,7 @@
         <!-- <md-button href="http://en.wikipedia.org/wiki/Mango" target="_blank" md-autofocus>
           More on Wikipedia
         </md-button> -->
-        <span flex></span>  
-        <md-button ng-click="InserePgto($event,{'ID_PAGAMENTO':10,'NOME':'BOLETO 15','EMPRESA':0,'TIPO':'BL','QTD_PARCELAS':5,'PERIODO':15,'PARCELAS_GER':5,'CODBAN':109,'ATIVO':1,'PARCELA_MIN':150,'PARCELA_MIN_GER':0})">
-          Boleto 15
-        </md-button>
-        <md-button ng-click="InserePgto($event,{'ID_PAGAMENTO':10,'NOME':'BOLETO 30','EMPRESA':0,'TIPO':'BL','QTD_PARCELAS':5,'PERIODO':30,'PARCELAS_GER':5,'CODBAN':109,'ATIVO':1,'PARCELA_MIN':150,'PARCELA_MIN_GER':0})">
-          Boleto 30
-        </md-button> 
-        <md-button ng-click="Faturas = []">
-          Á Vista
-        </md-button>                            
+        <span flex></span>                             
         <md-button ng-click="ok()">
           Gerar Nota
         </md-button>

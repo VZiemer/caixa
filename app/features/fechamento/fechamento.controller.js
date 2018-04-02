@@ -5,34 +5,44 @@
     // const mp2032 = require('./Mp2032.js');
     const electron = require('electron'); 
     const Pagto = require('./pagamentos');
-    const dinheiro = require('./dinheiro');
-    const venda = require('./venda'); 
-    const fs = require('fs'); 
-    
-    
-// teste socket
-
-    var io = require('socket.io-client'),
-    socket = io.connect('localhost', {
-        port: 3434
-    });
-    socket.on('connect', function () { console.log("socket connected"); });
-    socket.on('error', function () { console.log("socket erro"); });
-    socket.emit('private message', { user: 'me', msg: 'whazzzup?' });
-
-
+    const dinheiro = require('./dinheiro'); 
+    const fs = require('fs');   
     const remote = require('electron').remote; 
-    angular.module('ventronElectron').controller('VendasCtrl',VendasCtrl);
-    VendasCtrl.$inject = ['$scope','$q','VendaSrvc','$mdDialog','$location'];
-    function VendasCtrl ($scope,$q,VendaSrvc,$mdDialog,$location) {
+    angular.module('ventronElectron').controller('FechamentoCtrl',FechamentoCtrl);
+    FechamentoCtrl.$inject = ['$scope','$q','VendaSrvc','$mdDialog','$location'];
+    function FechamentoCtrl ($scope,$q,VendaSrvc,$mdDialog,$location) {
           
       $scope.param = remote.getGlobal('dados').param;
       const screenElectron = electron.screen;
       $scope.mainScreen = screenElectron.getPrimaryDisplay().workAreaSize.height;         
-      $scope.venda = new venda()
-      console.log ($scope.venda)    
+      $scope.venda = {
+        'LCTO':null,
+        'DATA':'',
+        'CODCLI':'',
+        'NOMECLI':'',
+        'CODVEND':'',
+        'NOMEVEND':'',
+        'OBS':'',
+        'STATUS':''
+        };
+      $scope.prodVenda = [];  
+      $scope.totals = function (){
+								let total = 0;  
+								let totalsdesc = 0; 
+        $scope.prodVenda.forEach(function (item,index) {
+										console.log(item)
+          totalsdesc += dinheiro.toCents(Number(item.VALORINI) * Number(item.QTDPEDIDO));
+          total += dinheiro.toCents(Number(item.VALOR) * Number(item.QTDPEDIDO));
+										console.log(total)
+										console.log(totalsdesc)
+								});
+								total = new dinheiro.Money (total);
+								totalsdesc =new dinheiro.Money (totalsdesc);   
+								$scope.venda.TOTAL = total.money()
+								$scope.venda.TOTALSDESC = totalsdesc.money()
+      }      
       $scope.alteraValor = function(ev,produto,index) {
-        console.log(produto);
+        console.log(index);
         $mdDialog.show({
           controller: alteraValorCtrl,
           templateUrl: './app/features/janelas/alteraValor.tmpl.html',
@@ -48,13 +58,12 @@
           }
         })
         .then(function(response,index) {
-                  var valor = response.VALOR;
-                  console.log(response)
-                  console.log (valor) 
-									response.VALOR = response.VALOR.valor;
+									var valor = new dinheiro.Money(dinheiro.toCents(response.VALOR)); 
+									response.VALOR = valor.money();
           VendaSrvc.atualizaProdVenda(response).then(function(response){
-            console.log(response)
-            $scope.venda = response
+            VendaSrvc.listaProdVenda($scope.venda.LCTO).then(function(){
+              $scope.totals();
+            })
           });
           console.log (valor);
         }, function() {
@@ -153,7 +162,7 @@
             multiple : true,
             fullscreen: false, // Only for -xs, -sm breakpoints.,
               locals : {  
-                venda : $scope.venda,
+                venda : $scope.Venda,
                 fpagto : pagto
             }
           })
@@ -176,7 +185,7 @@
           $mdDialog.cancel();
         };
         $scope.paga = function(produto) {
-          $mdDialog.hide($scope.produto,locals.index);
+          $mdDialog.hide(produto,locals.index);
         };
       }  
       $scope.alteraValorVenda = function(ev) {
@@ -313,9 +322,7 @@
       function inserePgtoCtrl($scope, $mdDialog,locals) {  //controla o modal que faz o pagamento
 								$scope.param = remote.getGlobal('dados').param;
         // $scope.venda = locals.dados;
-                console.log(locals.venda)
-                $scope.max = locals.venda.PAGAR;
-                
+								$scope.max = locals.venda.PAGAR;
 								let maxparc = Math.floor (locals.venda.PAGAR / locals.fpagto.PARCELA_MIN+1)
 								console.log(maxparc)
 								$scope.parcelas = [1];
@@ -336,8 +343,8 @@
         $scope.calculaParcela = function(parcelas,valortotal) {
           console.log(parcelas)
           console.log(valortotal)
-          var valor = new dinheiro(valortotal/parcelas);
-          return valor;
+          var valor = new dinheiro.Money(dinheiro.toCents(valortotal/parcelas));
+          return valor.money();
           console.log(valor);
         }
         $scope.hide = function() {
@@ -348,7 +355,7 @@
         };
         $scope.paga = function(pagamento) {
           if(pagamento.VALORAPAGAR > Valor) pagamento.VALORAPAGAR = Valor;
-          var valor = new dinheiro(pagamento.VALORAPAGAR/pagamento.PARCELAS);          
+          var valor = new dinheiro.Money(dinheiro.toCents(pagamento.VALORAPAGAR/pagamento.PARCELAS));          
           pagamento.VALORPARCELA = valor
           $mdDialog.hide(pagamento);
         };
@@ -356,6 +363,7 @@
       function PagamentoCtrl($scope, $mdDialog,locals,$timeout) {  //controla o modal que faz o pagamento
         $scope.hoje =  new Date();        
         $scope.param = remote.getGlobal('dados').param;
+				$scope.CGC = locals.cgc
         VendaSrvc.formasPagamento().then(
           function(response){
               console.log(response.data);
@@ -365,7 +373,9 @@
 									console.log(response)
 									$scope.vale = response;
 								})												
+        $scope.Pagamentos = [];
         $scope.venda = locals.dados;
+        $scope.venda.PAGAR = locals.dados.TOTAL;  
         console.log ($scope.venda);   
         $scope.hide = function() {
           $mdDialog.hide();
@@ -376,21 +386,21 @@
         $scope.seleciona = function(pedido) {
           $mdDialog.hide(pedido);
         };         
-        $scope.imprime =  function (venda){
+        $scope.imprime =  function (venda,pagamentos,produtos){
           var html = "<html><head><style>@page { size: portrait;margin: 1%; }table,td,tr,span{font-size:8pt;font-family:Arial;}table {width:80mm;}td {min-width:2mm;}hr{border-top:1pt dashed #000;} </style></head><body ng-controller='BaixaController'>"
           var conteudo = "<span>DOCUMENTO SEM VALOR FISCAL</span><hr><span class='pull-left'>"+remote.getGlobal('dados').configs.empresa +"</span><br><span class='pull-left'>Pedido: "+venda.LCTO +"   Emissão: " + new Date().toLocaleDateString() + "</span><br><span>Cliente: " + venda.NOMECLI + "</span><br><span>Cod. Cliente" + venda.CODCLI + "</span><br><span>Vendedor: " + venda.NOMEVEND + "</span><br>"
           conteudo += "<span>Forma de Pagamento--------------------------------</span><br>"
           conteudo += "<table>"
           $timeout(function() {
-            angular.forEach(venda.PAGAMENTO, function(x) {
-              conteudo += "<tr><td colspan='3'>" + x.vencimento.toLocaleDateString() + "</td><td>" + x.valor.toString() + "</td><td>" + x.tipo + "</td><td colspan='3'> </td></tr>"
+            angular.forEach(pagamentos, function(x) {
+              conteudo += "<tr><td colspan='3'>" + x.vencimento.toLocaleDateString() + "</td><td>" + x.valor + "</td><td>" + x.tipo + "</td><td colspan='3'> </td></tr>"
             });
             conteudo += "</table><hr><table><tr><td colspan='8'>Descricao<td></tr><tr><td></td><td>Qtd</td><td>UN</td><td colspan='3'>Código</td><td>Vl. Unit.</td><td>Subtotal</td>"                       
-            venda.PRODUTOS.forEach(function(x, index) {
+            locals.prodVenda.forEach(function(x, index) {
 													if (!x.QTDRESERVA)
-              conteudo +="<tr><td colspan='8'>" + x.DESCRICAO + "</td></tr><tr><td></td><td>" + x.QTD + "</td><td>" + x.UNIDADE + "</td><td colspan='3'>" + x.CODIGO + "</td><td>" + x.VALOR.toString() + "</td><td>" + x.TOTAL.toString() + "</td></tr>"
+              conteudo +="<tr><td colspan='8'>" + x.DESCRICAO + "</td></tr><tr><td></td><td>" + x.QTDPEDIDO + "</td><td>" + x.UNIDADE + "</td><td colspan='3'>" + x.CODIGO + "</td><td>" + x.VALOR + "</td><td>" + x.TOTAL + "</td></tr>"
 												});
-            venda.PRODUTOS.every(function(element, index) {
+            locals.prodVenda.every(function(element, index) {
 													if (element.QTDRESERVA) {
 														conteudo += "<tr><td colspan='8'>ITENS DE ENCOMENDA</td</tr>";
 														return false
@@ -398,11 +408,11 @@
 													else return true
 											})
 											
-											venda.PRODUTOS.forEach(function(x,index) {
+											locals.prodVenda.forEach(function(x,index) {
 													if (x.QTDRESERVA)
-              conteudo +="<tr><td colspan='8'>" + x.DESCRICAO + "</td></tr><tr><td></td><td>" + x.QTD + "</td><td>" + x.UNIDADE + "</td><td colspan='3'>" + x.CODIGO + "</td><td>" + x.VALOR.toString() + "</td><td>" + x.TOTAL.toString() + "</td></tr>"
+              conteudo +="<tr><td colspan='8'>" + x.DESCRICAO + "</td></tr><tr><td></td><td>" + x.QTDPEDIDO + "</td><td>" + x.UNIDADE + "</td><td colspan='3'>" + x.CODIGO + "</td><td>" + x.VALOR + "</td><td>" + x.TOTAL + "</td></tr>"
             });												
-            conteudo += "</table><br><span class='pull-right'>Total Produtos: " + venda.TOTAL.toString() + "</span>"
+            conteudo += "</table><br><span class='pull-right'>Total Produtos: " + venda.TOTAL + "</span>"
 												conteudo +="<br><br><span>CONFERENTE.________________________________</span><br>"
             conteudo +="<br><br><span>ASS._______________________________________</span><br><br><br><br><br>"
             conteudo += conteudo;
@@ -413,39 +423,43 @@
               let modal = window.open('', 'modal')
               console.log('The file has been saved!');
             });
-            $scope.venda = new Venda()
           }); 
         } 
-        $scope.concluirCupom = function() {                
-          VendaSrvc.confirmaVenda($scope.venda).then(function(response){
+        $scope.concluirCupom = function() {
+          let venda = $scope.venda;
+          let pagamentos = $scope.Pagamentos;
+          let produtos = VendaSrvc.retornaprodVenda();
+                  
+          VendaSrvc.confirmaVenda(venda,pagamentos).then(function(response){
+            $scope.imprime(venda,pagamentos,produtos); $mdDialog.hide(); $scope.venda = {}; console.log(response)
             bemafi.gravaECF(
               {
-                  'Cliente':  $scope.venda.CGC || '',
-                  'produtos': $scope.venda.PRODUTOS,
-                  'pagamento':$scope.venda.TOTAL,
-                  'codvenda': $scope.venda.LCTO,
-                  'empresa':  remote.getGlobal('dados').configs.empresa                          
-              });
-              $scope.imprime($scope.venda); $mdDialog.hide();  console.log(response)
-                                      
+                'Cliente':  $scope.CPF || '',
+                'produtos': produtos,
+                'pagamento':venda.TOTAL,
+                'empresa':  remote.getGlobal('dados').configs.empresa                          
+              });                        
           });                     
 								}        
         $scope.emitirCupom = function() {
-									VendaSrvc.confirmaVenda($scope.venda).then(function(response){ 									
+									let produtos = VendaSrvc.retornaprodVenda();
+									VendaSrvc.confirmaVenda($scope.venda,$scope.Pagamentos).then(function(response){ 
+											$scope.imprime(); $mdDialog.hide(); $scope.venda = {}; console.log(response)
 											bemafi.gravaECF(
 													{
-															'Cliente':  $scope.venda.CGC || '',
-															'produtos': $scope.venda.PRODUTOS,
-                              'pagamento':$scope.venda.TOTAL,
-                              'codvenda':$scope.venda.LCTO,
+															'Cliente':  $scope.CPF || '',
+															'produtos': produtos,
+															'pagamento':$scope.venda.TOTAL,
 															'empresa':  remote.getGlobal('dados').configs.empresa                          
-                          });
-                          $scope.imprime($scope.venda); $mdDialog.hide(); console.log(response)                                                
+													});                        
 									});                     
 							} 								       
         $scope.concluir = function() {
-          VendaSrvc.confirmaVenda($scope.venda).then(function(response){
-            $scope.imprime($scope.venda); $mdDialog.hide();console.log(response)           
+										let venda = $scope.venda;
+										let pagamentos = $scope.Pagamentos;
+          let produtos = VendaSrvc.retornaprodVenda();
+          VendaSrvc.confirmaVenda(venda,pagamentos).then(function(response){
+            $scope.imprime(venda,pagamentos,produtos); $mdDialog.hide(); $scope.venda = {} ;console.log(response)           
           });          
         }  
         $scope.insereCPF = function(ev) {
@@ -488,47 +502,46 @@
           .then(function(pgto) {
             console.log(pgto);
             $scope.venda.PAGAR -= pgto.VALORAPAGAR;
-            Array.prototype.push.apply($scope.venda.PAGAMENTO,Pagto.Pagamentos (pgto.VALORAPAGAR,pgto.VALORPARCELA,pgto.PARCELAS,pgto.TIPO,pgto.PERIODO,pgto.CODBAN,pagto.BANCO,pagto.AGENCIA,pagto.CONTA,pagto.NRCHEQUE,pagto.VENCTO,pagto.EMNOME)); 
+            Array.prototype.push.apply($scope.Pagamentos,Pagto.Pagamentos (pgto.VALORAPAGAR,pgto.VALORPARCELA,pgto.PARCELAS,pgto.TIPO,pgto.PERIODO,pgto.CODBAN,pagto.BANCO,pagto.AGENCIA,pagto.CONTA,pagto.NRCHEQUE,pagto.VENCTO,pagto.EMNOME)); 
             console.log ("entrou pagamento");
-            console.log($scope.venda)
           }, function() {
             console.log('You cancelled the dialog.');
           });
         };        
       }
-        var cx = this;
-        cx.codbar = '';
-        cx.numerocupom = function() {
+        var fech = this;
+        fech.codbar = '';
+        fech.numerocupom = function() {
           console.log(bemafi.nuCupom());
         }         
-        cx.keys = {
-          ENTER : function(name, code) { if(cx.codbar){cx.insereproduto(cx.codbar);cx.codbar=''}},
-          A : function(name, code) { cx.codbar+=name },
-          ZERO : function(name, code) { if (cx.codbar) cx.codbar+='0'},
-          ONE : function(name, code) { if (cx.codbar) cx.codbar+='1'},
-          TWO : function(name, code) { if (cx.codbar) cx.codbar+='2'},
-          THREE : function(name, code) { if (cx.codbar) cx.codbar+='3'},
-          FOUR : function(name, code) { if (cx.codbar) cx.codbar+='4'},
-          FIVE : function(name, code) { if (cx.codbar) cx.codbar+='5'},
-          SIX : function(name, code) { if (cx.codbar) cx.codbar+='6'},
-          SEVEN : function(name, code) { if (cx.codbar) cx.codbar+='7'},
-          EIGHT : function(name, code) { if (cx.codbar) cx.codbar+='8'},
-          NINE : function(name, code) { if (cx.codbar) cx.codbar+='9'},
-          NUMPAD_0 : function(name, code) { if (cx.codbar) cx.codbar+='0'},
-          NUMPAD_1 : function(name, code) { if (cx.codbar) cx.codbar+='1'},
-          NUMPAD_2 : function(name, code) { if (cx.codbar) cx.codbar+='2'},
-          NUMPAD_3 : function(name, code) { if (cx.codbar) cx.codbar+='3'},
-          NUMPAD_4 : function(name, code) { if (cx.codbar) cx.codbar+='4'},
-          NUMPAD_5 : function(name, code) { if (cx.codbar) cx.codbar+='5'},
-          NUMPAD_6 : function(name, code) { if (cx.codbar) cx.codbar+='6'},
-          NUMPAD_7 : function(name, code) { if (cx.codbar) cx.codbar+='7'},
-          NUMPAD_8 : function(name, code) { if (cx.codbar) cx.codbar+='8'},
-          NUMPAD_9 : function(name, code) { if (cx.codbar) cx.codbar+='9'},
-										F3       : function(name, code) {cx.abreVendas('','C')},
-										F4       : function(name, code) {cx.abreVendas('','R')},
-          F5       : function(name, code) { cx.Pagar()}
+        fech.keys = {
+          ENTER : function(name, code) { if(fech.codbar){fech.insereproduto(fech.codbar);fech.codbar=''}},
+          A : function(name, code) { fech.codbar+=name },
+          ZERO : function(name, code) { if (fech.codbar) fech.codbar+='0'},
+          ONE : function(name, code) { if (fech.codbar) fech.codbar+='1'},
+          TWO : function(name, code) { if (fech.codbar) fech.codbar+='2'},
+          THREE : function(name, code) { if (fech.codbar) fech.codbar+='3'},
+          FOUR : function(name, code) { if (fech.codbar) fech.codbar+='4'},
+          FIVE : function(name, code) { if (fech.codbar) fech.codbar+='5'},
+          SIX : function(name, code) { if (fech.codbar) fech.codbar+='6'},
+          SEVEN : function(name, code) { if (fech.codbar) fech.codbar+='7'},
+          EIGHT : function(name, code) { if (fech.codbar) fech.codbar+='8'},
+          NINE : function(name, code) { if (fech.codbar) fech.codbar+='9'},
+          NUMPAD_0 : function(name, code) { if (fech.codbar) fech.codbar+='0'},
+          NUMPAD_1 : function(name, code) { if (fech.codbar) fech.codbar+='1'},
+          NUMPAD_2 : function(name, code) { if (fech.codbar) fech.codbar+='2'},
+          NUMPAD_3 : function(name, code) { if (fech.codbar) fech.codbar+='3'},
+          NUMPAD_4 : function(name, code) { if (fech.codbar) fech.codbar+='4'},
+          NUMPAD_5 : function(name, code) { if (fech.codbar) fech.codbar+='5'},
+          NUMPAD_6 : function(name, code) { if (fech.codbar) fech.codbar+='6'},
+          NUMPAD_7 : function(name, code) { if (fech.codbar) fech.codbar+='7'},
+          NUMPAD_8 : function(name, code) { if (fech.codbar) fech.codbar+='8'},
+          NUMPAD_9 : function(name, code) { if (fech.codbar) fech.codbar+='9'},
+										F3       : function(name, code) {fech.abreVendas('','C')},
+										F4       : function(name, code) {fech.abreVendas('','R')},
+          F5       : function(name, code) { fech.Pagar()}
         };
-        cx.puxaLocal = function(ev) {
+        fech.puxaLocal = function(ev) {
           $mdDialog.show({
             controller: puxaLocalCtrl,
             templateUrl: './app/features/janelas/PuxaLocal.tmpl.html',
@@ -546,7 +559,7 @@
             console.log('You cancelled the dialog.');
           });
         };
-        cx.NFe = function(ev) {
+        fech.NFe = function(ev) {
           $mdDialog.show({
             controller: geraNFCtrl,
             templateUrl: './app/features/janelas/selecionaNF.tmpl.html',
@@ -565,11 +578,11 @@
             console.log('You cancelled the dialog.');
           });
         };                   
-        cx.abreVendas = function(ev,status) {
+        fech.abreVendas = function(ev,status) {
 									$scope.venda = [];
 									$scope.prodVenda = [];									
           VendaSrvc.listaVendas(status).then(function(response){
-            cx.desserts = response.data;
+            fech.desserts = response.data;
             $mdDialog.show({
               controller: PesquisaVendaCtrl,
               templateUrl: './app/features/janelas/selecionaVenda.tmpl.html',
@@ -587,11 +600,10 @@
 													$scope.CGC=pedido.CGC;
 													console.log($scope.CGC)
 													var dados = [pedido.CODCLI,pedido.NOMECLI,pedido.CODVEND,pedido.OBS,status,pedido.LCTO];
-													VendaSrvc.atualizaVenda(dados).then(function(res){
-                            // $scope.venda=new venda(res.LCTO,res.ID_TRANSITO,res.CGC,res.INSC,res.CODCLI,res.NOMECLI,res.EMAIL,res.FONE,res.RAZAO,res.ENDERECO,res.NUMERO,res.BAIRRO,res.CEP,res.CODIBGE,res.CODCIDADE,res.CIDADE,res.ESTADO,res.COMPLEMENTO,res.DESCONTO,res.FRETE,res.SEGURO,res.TOTAL );
-                         $scope.venda=res;   
-              // VendaSrvc.retornaprodVenda().forEach(function(item){$scope.venda.insereProduto(item)});
-              console.log($scope.venda)						
+													VendaSrvc.atualizaVenda(dados).then(function(response){
+														$scope.venda=response;
+              $scope.prodVenda = VendaSrvc.retornaprodVenda();
+              $scope.totals();														
 														});													
             }, function() {
               console.log('You cancelled the dialog.');
@@ -599,26 +611,28 @@
              
            });          
 								};						
-        cx.insereproduto = function(codbar){
+        fech.insereproduto = function(codbar){
           console.log(codbar);
           VendaSrvc.inserePacote(codbar).then(
             function(response){
+              $scope.prodVenda.push(response.data);
+              $scope.totals();
               console.log(response)
             });
         };
-        cx.Logout = function()  {
+        fech.Logout = function()  {
           $location.path('/login');
         }      
-        cx.leiturax = function (ev){
+        fech.leiturax = function (ev){
           console.log(bemafi.leituraX())
 				}
-        cx.reducaoZ = function (ev){
+        fech.reducaoZ = function (ev){
           console.log(bemafi.reducaoZ())
         }
-        cx.acertaHora = function (ev){
+        fech.acertaHora = function (ev){
           console.log(bemafi.acertaHora())
         }        							
-        cx.novaVenda = function(ev){
+        fech.novaVenda = function(ev){
           $mdDialog.show({
             controller: buscaCtrl,
             templateUrl: './app/features/janelas/busca.tmpl.html',
@@ -637,7 +651,7 @@
             console.log('You cancelled the dialog.');
           });          
         }
-        cx.Pagar = function(ev) {
+        fech.Pagar = function(ev) {
           $mdDialog.show({
             controller: PagamentoCtrl,
             templateUrl: './app/features/janelas/Pagamento.tmpl.html',
@@ -646,7 +660,9 @@
             clickOutsideToClose:true,
             fullscreen: true, // Only for -xs, -sm breakpoints.,
               locals : {  
-                dados : $scope.venda
+                dados : $scope.venda,
+																prodVenda : $scope.prodVenda,
+																cgc : $scope.CGC
             }
           })
           .then(function() {
@@ -665,11 +681,11 @@
             console.log('You cancelled the dialog.');
           });
         };
-       // cx.SelecionaVenda = function(venda) {
-       //     cx.selecteder = this.item;
+       // fech.SelecionaVenda = function(venda) {
+       //     fech.selecteder = this.item;
        //     console.log($scope.selected);
        //     VendaSrvc.listaProdVenda(venda).then(function(response){
-       //       cx.ListaProduto = response;
+       //       fech.ListaProduto = response;
        //     });             
        // }; 
     };    

@@ -1,14 +1,3 @@
-const Firebird = require ('node-firebird');
-let options = {};
-options.host = 'sistema.florestalferragens.com.br';
-options.port = 3050;
-options.database = 'c:\\bessani softwares\\florestal\\base\\estoque.fdb';
-options.user = 'SYSDBA';
-options.password = 'masterkey';
-options.lowercase_keys = false; // set to true to lowercase keys
-options.role = null;  
-
-
 const ffi = require('ffi')
 var ref = require('ref')
 var os = require('os')
@@ -27,7 +16,6 @@ const bemafi = ffi.Library(DLL, {
     'Bematech_FI_ReducaoZ': [ 'int',['string','string']], 
     //cupom fiscal
     'Bematech_FI_AbreCupom':['int',['string']],
-    'Bematech_FI_AumentaDescricaoItem':['int',['string']],
     'Bematech_FI_VendeItem':['int',['string','string','string','string','string','int','string','string','string']],
     'Bematech_FI_CancelaItemAnterior':['int',[]],
     'Bematech_FI_CancelaItemGenerico':['int',['string']],
@@ -46,11 +34,6 @@ const bemafi = ffi.Library(DLL, {
 
   });
  
-
-
-
-
-
 const fs = require('fs');
 let prodvenda = '';
 let formaPgto = '';
@@ -78,8 +61,6 @@ function vendeItem (err,res) {
         length : prodvenda.length,
         functionToLoop : function(loop, i){
             let descr = prodvenda[i].DESCRICAO
-            let cest = prodvenda[i].CEST
-            let ncm = prodvenda[i].NCM
             console.log(descr)
             if(descr.length>29){
                 descr = descr.slice(0,28);
@@ -93,9 +74,7 @@ function vendeItem (err,res) {
             else {
                 prodvenda[i].ALIQ = prodvenda[i].ALIQ*100
             };
-            // #código CEST#NCM/SH#descrição do item...
-            bemafi.Bematech_FI_AumentaDescricaoItem(cest+'#'+ncm+'#'+descr)
-            bemafi.Bematech_FI_VendeItem.async(prodvenda[i].CODIGO.toString(),descr,prodvenda[i].ALIQ.toString(),'I',prodvenda[i].QTDPEDIDO.toString(),2,prodvenda[i].VALOR.valor.toString(),'%','0000',function(err,res){
+            bemafi.Bematech_FI_VendeItem.async(prodvenda[i].CODIGO.toString(),descr,prodvenda[i].ALIQ.toString(),'I',prodvenda[i].QTDPEDIDO.toString(),2,prodvenda[i].VALOR.toFixed(2).toString(),'%','0000',function(err,res){
                 console.log(prodvenda[i]);
                 console.log("erro"+ err + "resposta"+res);
                 loop();
@@ -134,18 +113,15 @@ function finaliza(err,res){
         prodvenda = null;
         formaPgto = null;
         console.log("cupom gerado com sucesso")
-        nuCupom()
     }
     else fechaCupomResumido(err,res)
 }
 exports.gravaECF = function(dados){
     prodvenda = dados.produtos;
     formaPgto = dados.pagamento;
-    codvenda = dados.codvenda;
     console.log(dados.Cliente)
     console.log("iniciando o processo")
     abreCupom(dados.Cliente); 
-
 }
 exports.leituraX = function (){
     console.log(bemafi.Bematech_FI_LeituraX())
@@ -154,19 +130,12 @@ exports.leituraX = function (){
 exports.reducaoZ = function (){
     bemafi.Bematech_FI_ReducaoZ('','')
 }
- function nuCupom (){    
+exports.nuCupom = function (){    
     console.log(nCupom)
     var nCupom = ref.allocCString('      ');
     bemafi.Bematech_FI_NumeroCupom(nCupom)
-    var cupom = ref.readCString(nCupom, 0);
-    Firebird.attach(options, function(err, db) {
-        if (err)
-            throw err;
-            if (err) throw err;
-            db.query("update venda set nucupom = ? where lcto = ?",[cupom,codvenda], function(err, result) {
-                if (err) throw err;
-                console.log(result)
-                db.detach();			
-            });	
-    })
+    var x = ref.readCString(nCupom, 0);
+    console.log(x)
+    console.log(nCupom)
+    return x;
 }

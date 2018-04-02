@@ -16,7 +16,6 @@
           <md-button class="md-icon-button" ng-click="cancel()">
             <md-icon class="material-icons" style="color: white;">close</md-icon>
           </md-button>
-
         </div>
       </md-toolbar>
       <md-dialog-actions layout="row" layout-align="end">
@@ -35,9 +34,9 @@
           </md-card> -->
           <md-card flex layout-align="top center" style="background-color:#eeecd2;font-size:8pt;font-family:Arial;">
             <md-card-content>
-              <h1>Total á pagar R$ {{venda.TOTAL | currency}}</h1> 
-              <h2 ng-if="venda.PAGAR>0">Restante á pagar R$ {{venda.PAGAR | currency}}</h2>
-              <h2 ng-if="venda.PAGAR<0">Troco R$ {{venda.PAGAR | currency}}</h2>
+              <h1>Total á pagar {{venda.TOTAL}}</h1> 
+              <h2 ng-if="venda.PAGAR>0">Restante á pagar {{venda.PAGAR}}</h2>
+              <h2 ng-if="venda.PAGAR<0">Troco {{venda.PAGAR}}</h2>
               <md-table-container style="overflow: auto;" >
                 <table md-table>
                   <thead md-head>
@@ -48,10 +47,13 @@
                     </tr>
                   </thead>
                   <tbody md-body>
-                    <tr md-row ng-repeat="item in Pagamentos">
-                      <td md-cell>{{item.valor | currency}}</td>
-                      <td md-cell><span ng-if='item.tipo != "BL"'>{{item.tipo}}</span></td>
-                      <td md-cell>{{item.vencimento | date}}</td>
+                    <tr md-row ng-repeat="item in venda.PAGAMENTO">
+                      <td md-cell>{{item.valor}}</td>
+                      <td md-cell><span>{{item.tipo}}</span></td>
+                      <td md-cell ng-if='item.tipo == "BL"'>
+                          <md-datepicker ng-if="$first" ng-model="item.vencimento" md-placeholder="Enter date" md-min-date="hoje" md-max-date="hoje.acresdias(periodo)"></md-datepicker>                
+                          <md-datepicker ng-if="!$first" ng-model="item.vencimento" md-placeholder="Enter date" md-min-date="hoje" md-max-date="hoje.acresdias(periodo*$index)"></md-datepicker>                
+                        </td>
                     </tr>
                   </tbody>
                 </table>

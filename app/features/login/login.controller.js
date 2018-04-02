@@ -11,15 +11,18 @@
         remote.getGlobal('dados').configs.usuario='';
         remote.getGlobal('dados').configs.senha='';
         remote.getGlobal('dados').configs.empresa='';
-        var vm = this;
-        vm.Login = login;
-        vm.dados = remote.getGlobal('dados').configs;
-        console.log (vm.dados)
+        var lg = this;
+        lg.Login = login;
+        lg.dados = remote.getGlobal('dados').configs;
+        console.log (lg.dados)
         function login(ev){
-            console.log (vm.dados)
-            LoginSrvc.login(vm.dados).then(function(response){
+            console.log (lg.dados)
+            LoginSrvc.login(lg.dados).then(function(response){
                 console.log(response.data);
                 if (response.data.message == 'Acesso Liberado') {
+                    if (lg.dados.empresa == 2) {
+                        // vm.theme = 'localdecor'
+                    }
                     console.log($location.url());
                     $location.path('/caixa');
                 }                   

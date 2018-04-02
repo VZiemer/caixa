@@ -1,9 +1,9 @@
-const ini = require ( 'ini' );
-const Firebird = require ('node-firebird');
 const fs = require('fs'); 
+const ini = require ( 'ini' );
 var config = ini.parse(fs.readFileSync('config/config.ini', 'utf-8'))
 console.log(config)
 console.log(config.PASTA)
+const Firebird = require ('node-firebird');
 let options = {};
 options.host = 'sistema.florestalferragens.com.br';
 options.port = 3050;
@@ -41,6 +41,7 @@ let produtos = [];
 let transportador = {};
 let verProc = '1.0.0';
 let chave = '';
+let watcher = null;
 let TvBC=0,TvICMS=0,TvICMSDeson=0,TvBCST=0,TvST=0,TvProd=0,TvFrete=0,TvSeg=0,TvDesc=0,TvII=0,TvIPI=0,TvPIS=0,TvCOFINS=0,TvOutro=0;
 //FUNÇÕES AUXILIARES
 // completa uma string com um digito determinado á esquerda (0 á esquerda por exemplo)
@@ -98,7 +99,7 @@ function Nota(versao,cUF,AAMM,CNPJ,mod,serie,nNF,tpEmis,finNFe) {
   }
 }
 Nota.prototype.InsereVolume = function (qtd,esp,peso) {
-  this.Volume000 = {
+  this.Volume001 = {
     'qVol':qtd,
     'esp':esp,
     'Marca':'',
@@ -152,7 +153,7 @@ Nota.prototype.GravaBanco = function(produtos,nomexml,protocolo){
     NATOPER = 'VENDA MERC FORA ESTADO';
   }
   let sql = "execute block as begin ";
-  sql= sql+"insert into nfe (nota,data,codcli,nome,cnpj,inscest,endereco,end_numero,bairro,cidade,estado,cep,codcidade,fone,total,cancela,frete,entsai,basesubs,vlsubs,baseicms,valoricms,vlfrete,vldesconto,outrasdesp,cnf,finalidade,formapagto,indfinal,indiedest,cfop,natoper,nomexml,protocolo,peso,itens,codtrans,orcto) values ("+this.Identificacao.nNF+",CURRENT_DATE,"+cliente.CODCLI+",'"+this.Destinatario.xNome+"',"+this.Destinatario.CNPJCPF+",'"+this.Destinatario.IE+"','"+this.Destinatario.xLgr+"','"+this.Destinatario.nro+"','"+this.Destinatario.xBairro+"','"+this.Destinatario.xMun+"','"+this.Destinatario.UF+"','"+this.Destinatario.CEP+"',"+cliente.CODCIDADE+",'"+this.Destinatario.Fone+"',"+this.Total.vNF+",'E','1','S',"+this.Total.vBCST+","+this.Total.vST+","+this.Total.vBC+","+this.Total.vICMS+","+this.Total.vFrete+","+this.Total.vDesc+","+this.Total.vOutro+",'"+this.Identificacao.cNF+"',"+this.Identificacao.finNFe+",1,"+this.Identificacao.indFinal+",'"+indIEDest+"','"+CFOP+"','"+NATOPER+"','"+nomexml+"','"+protocolo+"','"+this.Volume000.pesoB+"','"+this.Volume000.qVol+"','"+cliente.CODTRANSP+"',,'"+cliente.PEDIDO+"');";
+  sql= sql+"insert into nfe (nota,data,codcli,nome,cnpj,inscest,endereco,end_numero,bairro,cidade,estado,cep,codcidade,fone,total,cancela,frete,entsai,basesubs,vlsubs,baseicms,valoricms,vlfrete,vldesconto,outrasdesp,cnf,finalidade,formapagto,indfinal,indiedest,cfop,natoper,nomexml,protocolo,pesobruto,quantidade,especie,codtran,orcto) values ("+this.Identificacao.nNF+",CURRENT_DATE,"+cliente.CODCLI+",'"+this.Destinatario.xNome+"',"+this.Destinatario.CNPJCPF+",'"+this.Destinatario.IE+"','"+this.Destinatario.xLgr+"','"+this.Destinatario.nro+"','"+this.Destinatario.xBairro+"','"+this.Destinatario.xMun+"','"+this.Destinatario.UF+"','"+this.Destinatario.CEP+"',"+cliente.CODCIDADE+",'"+this.Destinatario.Fone+"',"+this.Total.vNF+",'E','1','S',"+this.Total.vBCST+","+this.Total.vST+","+this.Total.vBC+","+this.Total.vICMS+","+this.Total.vFrete+","+this.Total.vDesc+","+this.Total.vOutro+",'"+this.Identificacao.cNF+"',"+this.Identificacao.finNFe+",1,"+this.Identificacao.indFinal+",'"+indIEDest+"','"+CFOP+"','"+NATOPER+"','"+nomexml+"','"+protocolo+"',"+this.Volume001.pesoB+","+this.Volume001.qVol+",'"+this.Volume001.esp+"',"+cliente.CODTRANSP+",'"+cliente.PEDIDO+"');";
 
   for(i=0;i<produtos.length;i++){
   let indice = zeroEsq(i+1,3,0);
@@ -171,6 +172,22 @@ Nota.prototype.GravaBanco = function(produtos,nomexml,protocolo){
     });
   });
   console.log(sql)
+  cliente = {
+    'CODCLI':'',
+    'CODCIDADE':'',
+    'PEDIDO': '',
+    'CODTRANSP':''   
+  }
+  totais = {
+  'TOTAL' : 0,
+  'DESCONTO'  : 0,
+  'OUTRO'  : 0,
+  'FRETE' : 0,
+  'SEGURO'  : 0,
+  'PRODICMS' : 0,
+  'PRODST' : 0
+}
+
 }
 Nota.prototype.InsereEmitente = function(CNPJCPF,xNome,xFant,IE,CRT,xLgr,nro,xCpl,xBairro,cMun,xMun,UF,CEP,cPais,xPais,Fone,cUF,cMunFG){
   this.Emitente = {
@@ -294,7 +311,7 @@ Nota.prototype.InsereDuplicatas = function(numero,valor,vencimento) {
   }
 
 }
-Nota.prototype.InsereProduto = function(indice,orig,sittrib,cod,descricao,ncm,un,qtd,valor,aliq,codigo){
+Nota.prototype.InsereProduto = function(indice,orig,sittrib,cod,descricao,ncm,cest,un,qtd,valor,aliq,codigo){
   let indIEDest = this.Destinatario.indIEDest;
   let UFDest = this.Destinatario.UF;
   let UFOrig = this.Emitente.UF;
@@ -415,7 +432,8 @@ Nota.prototype.InsereProduto = function(indice,orig,sittrib,cod,descricao,ncm,un
     cProd : cod,
     cEAN:'',    
     xProd : descricao,    
-    NCM : ncm,    
+    NCM : ncm, 
+    CEST : cest,   
     EXTIPI:'',    
     CFOP: defineCFOP(),    
     uCom : un,    
@@ -517,7 +535,7 @@ exports.iniciaNota =  function (venda,produtos,faturas) {
     'CODCLI':venda.CODCLI,
     'CODCIDADE':venda.CODCIDADE,
     'PEDIDO': venda.LCTO,
-    'CODTRANSP':venda.CODTRANSP
+    'CODTRANSP':venda.CODTRANSP || null
   }
   totais = {
   'TOTAL' : venda.TOTAL || 0,
@@ -539,12 +557,12 @@ function faznota(){
     NF.InsereDuplicatas(zeroEsq(index+1,3,0),item.valor,item.vencimento)  
   })
   produtos.forEach(function(item,index){
-  NF.InsereProduto(zeroEsq(index+1,3,0),item.ORIG,item.SITTRIB,item.CODPRO,item.DESCRICAO,item.NCM,item.UNIDADE,item.QTD,item.VALOR,item.ALIQ,item.CODPRO);
+  NF.InsereProduto(zeroEsq(index+1,3,0),item.ORIG,item.SITTRIB,item.CODPRO,item.DESCRICAO,item.NCM,item.CEST,item.UNIDADE,item.QTD,item.VALOR,item.ALIQ,item.CODPRO);
   })
   NF.InsereTransportador(venda.TIPOFRETE,venda.TRANSPORTADOR )
   NF.InsereVolume(venda.VOLUMES,'CX',venda.PESO)
   NF.CalculaTotais();
-var watcher = fs.watch(""+config.PASTA+"",{ persistent: true}, (eventType, filename) => {
+  watcher = fs.watch(""+config.PASTA+"",{ persistent: true}, (eventType, filename) => {
   console.log(filename);
   console.log(eventType);
   if (filename==config.RETORNO && eventType == 'change') {
@@ -553,21 +571,6 @@ var watcher = fs.watch(""+config.PASTA+"",{ persistent: true}, (eventType, filen
         // fs.unlinkSync(""+config.PASTA+"\\"+config.RETORNO+"");
         var retorno = ini.parse(resposta)
         console.log(retorno)
-        cliente = {
-          'CODCLI':'',
-          'CODCIDADE':'',
-          'PEDIDO': '',
-          'CODTRANSP':''   
-        }
-        totais = {
-        'TOTAL' : 0,
-        'DESCONTO'  : 0,
-        'OUTRO'  : 0,
-        'FRETE' : 0,
-        'SEGURO'  : 0,
-        'PRODICMS' : 0,
-        'PRODST' : 0
-      }
         if (retorno['NFE'+NF.Identificacao.nNF].XMotivo=="Autorizado o uso da NF-e") {
           let nomexml = retorno['NFE'+NF.Identificacao.nNF].ChNFe+'-nfe.xml';
           let protocolo = retorno['NFE'+NF.Identificacao.nNF].NProt;

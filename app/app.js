@@ -1,4 +1,23 @@
 (function () {
+  Date.prototype.dimdias = function(dias) {
+    var data = new Date(this.valueOf());
+    data.setDate(data.getDate() - dias);
+    return data;
+  }
+  Date.prototype.acresdias = function(dias) {
+    var data = new Date(this.valueOf());
+    console.log(dias)
+    console.log(data)
+    data.setDate(data.getDate() + dias);
+    return data;
+  }
+  Date.prototype.YYYYMMDD = function (){
+    return this.toISOString().split('T')[0];
+  }
+  Date.prototype.dataFirebird = function() {
+    return this.getDate() + '.' + (this.getMonth()+1) + '.' + this.getFullYear();
+  }  
+
     let param = {
       success: '',
       dispositivo: '',
@@ -51,7 +70,6 @@
             'md.data.table',
             'fixed.table.header',
             'ui.utils.masks'
-            
         ]
     );    
 })();
@@ -170,6 +188,7 @@ function AppCtrl ($scope, $timeout, $mdSidenav,$location) {
   $scope.appVersion = window.require('electron').remote.app.getVersion()
 
   var vm = this;
+  vm.theme = 'localdecor'
   vm.msgs = [];
   vm.keys = {
     ENTER    : function(name, code) { vm.msgs.push({ name: name, code: code}); alert(name)},

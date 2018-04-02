@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html ng-app="ventronElectron">
-  
   <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">     
@@ -25,7 +24,7 @@
     </md-toolbar>     
     <section layout="row" flex  style="height:auto";>
         <md-sidenav class="md-sidenav-left" md-component-id="left" md-disable-backdrop md-whiteframe="1">
-          <md-toolbar class="md-theme-indigo">
+          <md-toolbar>
           <div class="md-toolbar-tools">
               <h2 flex md-truncate>Menu</h2>            
               <md-button class="md-icon-button" ng-click="toggleLeft()" aria-label="Menu">
@@ -43,8 +42,8 @@
           <md-button ng-click="janela('nfe')" class="md-raised">
             NF-e
           </md-button> 
-          <md-button ng-click="janela('financeiro')" class="md-raised">
-            Financeiro
+          <md-button ng-click="janela('fechamento')" class="md-raised">
+            Fechamento
           </md-button>                            
           <md-button ng-click="toggleLeft()" class="md-raised">
             Close this Sidenav
@@ -75,6 +74,8 @@
   <script type="text/javascript" src="./app/features/login/login.controller.js"></script>
   <script type="text/javascript" src="./app/features/caixa/caixa.controller.js"></script> 
   <script type="text/javascript" src="./app/features/nfe/nfe.controller.js"></script> 
+  <script type="text/javascript" src="./app/features/fechamento/fechamento.controller.js"></script> 
+
   <!-- fim dos scripts do sistema -->
 </html>
 

@@ -14,12 +14,12 @@
           <!-- <md-card flex> -->
             <md-input-container>
               <label>Á Pagar</label>
-              <input type="text" ui-money-mask="R$" ng-model="pagamento.VALORAPAGAR" md-autofocus ng-max="max">
+              <input type="text" ui-money-mask="R$" ng-model="pagamento.VALORAPAGAR.valor" md-autofocus ng-max="max">
             </md-input-container>           
             <md-input-container ng-if="pagamento.QTD_PARCELAS-1">
                 <label>Parcelas</label>
                   <md-select ng-model="pagamento.PARCELAS" placeholder="Select a state">
-                    <md-option ng-value="x" ng-repeat="x in parcelas | limitTo:pagamento.QTD_PARCELAS">{{x}}x {{calculaParcela(x,pagamento.VALORAPAGAR) |currency:'R$'}}</md-option>
+                    <md-option ng-value="x" ng-repeat="x in parcelas | limitTo:pagamento.QTD_PARCELAS">{{x}}x {{calculaParcela(x,pagamento.VALORAPAGAR)}}</md-option>
                   </md-select>
               </md-input-container>            
             <md-input-container ng-if="pagamento.TIPO == 'DI'">

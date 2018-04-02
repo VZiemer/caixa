@@ -16,22 +16,22 @@
             <form name="login">
                 <md-input-container class="md-block">
                     <label for="empresa">Empresa</label>
-                    <md-select ng-model="vm.dados.empresa" placeholder="Empresa" required>
+                    <md-select ng-model="lg.dados.empresa" placeholder="Empresa" required>
                         <md-option ng-value="1" >Florestal</md-option>
                         <md-option ng-value="2" >Local</md-option>
                     </md-select>
                 </md-input-container>                 
                 <md-input-container class="md-block">
                     <label for="usuario">Usuário</label>
-                    <input type="usuario" name="usuario" ng-model="vm.dados.usuario" required />
+                    <input type="usuario" name="usuario" ng-model="lg.dados.usuario" required />
                 </md-input-container>
                 <md-input-container class="md-block">
                     <label for="password">Senha</label>
-                    <input type="password" name="password" ng-model="vm.dados.senha" required />
+                    <input type="password" name="password" ng-model="lg.dados.senha" required />
                 </md-input-container>                
                 <md-input-container class="md-block">
                     <div layout="row" layout-align="center center">
-                        <md-button class="md-raised md-accent" flex="50" ng-click="vm.Login($event)">Login</md-button>
+                        <md-button class="md-raised md-accent" flex="50" ng-click="lg.Login($event)">Login</md-button>
                     </div>
                 </md-input-container>                                
             </form>

@@ -1,0 +1,81 @@
+<style>
+  .md-checkbox {display:none}
+</style>
+
+<md-dialog class="fullscreen-dialog" aria-label="" layout='column'>
+    <form ng-cloak>
+      <md-toolbar>
+        <div class="md-toolbar-tools">
+          <h2>Vendas no Caixa</h2>
+          <span flex></span>
+          <md-button class="md-icon-button" ng-click="cancel()">
+            <md-icon class="material-icons" style="color: white;">close</md-icon>
+          </md-button>
+        </div>
+      </md-toolbar>
+      <md-dialog-content >
+        <div class="md-dialog-content">        
+          <md-toolbar class="md-table-toolbar alternate" ng-show="options.rowSelection && selected.length">
+            <div class="md-toolbar-tools">
+              <span>{{selected.length}} {{selected.length > 1 ? 'items' : 'item'}} selected</span>
+            </div>
+          </md-toolbar>      
+          <!-- exact table from live demo -->
+          <md-table-container style="overflow: auto;" ng-style="{'height':mainScreen-400+'px'}">
+            <table md-table md-row-select multiple ng-model="selected" > <!-- multiple -->
+              <thead fix-head md-head md-order="query.order" md-on-reorder="">
+                <tr md-row>
+                  <th md-column md-order-by="LCTO"><span>LCTO</span></th>
+                  <th md-column md-numeric md-order-by="DATA"><span>DATA</span></th>
+                  <th md-column md-order-by="NOME">NOME</th>
+                  <th md-column md-order-by="VENCIMENTO">VENCTO</th>
+                  <th md-column md-order-by="TOTAL">TOTAL</th>
+                </tr>
+              </thead>
+              <tbody md-body>
+                <tr md-row md-select="dessert" md-select-id="LCTO" md-auto-select ng-repeat="dessert in dados | orderBy:ordem">
+                  <td md-cell>{{dessert.LCTO}}</td>
+                  <td md-cell>{{dessert.DATA | date:'dd/MM/yy'}}</td>
+                  <td md-cell>{{dessert.NOMECLI}}</td>
+                  <td md-cell>{{dessert.VENCIMENTO | date:'dd/MM/yy'}}</td>
+                  <td md-cell>{{dessert.TOTAL}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </md-table-container>
+        <!-- <md-table-pagination md-limit="" md-limit-options="[5, 10, 15]" md-page="" md-total="" md-on-paginate="" md-page-select></md-table-pagination>		 -->
+        <md-table-container style="overflow: auto;" ng-style="{'height':mainScreen-600+'px'}">
+            <table md-table>
+              <thead fix-head md-head>
+                <tr md-row>
+                  <th md-column ><span>CODIGO</span></th>
+                  <th md-column ><span>QTD</span></th>
+                  <th md-column >DESCRICAO</th>
+                </tr>
+              </thead>
+              <tbody md-body>
+                <tr md-row ng-repeat="item in prodVendas">
+                  <td md-cell>{{item.CODIGO}}</td>
+                  <td md-cell>{{item.QTDPEDIDO}}</td>
+                  <td md-cell>{{item.DESCRICAO}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </md-table-container>
+      </div>
+      </md-dialog-content>
+  
+      <md-dialog-actions layout="row" layout-align="end">
+        <!-- <md-button href="http://en.wikipedia.org/wiki/Mango" target="_blank" md-autofocus>
+          More on Wikipedia
+        </md-button> -->
+        <span flex></span>
+        <md-button ng-click="voltaVenda(selected[0])" ng-disabled="status!='C'">
+            Voltar Venda
+          </md-button>        
+        <md-button ng-click="seleciona(selected[0])">
+          Abrir
+        </md-button>
+      </md-dialog-actions>
+    </form>    
+  </md-dialog>

@@ -45,15 +45,15 @@
             <md-icon class="material-icons" style="color: green;">add_shopping_cart</md-icon>
             Pagamento (F5)
           </md-button>
-          <md-button class="md-accent md-raised" ng-click="cx.abreVendas($event,'C')">
+          <md-button class="md-accent md-raised" ng-click="cx.abreVendas($event,'C','V')">
               <md-icon class="material-icons" style="color: green;">menu</md-icon>
               Pedidos (F3)
           </md-button> 
-          <md-button class="md-accent md-raised" ng-click="cx.abreVendas($event,'R')">
+          <md-button class="md-accent md-raised" ng-click="cx.abreVendas($event,'R','V')">
               <md-icon class="material-icons" style="color: green;">menu</md-icon>
               Reservas (F4)
           </md-button>
-          <md-button class="md-accent md-raised" ng-click="cx.abreVendas($event,'R')">
+          <md-button class="md-accent md-raised" ng-click="cx.abreVendasFechamento($event,'F')">
               <md-icon class="material-icons" style="color: green;">menu</md-icon>
               Fechamento (F6)
           </md-button>           
@@ -98,7 +98,7 @@
         <div layout="column">
           <div flex layout-padding class="md-subhead"><span class="md-title" >Data: {{venda.DATA | date:'dd/MM/yyyy'}}</span></div>
           <md-divider></md-divider>
-          <div flex layout-padding class="md-subhead" ><span class="md-title">Pedido: </span>{{venda.LCTO[0]}}</div>
+          <div flex layout-padding class="md-subhead" ><span class="md-title">Pedido: </span>{{venda.LCTO.toString()}}</div>
           <md-divider></md-divider>
           <div flex layout-padding class="md-subhead"><span class="md-title">Vendedor: </span>{{venda.NOMEVEND}}</div>
           <md-divider></md-divider>
@@ -122,7 +122,7 @@
               </thead>
               <tbody md-body>
                 <tr md-row ng-repeat="item in venda.PRODUTOS">
-                  <td md-cell>{{item.CODIGO}}</td>
+                  <td md-cell>{{item.CODPRO}}</td>
                   <td md-cell>{{item.QTD}} {{item.UNIDADE}}</td>
                   <td md-cell>{{item.DESCRICAO}}</td>
                   <td md-cell>{{item.VALOR}}</td>

@@ -7,7 +7,8 @@
   "scripts": {
     "start": "electron .",
     "release": "build",
-    "publish": "build -p always"
+    "publish": "build -p always",
+    "test": "build --ia32 "
   },
   "build": {
     "appId": "florestalferragens",
@@ -30,8 +31,7 @@
         {
           "target": "nsis-web",
           "arch": [
-            "ia32",
-            "x64"
+            "ia32"
           ]
         }
       ]
@@ -47,15 +47,16 @@
   "author": "VZiemer",
   "license": "MIT",
   "devDependencies": {
-    "electron": "~1.6.2",
-    "electron-builder": "^19.49.0",
+    "electron": "~1.8.4",
+    "electron-builder": "^20.9.2",
+    "electron-rebuild": "^1.7.3",
     "node-gyp": "^3.6.2",
     "rebuild": "^0.1.2"
   },
   "dependencies": {
     "calendario": "^1.1.4",
     "electron-config": "^1.0.0",
-    "electron-updater": "^2.17.6",
+    "electron-updater": "^2.18.2",
     "ffi": "^2.2.0",
     "iconv": "^2.3.0",
     "ini": "^1.3.5",

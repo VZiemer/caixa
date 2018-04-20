@@ -7,9 +7,25 @@ Dinheiro.prototype.cents = function () {
 Dinheiro.prototype.valueOf = function () {
     return this.valor;
 };
-Dinheiro.prototype.toString= function() {
+Dinheiro.prototype.valueStr = function () {
+    return this.valor.toString();
+};
+Dinheiro.prototype.soma = function (valor) {
+    if (valor instanceof Dinheiro === false) {
+        valor = new Dinheiro(valor)
+    }
+    this.valor = ((this.cents() + valor.cents()) / 100);
+}
+Dinheiro.prototype.subtrai = function (valor) {
+    console.log(this)
+    console.log (valor)
+    if (valor instanceof Dinheiro === false) {
+        valor = new Dinheiro(valor)
+    }
+    this.valor = ((this.cents() - valor.cents()) / 100);
+}
+Dinheiro.prototype.toString = function () {
     return "R$ " + this.valor.toFixed(2).replace('.', ',').replace(/(\d)(?=(\d{3})+\,)/g, "$1.");
-  }
+}
 
-  module.exports = Dinheiro;
- 
+module.exports = Dinheiro;

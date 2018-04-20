@@ -1,16 +1,5 @@
 (function () {
-  Date.prototype.dimdias = function(dias) {
-    var data = new Date(this.valueOf());
-    data.setDate(data.getDate() - dias);
-    return data;
-  }
-  Date.prototype.acresdias = function(dias) {
-    var data = new Date(this.valueOf());
-    console.log(dias)
-    console.log(data)
-    data.setDate(data.getDate() + dias);
-    return data;
-  }
+ 
   Date.prototype.YYYYMMDD = function (){
     return this.toISOString().split('T')[0];
   }

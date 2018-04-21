@@ -23,8 +23,8 @@
     "7zip-bin-win" "~2.2.0"
 
 "@types/node@^8.0.24":
-  version "8.10.8"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-8.10.8.tgz#794cba23cc9f8d9715f6543fa8827433b5f5cd3b"
+  version "8.10.9"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-8.10.9.tgz#b507a74a7d3eddc74a17dc35fd40d8f45dde0d6c"
 
 abbrev@1:
   version "1.1.1"
@@ -286,9 +286,28 @@ builder-util-runtime@4.2.0, builder-util-runtime@^4.2.0, builder-util-runtime@~4
     fs-extra-p "^4.5.2"
     sax "^1.2.4"
 
-builder-util@5.7.8, builder-util@^5.7.6:
+builder-util@5.7.8:
   version "5.7.8"
   resolved "https://registry.yarnpkg.com/builder-util/-/builder-util-5.7.8.tgz#dcd590710ed6ad5fefb38f2300c764816c018c98"
+  dependencies:
+    "7zip-bin" "~3.1.0"
+    app-builder-bin "1.8.6"
+    bluebird-lst "^1.0.5"
+    builder-util-runtime "^4.2.0"
+    chalk "^2.3.2"
+    debug "^3.1.0"
+    fs-extra-p "^4.5.2"
+    is-ci "^1.1.0"
+    js-yaml "^3.11.0"
+    lazy-val "^1.0.3"
+    semver "^5.5.0"
+    source-map-support "^0.5.4"
+    stat-mode "^0.2.2"
+    temp-file "^3.1.1"
+
+builder-util@5.7.9, builder-util@^5.7.6:
+  version "5.7.9"
+  resolved "https://registry.yarnpkg.com/builder-util/-/builder-util-5.7.9.tgz#a481bd14e03ae4a8336569d469f8bd0dd400fca1"
   dependencies:
     "7zip-bin" "~3.1.0"
     app-builder-bin "1.8.6"
@@ -570,7 +589,36 @@ ejs@^2.5.9:
   version "2.5.9"
   resolved "https://registry.yarnpkg.com/ejs/-/ejs-2.5.9.tgz#7ba254582a560d267437109a68354112475b0ce5"
 
-electron-builder-lib@20.9.2, electron-builder-lib@~20.9.0:
+electron-builder-lib@20.10.0:
+  version "20.10.0"
+  resolved "https://registry.yarnpkg.com/electron-builder-lib/-/electron-builder-lib-20.10.0.tgz#037812e8697edbf8a1287e7932f337cc8d4311b5"
+  dependencies:
+    "7zip-bin" "~3.1.0"
+    app-builder-bin "1.8.6"
+    async-exit-hook "^2.0.1"
+    bluebird-lst "^1.0.5"
+    builder-util "5.7.9"
+    builder-util-runtime "4.2.0"
+    chromium-pickle-js "^0.2.0"
+    debug "^3.1.0"
+    ejs "^2.5.9"
+    electron-osx-sign "0.4.10"
+    electron-publish "20.9.0"
+    fs-extra-p "^4.5.2"
+    hosted-git-info "^2.6.0"
+    is-ci "^1.1.0"
+    isbinaryfile "^3.0.2"
+    js-yaml "^3.11.0"
+    lazy-val "^1.0.3"
+    minimatch "^3.0.4"
+    normalize-package-data "^2.4.0"
+    plist "^3.0.1"
+    read-config-file "3.0.0"
+    sanitize-filename "^1.6.1"
+    semver "^5.5.0"
+    temp-file "^3.1.1"
+
+electron-builder-lib@~20.9.0:
   version "20.9.2"
   resolved "https://registry.yarnpkg.com/electron-builder-lib/-/electron-builder-lib-20.9.2.tgz#8c0cff79b79206e6bdb796615648c9b1556fe837"
   dependencies:
@@ -599,16 +647,16 @@ electron-builder-lib@20.9.2, electron-builder-lib@~20.9.0:
     semver "^5.5.0"
     temp-file "^3.1.1"
 
-electron-builder@^20.9.2:
-  version "20.9.2"
-  resolved "https://registry.yarnpkg.com/electron-builder/-/electron-builder-20.9.2.tgz#a5a3ab2cfa9fe14f9287516998cd7ab8ce273c3c"
+electron-builder@^20.10.0:
+  version "20.10.0"
+  resolved "https://registry.yarnpkg.com/electron-builder/-/electron-builder-20.10.0.tgz#89eb1b18fe71e657cefc83e2a700decd096566a3"
   dependencies:
     bluebird-lst "^1.0.5"
-    builder-util "5.7.8"
+    builder-util "5.7.9"
     builder-util-runtime "4.2.0"
     chalk "^2.3.2"
     dmg-builder "4.1.5"
-    electron-builder-lib "20.9.2"
+    electron-builder-lib "20.10.0"
     electron-download-tf "4.3.4"
     fs-extra-p "^4.5.2"
     is-ci "^1.1.0"
@@ -679,7 +727,7 @@ electron-publish@20.9.0:
     lazy-val "^1.0.3"
     mime "^2.3.1"
 
-electron-updater@^2.18.2:
+electron-updater@^2.21.8:
   version "2.21.8"
   resolved "https://registry.yarnpkg.com/electron-updater/-/electron-updater-2.21.8.tgz#3881fff1fc7c57a66be0665bd7ffe02b7ecb5566"
   dependencies:
@@ -1038,12 +1086,6 @@ iconv-lite@^0.4.21:
   dependencies:
     safer-buffer "^2.1.0"
 
-iconv@^2.3.0:
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/iconv/-/iconv-2.3.0.tgz#9739887c2bd492d9a5e236dd3667c5358601201b"
-  dependencies:
-    nan "^2.3.5"
-
 import-lazy@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/import-lazy/-/import-lazy-2.1.0.tgz#05698e3d45c88e8d7e9d92cb0584e77f096f3e43"
@@ -1391,7 +1433,7 @@ ms@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
 
-nan@2, nan@^2.3.5:
+nan@2:
   version "2.10.0"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.10.0.tgz#96d0cd610ebd58d4b4de9cc0c6828cda99c7548f"
 

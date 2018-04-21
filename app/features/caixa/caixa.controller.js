@@ -52,9 +52,11 @@
           console.log(response)
           console.log(valor)
           response.VALOR = response.VALOR.valor;
+          $scope.await = 'carregando...';
           VendaSrvc.atualizaProdVenda(response).then(function (response) {
             console.log(response)
             $scope.venda = response
+            $scope.await = ''
           });
           console.log(valor);
         }, function () {
@@ -90,7 +92,9 @@
       $scope.prodNotas = [];
       $scope.carregaVenda = function (venda) {
         console.log("aaaaa")
+        $scope.await = 'carregando...'
         VendaSrvc.vendaNota(venda).then(function (response) {
+          $scope.await = ''
           console.log(response)
           // $scope.Vendas.push(response[0][0])
           if (!$scope.Venda.LCTO) {
@@ -194,9 +198,11 @@
       })
         .then(function (valor) {
           console.log('alteravalorvenda');
+          $scope.await = 'aplicando desconto...'
           VendaSrvc.descontoTotalVenda($scope.venda.LCTO, valor).then(function (response) {
             $scope.prodVenda = response;
             $scope.totals();
+            $scope.await = ''
           })
         }, function () {
           console.log('You cancelled the dialog.');
@@ -268,11 +274,13 @@
       $scope.dados = locals.dados;
       $scope.selected = [];
       $scope.$watch("selected[0].LCTO", function (newValue, oldValue) {
+        $scope.await = 'carregando...'
         console.log(newValue)
         if (newValue) {
           VendaSrvc.listaProdVenda(newValue).then(function (response) {
             $scope.prodVendas = response;
             console.log($scope.prodVendas);
+            $scope.await = ''
           })
         }
       });
@@ -387,22 +395,24 @@
     function PagamentoCtrl($scope, $mdDialog, locals, $timeout) {  //controla o modal que faz o pagamento
       $scope.hoje = new Date();
       $scope.param = remote.getGlobal('dados').param;
+      $scope.await = 'carregando...'
       VendaSrvc.formasPagamento().then(
         function (response) {
           console.log(response.data);
           $scope.FormaPagto = response.data
+          $scope.await = ''
         })
       VendaSrvc.valeCliente(locals.dados.CODCLI).then(function (response) {
         if (locals.acao = 'V') {
           $scope.vale = response.reduce(function (acumulador, atual) {
             if (atual.ENT_SAI == 'S') { atual.TOTAL = atual.TOTAL * (-1) }
             return acumulador += atual.TOTAL;
-          }, 0)+locals.descontoitem;
+          }, 0) + locals.descontoitem;
         }
         if (locals.acao = 'F') {
           $scope.vale = response.filter(function (item) {
             if (item.ENT_SAI == 'S') { return item }
-          })[0].TOTAL+locals.descontoitem;
+          })[0].TOTAL + locals.descontoitem;
         }
         console.log($scope.vale)
       })
@@ -417,57 +427,59 @@
       $scope.seleciona = function (pedido) {
         $mdDialog.hide(pedido);
       };
-      $scope.imprime = function (venda) {
+      $scope.imprime = async function (venda) {
         var html = "<html><head><style>@page { size: portrait;margin: 1%; }table,td,tr,span{font-size:8pt;font-family:Arial;}table {width:80mm;}td {min-width:2mm;}hr{border-top:1pt dashed #000;} </style></head><body ng-controller='BaixaController'>"
         var conteudo = "<span>DOCUMENTO SEM VALOR FISCAL</span><hr><span class='pull-left'>" + remote.getGlobal('dados').configs.empresa + "</span><br><span class='pull-left'>Pedido: " + venda.LCTO + "   Emissão: " + new Date().toLocaleDateString() + "</span><br><span>Cliente: " + venda.NOMECLI + "</span><br><span>Cod. Cliente" + venda.CODCLI + "</span><br><span>Vendedor: " + venda.NOMEVEND + "</span><br>"
         conteudo += "<span>Forma de Pagamento--------------------------------</span><br>"
         conteudo += "<table>"
-        $timeout(function () {
-          angular.forEach(venda.PAGAMENTO, function (x) {
-            conteudo += "<tr><td colspan='3'>" + x.vencimento.toLocaleDateString() + "</td><td>" + x.valor.toString() + "</td><td>" + x.tipo + "</td><td colspan='3'> </td></tr>"
-          });
-          conteudo += "</table><hr><table><tr><td colspan='8'>Descricao<td></tr><tr><td></td><td>Qtd</td><td>UN</td><td colspan='3'>Código</td><td>Vl. Unit.</td><td>Subtotal</td>"
-          venda.PRODUTOS.forEach(function (x, index) {
-            if (!x.QTDRESERVA)
-              conteudo += "<tr><td colspan='8'>" + x.DESCRICAO + "</td></tr><tr><td></td><td>" + x.QTD + "</td><td>" + x.UNIDADE + "</td><td colspan='3'>" + x.CODIGO + "</td><td>" + x.VALOR.toString() + "</td><td>" + x.TOTAL.toString() + "</td></tr>"
-          });
-          venda.PRODUTOS.every(function (element, index) {
-            if (element.QTDRESERVA) {
-              conteudo += "<tr><td colspan='8'>ITENS DE ENCOMENDA</td</tr>";
-              return false
-            }
-            else return true
-          })
+        // $timeout(function () {
+        for (let x of venda.PAGAMENTO) {
+          conteudo += "<tr><td colspan='3'>" + x.vencimento.toLocaleDateString() + "</td><td>" + x.valor.toString() + "</td><td>" + x.tipo + "</td><td colspan='3'> </td></tr>"
+        }
+        conteudo += "</table><hr><table><tr><td colspan='8'>Descricao<td></tr><tr><td></td><td>Qtd</td><td>UN</td><td colspan='3'>Código</td><td>Vl. Unit.</td><td>Subtotal</td>"
+        for (let x of venda.PRODUTOS) {
+          if (!x.QTDRESERVA)
+            conteudo += "<tr><td colspan='8'>" + x.DESCRICAO + "</td></tr><tr><td></td><td>" + x.QTD + "</td><td>" + x.UNIDADE + "</td><td colspan='3'>" + x.CODIGO + "</td><td>" + x.VALOR.toString() + "</td><td>" + x.TOTAL.toString() + "</td></tr>"
+        };
+        venda.PRODUTOS.every(function (element, index) {
+          if (element.QTDRESERVA) {
+            conteudo += "<tr><td colspan='8'>ITENS DE ENCOMENDA</td</tr>";
+            return false
+          }
+          else return true
+        })
 
-          venda.PRODUTOS.forEach(function (x, index) {
-            if (x.QTDRESERVA)
-              conteudo += "<tr><td colspan='8'>" + x.DESCRICAO + "</td></tr><tr><td></td><td>" + x.QTD + "</td><td>" + x.UNIDADE + "</td><td colspan='3'>" + x.CODIGO + "</td><td>" + x.VALOR.toString() + "</td><td>" + x.TOTAL.toString() + "</td></tr>"
-          });
-          conteudo += "</table><br><span class='pull-right'>Total Produtos: " + venda.TOTAL.toString() + "</span>"
-          conteudo += "<br><br><span>CONFERENTE.________________________________</span><br>"
-          conteudo += "<br><br><span>ASS._______________________________________</span><br><br><br><br><br>"
-          conteudo += conteudo;
-          html += conteudo + "</body></html>"
-        }, 1000, false).then(function () {
-          fs.writeFile('c:/temp/teste.html', html, (err) => {
-            if (err) throw err;
-            let modal = window.open('', 'modal')
-            console.log('The file has been saved!');
-          });
-          $scope.venda = new Venda()
+        venda.PRODUTOS.forEach(function (x, index) {
+          if (x.QTDRESERVA)
+            conteudo += "<tr><td colspan='8'>" + x.DESCRICAO + "</td></tr><tr><td></td><td>" + x.QTD + "</td><td>" + x.UNIDADE + "</td><td colspan='3'>" + x.CODIGO + "</td><td>" + x.VALOR.toString() + "</td><td>" + x.TOTAL.toString() + "</td></tr>"
         });
-      }
-      $scope.concluirCupom =async function () {
-        // VendaSrvc.confirmaVenda($scope.venda).then(function (response) {
-          const Ncupom = await bemafi.gravaECF($scope.venda);
-          console.log(Ncupom);
-          // $scope.imprime($scope.venda); $mdDialog.hide(); console.log(response)
-
+        conteudo += "</table><br><span class='pull-right'>Total Produtos: " + venda.TOTAL.toString() + "</span>"
+        conteudo += "<br><br><span>CONFERENTE.________________________________</span><br>"
+        conteudo += "<br><br><span>ASS._______________________________________</span><br><br><br><br><br>"
+        conteudo += conteudo;
+        html += conteudo + "</body></html>"
+        // }, 1000, false).then(function () {
+        const janela = await fs.writeFile('c:/temp/teste.html', html, (err) => {
+          if (err) throw err;
+          let modal = window.open('', 'modal')
+          console.log('The file has been saved!');
+        });
+        $scope.venda = new Venda()
         // });
       }
+      $scope.concluirCupom = async function () {
+        $scope.await = 'Imprimindo Cupom...'
+        const Ncupom = await bemafi.gravaECF($scope.venda);
+        console.log(Ncupom);
+        $scope.await = 'Confirmando Venda...'
+        VendaSrvc.confirmaVenda($scope.venda).then(function (response) {
+          $scope.imprime($scope.venda); $mdDialog.hide(); console.log(response)
+        });
+        $scope.await = ''
+      }
       $scope.nfFech = function () {
-        let faturas = $scope.venda.PAGAMENTO.filter(function(item,index){
-          if (item.tipo == 'BL') {return item}
+        let faturas = $scope.venda.PAGAMENTO.filter(function (item, index) {
+          if (item.tipo == 'BL') { return item }
         })
         let pgtoAvista = $scope.venda.PAGAMENTO[0].valor.valueOf()
         NFe.iniciaNota($scope.venda, $scope.venda.PRODUTOS, faturas, pgtoAvista)
@@ -574,8 +586,8 @@
       NUMPAD_7: function (name, code) { if (cx.codbar) cx.codbar += '7' },
       NUMPAD_8: function (name, code) { if (cx.codbar) cx.codbar += '8' },
       NUMPAD_9: function (name, code) { if (cx.codbar) cx.codbar += '9' },
-      F3: function (name, code) { cx.abreVendas('', 'C','V') },
-      F4: function (name, code) { cx.abreVendas('', 'R','F') },
+      F3: function (name, code) { cx.abreVendas('', 'C', 'V') },
+      F4: function (name, code) { cx.abreVendas('', 'R', 'F') },
       F5: function (name, code) { cx.Pagar() }
     };
     cx.puxaLocal = function (ev) {
@@ -615,7 +627,7 @@
           console.log('You cancelled the dialog.');
         });
     };
-    cx.abreVendas = function (ev, status,acao) {
+    cx.abreVendas = function (ev, status, acao) {
       $scope.acao = acao
       $scope.venda = [];
       $scope.prodVenda = [];
@@ -652,7 +664,7 @@
     };
 
 
-    cx.abreVendasFechamento = function (ev,acao) {
+    cx.abreVendasFechamento = function (ev, acao) {
       $scope.acao = acao;
       $scope.venda = [];
       $scope.prodVenda = [];
@@ -732,8 +744,8 @@
         fullscreen: true, // Only for -xs, -sm breakpoints.,
         locals: {
           dados: $scope.venda,
-          acao : $scope.acao,
-          descontoitem : $scope.venda.DESCONTOITEM
+          acao: $scope.acao,
+          descontoitem: $scope.venda.DESCONTOITEM
         }
       })
         .then(function () {

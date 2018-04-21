@@ -47,7 +47,7 @@
     "openssl_fips": "",
     "openssl_no_asm": 0,
     "shlib_suffix": "so.57",
-    "target_arch": "x64",
+    "target_arch": "ia32",
     "v8_enable_gdbjit": 0,
     "v8_enable_i18n_support": 1,
     "v8_enable_inspector": 1,
@@ -59,8 +59,15 @@
     "v8_use_snapshot": "false",
     "want_separate_host_toolset": 0,
     "want_separate_host_toolset_mkpeephole": 0,
-    "nodedir": "C:\\Users\\suporte_florestal.SRV-FRT-WEB\\.node-gyp\\iojs-1.6.2",
+    "nodedir": "C:\\Users\\suporte_florestal.SRV-FRT-WEB\\.electron-gyp\\iojs-1.8.4",
     "standalone_static_library": 1,
-    "target": "1.6.2"
+    "build_from_source": "true",
+    "disturl": "https://atom.io/download/electron",
+    "fallback_to_build": "true",
+    "platform": "win32",
+    "runtime": "electron",
+    "target": "1.8.4",
+    "target_platform": "win32",
+    "update_binary": "true"
   }
 }

@@ -15,12 +15,12 @@
     50%   { opacity: .5; }
     100%  { opacity: 0; }
     }
-    @keyframes slideOutLeft {
+    /* @keyframes slideOutLeft {
     to      { transform: translateX(-100%); }
     }
     @keyframes slideInRight {
     from    { transform:translateX(100%); }
     to      { transform: translateX(0); }
-    }
+    } */
     .ng-enter           { animation: slideInRight 0.5s both linear, fadeIn 0.5s both linear; z-index: 8888;}
     .ng-leave           { animation: slideOutLeft 0.5s both linear, fadeOut 0.5s both linear; z-index: 9999;}

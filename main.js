@@ -130,11 +130,7 @@ function createWindow () {
   
 // });
 app.on('ready', function() { createWindow();
-  if (process.env.NODE_ENV === 'development'){}
-  // Skip autoupdate check
-  else
   autoUpdater.checkForUpdates()
-
 })
 // Quit when all windows are closed.
 autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {

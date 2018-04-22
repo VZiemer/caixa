@@ -37,7 +37,15 @@ function Venda(lcto, data, transito, cgc, insc, codcli, nomecli, email, fone, ra
     //produtos
     this.PRODUTOS = []
     this.PAGAMENTO = []
+    this.NUCUPOM = null
+    this.NFE = null
 };
+Venda.prototype.insereNucupom = function (cupom) {
+    this.NUCUPOM = cupom;
+}
+Venda.prototype.insereNfe = function (nfe) {
+    this.NFE = nfe;
+}
 Venda.prototype.insereLcto = function (lcto, transito) {
     //lcto
     console.log("inserelcto" + lcto + " " + transito)
@@ -56,15 +64,10 @@ Venda.prototype.calculaTotal = function () {
     this.PAGAR = this.TOTALDESC
 }
 Venda.prototype.VLDESC = function () { return new dinheiro(this.TOTAL - this.TOTALDESC) }
-Venda.prototype.PERCENTDESC = function () { return (1 - (this.TOTAL / this.TOTALDESC)) }
+Venda.prototype.PERCENTDESC = function () { return (100- (this.TOTALDESC*100/this.TOTAL)).toFixed(0) }
 Venda.prototype.insereProduto = function (produto) {
-    // if (produto.VALOR.valor < 0) {
-
-    // }
-    // if (produto.VALOR.valor >= 0) {
-        this.PRODUTOS.push(new Produto(produto.CODIGO, produto.VALOR, produto.QTDPEDIDO, produto.QTDRESERVA, produto.UNIDADE, produto.CODPRODVENDA, produto.VALORINI, produto.DESCRICAO, produto.CODINTERNO, produto.SITTRIB, produto.NCM, produto.ORIG, produto.GRUPO, produto.ALIQ, produto.CEST));
-        this.calculaTotal()
-    // }
+    this.PRODUTOS.push(new Produto(produto.CODIGO, produto.VALOR, produto.QTDPEDIDO, produto.QTDRESERVA, produto.UNIDADE, produto.CODPRODVENDA, produto.VALORINI, produto.PRPROMO, produto.DESCRICAO, produto.CODINTERNO, produto.SITTRIB, produto.NCM, produto.ORIG, produto.GRUPO, produto.ALIQ, produto.CEST));
+    this.calculaTotal()
 }
 Venda.prototype.inserePagamento = function (pagamento) {
     this.PAGAMENTO.push(pagamento);
@@ -81,13 +84,14 @@ Venda.prototype.alteraValorProduto = function (codprodvenda, valor) {
     this.PRODUTOS[index].TOTAL = new dinheiro(valor * this.PRODUTOS[index].QTD)
     this.calculaTotal()
 }
-function Produto(codpro, valor, qtd, qtdreserva, unidade, codprodvenda, valorini, descricao, codinterno, sittrib, ncm, orig, grupo, aliq, cest) {
+function Produto(codpro, valor, qtd, qtdreserva, unidade, codprodvenda, valorini, valorpromo, descricao, codinterno, sittrib, ncm, orig, grupo, aliq, cest) {
     this.CODPRO = codpro || null
     this.CODPRODVENDA = codprodvenda || null
     this.CODINTERNO = codinterno || null
     this.DESCRICAO = descricao || null
     this.VALOR = new dinheiro(valor) || 0
     this.VALORINI = new dinheiro(valorini) || 0
+    this.VALORPROMO = new dinheiro(valorpromo) || 0
     this.QTD = qtd || 0
     this.QTDRESERVA = qtdreserva || 0
     this.TOTAL = new dinheiro(valor * qtd)

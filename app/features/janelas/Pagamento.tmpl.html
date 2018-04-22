@@ -1,98 +1,107 @@
 <md-dialog class="fullscreen-dialog" aria-label="Mango (Fruit)" layout='column'>
-    <form ng-cloak>
-      <md-toolbar>
-        <div class="md-toolbar-tools">
-          <h2>Venda no Caixa</h2>
-          <span flex></span>
-          <md-button ng-if="venda.LCTO.length==1" class="md-raised" ng-click="insereCPF($event)">
-              CPF
-            </md-button>  
-            <md-button ng-if="venda.LCTO.length==1" class="md-raised" ng-disabled="" ng-click="concluir($event)">
-              CONCLUIR
-            </md-button>
-            <md-button ng-if="venda.LCTO.length==1" class="md-raised" ng-disabled="" ng-click="concluirCupom($event)">
-                CONCLUIR/CUPOM
-            </md-button>
-            <md-button ng-if="venda.LCTO.length!=1" ng-disabled="" class="md-raised" ng-click="nfFech($event,fPagto)">
-              NFE
-            </md-button>                
-            <md-button ng-if="venda.LCTO.lenght!=1" ng-disabled="" class="md-raised" ng-click="concluirFech($event,fPagto)">
-              PAGAR FECHAMENTO
-            </md-button>                      
-          <md-button class="md-icon-button" ng-click="cancel()">
-            <md-icon class="material-icons" style="color: white;">close</md-icon>
-          </md-button>          
-        </div>
-      </md-toolbar>
-      <md-dialog-actions layout="row" layout-align="end">
-          <span flex></span>             
-        </md-dialog-actions>      
-      <md-dialog-content >
-        <div class="md-dialog-content" layout="row" >        
-          <md-card flex=20>
-            <md-button ng-repeat="fPagto in FormaPagto" ng-disabled="fPagto.NOME == 'VALE' && vale <= 0" class="md-raised" ng-click="InserePgto($event,fPagto)">
-              {{fPagto.NOME}}<span ng-if="fPagto.NOME == 'NP'"> ({{vale}})</span>
-            </md-button>
-                                                                   
-          </md-card>
-          <!-- <md-card flex layout="column" layout-align="top center">
+  <form ng-cloak>
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>Venda no Caixa</h2>
+        <span flex></span>
+        <md-button ng-if="acao=='V'" class="md-raised" ng-click="insereCPF($event)">
+          CPF
+        </md-button>
+        <md-button ng-if="acao=='V'" class="md-raised" ng-disabled="venda.PAGAR.valor" ng-click="concluir($event)">
+          CONCLUIR
+        </md-button>
+        <md-button ng-if="acao=='V'" class="md-raised" ng-disabled="venda.PAGAR.valor" ng-click="concluirCupom($event)">
+          CONCLUIR/CUPOM
+        </md-button>
+        <md-button ng-if="" ng-disabled="venda.PAGAR.valor" class="md-raised" ng-click="nfFech($event,fPagto)">
+          NFE
+        </md-button>
+        <md-button ng-if="acao=='F'" ng-disabled="venda.PAGAR.valor" class="md-raised" ng-click="concluirFech($event,fPagto)">
+          PAGAR FECHAMENTO
+        </md-button>
+        <md-button class="md-icon-button" ng-click="cancel()">
+          <md-icon class="material-icons" style="color: white;">close</md-icon>
+        </md-button>
+      </div>
+    </md-toolbar>
+    <md-dialog-actions layout="row" layout-align="end">
+      <span flex></span>
+    </md-dialog-actions>
+    <md-dialog-content>
+      <div class="md-dialog-content" layout="row">
+        <md-card flex=20>
+          <md-button ng-repeat="fPagto in FormaPagto" class="md-raised" ng-click="InserePgto($event,fPagto)">
+            {{fPagto.NOME}}
+            <span ng-if="fPagto.NOME == 'NP' && vale < 0"> ({{ vale* (-1)|currency:'R$'}})</span>
+          </md-button>
+        </md-card>
+        <!-- <md-card flex layout="column" layout-align="top center">
             <h3>á Pagar</h3>
             <h1>R$ {{venda.PAGAR | currency}}</h1>          
           </md-card> -->
-          <md-card flex layout-align="top center" style="background-color:#eeecd2;font-size:8pt;font-family:Arial;">
-            <md-card-content>
-                <div layout="row" layout-sm="column" layout-align="space-around" ng-if="await">
-                    <md-progress-circular md-mode="indeterminate"></md-progress-circular>
-                    <h1>{{mensagem}}</h1>
-                  </div>
-                 
-              <h1>Total á pagar {{venda.TOTAL}}</h1> 
+        <md-card flex  style="background-color:#eeecd2;font-size:8pt;font-family:Arial;">
+          <!-- <div layout="row" layout-sm="row" layout-align="space-around" ng-if="await">
+            <md-progress-circular md-mode="indeterminate"></md-progress-circular>
+            <h1 style="color:red">{{await}}</h1>
+          </div> -->
+          <md-card-content  layout="row">
+            <div layout="column" flex layout-align="top center">
+              <h4>Total venda: {{venda.TOTAL.toString()}}</h4>
+              <h4>Desconto de {{venda.PERCENTDESC()}}% ({{venda.VLDESC().toString()}})</h4>
+              <h1>Total á pagar {{venda.TOTALDESC.toString()}}</h1>
               <h2 ng-if="venda.PAGAR>0">Restante á pagar {{venda.PAGAR}}</h2>
               <h2 ng-if="venda.PAGAR<0">Troco {{venda.PAGAR}}</h2>
-              <md-table-container style="overflow: auto;" >
+              <md-table-container style="overflow: auto;">
                 <table md-table>
                   <thead md-head>
                     <tr md-row>
-                      <th md-column><span>VALOR</span></th>
-                      <th md-column><span>FORMA</span></th>
-                      <th md-column><span>VENCTO</span></th>
+                      <th md-column>
+                        <span>VALOR</span>
+                      </th>
+                      <th md-column>
+                        <span>FORMA</span>
+                      </th>
+                      <th md-column>
+                        <span>VENCTO</span>
+                      </th>
                     </tr>
                   </thead>
                   <tbody md-body>
                     <tr md-row ng-repeat="item in venda.PAGAMENTO">
                       <td md-cell>{{item.valor}}</td>
-                      <td md-cell><span>{{item.tipo}}</span></td>
+                      <td md-cell>
+                        <span>{{item.tipo}}</span>
+                      </td>
                       <td md-cell ng-if='item.tipo == "BL"'>
-                          <md-datepicker ng-if="$first" ng-model="item.vencimento" md-placeholder="Enter date" md-min-date="hoje"></md-datepicker>                
-                          <md-datepicker ng-if="!$first" ng-model="item.vencimento" md-placeholder="Enter date" md-min-date="hoje"></md-datepicker>                
-                        </td>
+                        <md-datepicker ng-if="$first" ng-model="item.vencimento" md-placeholder="Enter date" md-min-date="hoje"></md-datepicker>
+                        <md-datepicker ng-if="!$first" ng-model="item.vencimento" md-placeholder="Enter date" md-min-date="hoje"></md-datepicker>
+                      </td>
                     </tr>
                   </tbody>
                 </table>
               </md-table-container>
-            </md-card-content>                    
-          </md-card>
+            </div>
+            <!-- <div layout="column" flex layout-align="top center">
+              <md-table-container style="overflow: auto;" ng-style="{'height':mainScreen-200+'px'}">
+                <table md-table>
+                  <thead fix-head md-head>
+                    <tr md-row>
+                      <th md-column><span>COD</span></th>
+                      <th md-column><span>QTD</span></th>
+                    </tr>
+                  </thead>
+                  <tbody md-body>
+                    <tr md-row ng-repeat="item in venda.PRODUTOS">
+                      <td md-cell>{{item.CODPRO}}</td>
+                      <td md-cell>{{item.QTD}} {{item.UNIDADE}}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </md-table-container>            
+            </div> -->
+          </md-card-content>
+        </md-card>
       </div>
-      <!-- <div layout="column">
-        <md-card>
-          <md-table-container style="overflow: auto;" ng-style="{'height':mainScreen-200+'px'}">
-              <table md-table>
-                <thead fix-head md-head>
-                  <tr md-row>
-                    <th md-column><span>VALOR</span></th>
-                    <th md-column><span>FORMA</span></th>
-                  </tr>
-                </thead>
-                <tbody md-body>
-                  <tr md-row ng-repeat="item in Pagamentos">
-                    <td md-cell>{{item.valor | currency}}</td>
-                    <td md-cell>{{item.tipo}}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </md-table-container>            
-        </md-card>        
-      </div> -->
-      </md-dialog-content>
-    </form>    
-  </md-dialog>
+    </md-dialog-content>
+  </form>
+</md-dialog>

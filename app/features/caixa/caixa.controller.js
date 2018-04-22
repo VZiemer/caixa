@@ -341,11 +341,11 @@
     }
     function insereCPFCtrl($scope, $mdDialog, locals) {
       // $scope.param = remote.getGlobal('dados').param;
-      $scope.cliente = locals.cgc;
+      $scope.cliente = locals.venda.CGC;
       //controla o modal que faz o pagamento
-      // $scope.venda = locals.dados;  
+       
       $scope.hide = function () {
-        $mdDialog.hide($scope.cliente);
+        $mdDialog.hide();
       };
       $scope.cancel = function () {
         $mdDialog.cancel();
@@ -394,20 +394,21 @@
     }
     function PagamentoCtrl($scope, $mdDialog, locals, $timeout) {  //controla o modal que faz o pagamento
       $scope.hoje = new Date();
+      $scope.acao = locals.acao
       $scope.param = remote.getGlobal('dados').param;
       $scope.await = 'carregando...'
       VendaSrvc.formasPagamento().then(
         function (response) {
           console.log(response.data);
           $scope.FormaPagto = response.data
-          $scope.await = ''
+          // $scope.await = ''
         })
       VendaSrvc.valeCliente(locals.dados.CODCLI).then(function (response) {
         if (locals.acao = 'V') {
           $scope.vale = response.reduce(function (acumulador, atual) {
             if (atual.ENT_SAI == 'S') { atual.TOTAL = atual.TOTAL * (-1) }
             return acumulador += atual.TOTAL;
-          }, 0) + locals.descontoitem;
+          }, 0);
         }
         if (locals.acao = 'F') {
           $scope.vale = response.filter(function (item) {
@@ -471,6 +472,7 @@
         $scope.await = 'Imprimindo Cupom...'
         const Ncupom = await bemafi.gravaECF($scope.venda);
         console.log(Ncupom);
+        $scope.venda.insereNucupom(Ncupom)
         $scope.await = 'Confirmando Venda...'
         VendaSrvc.confirmaVenda($scope.venda).then(function (response) {
           $scope.imprime($scope.venda); $mdDialog.hide(); console.log(response)
@@ -521,11 +523,11 @@
           multiple: true,
           fullscreen: false, // Only for -xs, -sm breakpoints.,
           locals: {
-            'cgc': $scope.CGC
+            'venda': $scope.venda
           }
         })
           .then(function (valor) {
-            $scope.CPF = valor;
+            $scope.venda.CGC = valor;
             console.log(valor);
           }, function () {
             console.log('You cancelled the dialog.');
@@ -587,7 +589,8 @@
       NUMPAD_8: function (name, code) { if (cx.codbar) cx.codbar += '8' },
       NUMPAD_9: function (name, code) { if (cx.codbar) cx.codbar += '9' },
       F3: function (name, code) { cx.abreVendas('', 'C', 'V') },
-      F4: function (name, code) { cx.abreVendas('', 'R', 'F') },
+      F4: function (name, code) { cx.abreVendas('', 'R', 'V') },
+      F6: function (name, code) { cx.abreVendasFechamento('', 'F') },
       F5: function (name, code) { cx.Pagar() }
     };
     cx.puxaLocal = function (ev) {
@@ -647,8 +650,6 @@
         })
           .then(function (pedido) {
             var status = 'C';
-            $scope.CGC = pedido.CGC;
-            console.log($scope.CGC)
             var dados = [pedido.CODCLI, pedido.NOMECLI, pedido.CODVEND, pedido.OBS, status, pedido.LCTO];
             VendaSrvc.atualizaVenda(dados).then(function (res) {
               // $scope.venda=new venda(res.LCTO,res.ID_TRANSITO,res.CGC,res.INSC,res.CODCLI,res.NOMECLI,res.EMAIL,res.FONE,res.RAZAO,res.ENDERECO,res.NUMERO,res.BAIRRO,res.CEP,res.CODIBGE,res.CODCIDADE,res.CIDADE,res.ESTADO,res.COMPLEMENTO,res.DESCONTO,res.FRETE,res.SEGURO,res.TOTAL );
@@ -662,6 +663,7 @@
 
       });
     };
+
 
 
     cx.abreVendasFechamento = function (ev, acao) {

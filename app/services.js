@@ -116,7 +116,7 @@ const remote = require('electron').remote;
                                 if (err) throw err;
                                 console.log(res)
                                 venda = new Venda(res[0].LCTO,res[0].DATA ,res[0].ID_TRANSITO, res[0].CGC, res[0].INSC, res[0].CODCLI, res[0].NOMECLI, res[0].EMAIL, res[0].FONE, res[0].RAZAO, res[0].ENDERECO, res[0].NUMERO, res[0].BAIRRO, res[0].CEP, res[0].CODIBGE, res[0].CODCIDADE, res[0].CIDADE, res[0].ESTADO, res[0].COMPLEMENTO, res[0].DESCONTO, res[0].FRETE, res[0].SEGURO, res[0].TOTAL);
-                                db.query("SELECT PRODUTO.CODIGO,PRODUTO.CODINTERNO,PRODUTO.ALIQ,PRODUTO.SITTRIB,PRODUTO.LOCAL,PRODUTO.DESCRICAO,PRODUTO.UNIDADE,PRODUTO.CEST,PRODVENDA.CODIGO AS CODPRODVENDA,PRODVENDA.QTD AS QTDPEDIDO,PRODVENDA.qtdreserva,PRODVENDA.valor,(prodvenda.VALOR*prodvenda.QTD) as total,prodvenda.valorini FROM PRODVENDA JOIN PRODUTO ON PRODVENDA.CODPRO = PRODUTO.CODIGO WHERE PRODVENDA.CODVENDA = ?", venda.LCTO, function (err, result) {
+                                db.query("SELECT PRODUTO.CODIGO,PRODUTO.CODINTERNO,PRODUTO.ALIQ,PRODUTO.SITTRIB,PRODUTO.LOCAL,PRODUTO.DESCRICAO,PRODUTO.UNIDADE,PRODUTO.CEST,PRODVENDA.CODIGO AS CODPRODVENDA,PRODVENDA.QTD AS QTDPEDIDO,PRODVENDA.qtdreserva,PRODVENDA.valor,(prodvenda.VALOR*prodvenda.QTD) as total,prodvenda.valorini,prodvenda.prpromo FROM PRODVENDA JOIN PRODUTO ON PRODVENDA.CODPRO = PRODUTO.CODIGO WHERE PRODVENDA.CODVENDA = ?", venda.LCTO, function (err, result) {
                                     if (err) throw err;
                                     console.log(result)
                                     db.detach(function () {
@@ -278,7 +278,7 @@ const remote = require('electron').remote;
                         sql += "insert into movban (codban,data,ent_sai,hora,vlbruto,documento,despesa,usuario,vcto,lctosaida,codcli,tipopag,projecao,banco,agencia,conta,nrcheque,emnome)";
                         sql += "values (" + pagamento[i].codban + ",current_date,'E',current_time," + pagamento[i].valor + "," + venda.LCTO + ",1,'VANIUS','" + pagamento[i].vencimento.dataFirebird() + "'," + venda.LCTO + "," + venda.CODCLI + ",'" + pagamento[i].tipo + "','N'," + pagamento[i].banco + ",'" + pagamento[i].agencia + "','" + pagamento[i].conta + "','" + pagamento[i].nrcheque + "','" + pagamento[i].emnome + "');";
                     }
-                    sql += "update venda set status='F',data=current_date,empresa=" + empresa + " where lcto=" + venda.LCTO + ";";
+                    sql += "update venda set status='F',data=current_date,nucupom=" + venda.NUCUPOM || '' + ",nf_cupom=" + venda.NFE || '' + ",empresa=" + empresa + " where lcto=" + venda.LCTO + ";";
                     sql += 'end';
                     Firebird.attach(options, function (err, db) {
                         if (err)

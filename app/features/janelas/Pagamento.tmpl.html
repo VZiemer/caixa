@@ -46,11 +46,11 @@
           </div> -->
           <md-card-content  layout="row">
             <div layout="column" flex layout-align="top center">
-              <h4>Total venda: {{venda.TOTAL.toString()}}</h4>
-              <h4>Desconto de {{venda.PERCENTDESC()}}% ({{venda.VLDESC().toString()}})</h4>
-              <h1>Total á pagar {{venda.TOTALDESC.toString()}}</h1>
-              <h2 ng-if="venda.PAGAR>0">Restante á pagar {{venda.PAGAR}}</h2>
-              <h2 ng-if="venda.PAGAR<0">Troco {{venda.PAGAR}}</h2>
+              <span class="md-body-1">Total venda: {{venda.TOTAL.toString()}}</span>
+              <span class="md-body-1" ng-if="venda.TOTAL!=venda.TOTALDESC">Desconto de {{venda.PERCENTDESC()}}% ({{venda.VLDESC().toString()}})</span>
+              <span class="md-title">Total á pagar {{venda.TOTALDESC.toString()}}</span></br>
+              <span class="md-title" ng-if="venda.PAGAR>0">Restante á pagar {{venda.PAGAR}}</span></br>
+              <span class="md-title" ng-if="venda.PAGAR<0">Troco {{venda.PAGAR}}</span>
               <md-table-container style="overflow: auto;">
                 <table md-table>
                   <thead md-head>

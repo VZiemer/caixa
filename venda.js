@@ -1,9 +1,11 @@
 const dinheiro = require('./dinheiro');
-function Venda(lcto, data, transito, cgc, insc, codcli, nomecli, email, fone, razao, endereco, numero, bairro, cep, codibge, codcidade, cidade, estado, complemento, desconto, frete, seguro, total) {
+function Venda(lcto, data, transito, cgc, insc, codcli, nomecli,codvend, nomevend, email, fone, razao, endereco, numero, bairro, cep, codibge, codcidade, cidade, estado, complemento, desconto, frete, seguro, total) {
     //venda
     this.LCTO = []
     this.DATA = new Date(data)
     this.LCTO.push(lcto)
+    this.CODVEND = codvend || null
+    this.NOMEVEND = nomevend || null
     //transito
     this.TRANSITO = []
     this.TRANSITO.push(transito)
@@ -33,7 +35,7 @@ function Venda(lcto, data, transito, cgc, insc, codcli, nomecli, email, fone, ra
     this.TOTAL = 0
     this.TOTALDESC = 0
     this.DESCONTOITEM = 0
-    this.PAGAR = this.TOTAL
+    this.PAGAR = 0
     //produtos
     this.PRODUTOS = []
     this.PAGAMENTO = []
@@ -61,7 +63,9 @@ Venda.prototype.calculaTotal = function () {
     this.TOTALDESC = new dinheiro(this.PRODUTOS.reduce(function (valorAnterior, valorAtual, indice, array) {
         return valorAnterior + (valorAtual.TOTAL);
     }, 0))
-    this.PAGAR = this.TOTALDESC
+    this.PAGAR = new dinheiro(this.PRODUTOS.reduce(function (valorAnterior, valorAtual, indice, array) {
+        return valorAnterior + (valorAtual.TOTAL);
+    }, 0))
 }
 Venda.prototype.VLDESC = function () { return new dinheiro(this.TOTAL - this.TOTALDESC) }
 Venda.prototype.PERCENTDESC = function () { return (100- (this.TOTALDESC*100/this.TOTAL)).toFixed(0) }

@@ -8,7 +8,7 @@ Dinheiro.prototype.valueOf = function () {
     return this.valor;
 };
 Dinheiro.prototype.valueStr = function () {
-    return this.valor.toString();
+    return this.valor.toFixed(2).toString();
 };
 Dinheiro.prototype.soma = function (valor) {
     if (valor instanceof Dinheiro === false) {

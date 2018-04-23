@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 <Bematech>
     <Sistema>
-        <Porta>COM3</Porta>
+        <Porta>COM4</Porta>
         <BaudRate>9600</BaudRate>
-        <Path>C:\CAIXA\LOCAL/</Path>
-        <Status>1</Status>
-        <Retorno>1</Retorno>
+        <Path>C:\</Path>
+        <Status>0</Status>
+        <Retorno>0</Retorno>
         <StatusFuncao>0</StatusFuncao>
         <ControlePorta>1</ControlePorta>
-        <ConfigRede>2</ConfigRede>
+        <ConfigRede>0</ConfigRede>
         <NivelLog>1</NivelLog>
         <ModoGaveta>0</ModoGaveta>
-        <CrLfVinculado>0</CrLfVinculado>
-        <CrLfGerencial>0</CrLfGerencial>
+        <CrLfVinculado>1</CrLfVinculado>
+        <CrLfGerencial>1</CrLfGerencial>
         <TimeOutReducaoZ>99</TimeOutReducaoZ>
         <TimeOutGerencialExtendido>40</TimeOutGerencialExtendido>
-        <Tentativas>200</Tentativas>
-        <WakMilisegundos>40</WakMilisegundos>
-        <TimeoutSegundos>20</TimeoutSegundos>
+        <Tentativas>999</Tentativas>
+        <WakMilisegundos>100</WakMilisegundos>
+        <TimeoutSegundos>180</TimeoutSegundos>
         <VersaoAtoCotepe>1</VersaoAtoCotepe>
         <CleanValidation>0</CleanValidation>
         <TimeoutEscritaPorta>100</TimeoutEscritaPorta>
         <TimeoutLeituraPorta>10000</TimeoutLeituraPorta>
     </Sistema>
     <Fiscal>
-        <ProtocoloUnico>0</ProtocoloUnico>
+        <ProtocoloUnico>1</ProtocoloUnico>
         <CAT52>0</CAT52>
         <CupomMania>0</CupomMania>
         <MinasLegal>0</MinasLegal>
@@ -67,7 +67,7 @@
         <Linha1 />
         <Linha2 />
         <IM_ECF />
-        <UF />
+        <UF>DF</UF>
     </SoftwareHouse>
     <ChequeOpcional>
         <Cidade />

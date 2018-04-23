@@ -31,6 +31,7 @@ const bemafi = ffi.Library(DLL, {
   'Bematech_FI_FechaCupom': ['int', ['string', 'string', 'string', 'string', 'string', 'string']],
   'Bematech_FI_CancelaCupom': ['int', []],
   'Bematech_FI_VerificaImpressoraLigada': ['int', []],
+  'Bematech_FI_AumentaDescricaoItem': ['int',['string']],
   'Bematech_FI_AbrePortaSerial': ['int', []],
   'Bematech_FI_FechaPortaSerial': ['int', []],
   'Bematech_FI_NumeroCupom': ['int', [stringPtr]]
@@ -44,12 +45,16 @@ async function gravaECF(venda) {
 
   // loop que faz a venda de todos os itens do cupom
   for (let item of venda.PRODUTOS) {
-    const vendaItem = await bemafi.Bematech_FI_VendeItem(item.CODPRO.toString(), item.DESCRICAO, 'II', 'I', item.QTD.toString(), 2, item.VALOR.valueStr(), '%', '0000')
+    const aumentadesc = await bemafi.Bematech_FI_AumentaDescricaoItem(item.DESCRICAO)
+    console.log ('aumentadesc ' + aumentadesc )
+    console.log(item.VALOR.valueStr())
+    const vendaItem = await bemafi.Bematech_FI_VendeItem(item.CODPRO.toString(), '', 'II', 'I', item.QTD.toString(), 2, item.VALOR.valueStr(), '%', '0000')
     console.log('vende item ' + vendaItem);
   }
 
   // faz o fechamento resumido do cupom
-  const fechacupom = await bemafi.Bematech_FI_FechaCupom('Dinheiro', 'A', '$', '0000', venda.TOTALDESC.valueStr(), 'Obrigado, volte sempre !!!')
+  console.log(venda.TOTALDESC.valueStr())
+  const fechacupom = await bemafi.Bematech_FI_FechaCupom('Dinheiro', 'D', '$', '0000', venda.TOTALDESC.valueStr(), 'Obrigado, volte sempre !!!')
   console.log('fecha resumido ' + fechacupom);
 
   // retorna o numero do cupom após o fechamento

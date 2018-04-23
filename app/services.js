@@ -67,16 +67,16 @@ const remote = require('electron').remote;
                     return deferred.promise;
                 }
                 var carregaNPcli = function (vendas) { // atualiza e/ ou carrega uma venda
-                    let listaPedido = vendas.map(function(item,index){
+                    let listaPedido = vendas.map(function (item, index) {
                         return item.LCTO;
-                      }).toString()
-                      venda = new Venda(vendas[0].LCTO, vendas[0].DATA, vendas[0].ID_TRANSITO, vendas[0].CGC, vendas[0].INSC, vendas[0].CODCLI, vendas[0].NOMECLI, vendas[0].EMAIL, vendas[0].FONE, vendas[0].RAZAO, vendas[0].ENDERECO, vendas[0].NUMERO, vendas[0].BAIRRO, vendas[0].CEP, vendas[0].CODIBGE, vendas[0].CODCIDADE, vendas[0].CIDADE, vendas[0].ESTADO, vendas[0].COMPLEMENTO, vendas[0].DESCONTO, vendas[0].FRETE, vendas[0].SEGURO, vendas[0].TOTAL);                     
-                          vendas.forEach(function(item,index){
-                            if (index) {
-                                venda.insereLcto(item.LCTO,item.ID_TRANSITO)
-                            }
-                          })
-                      var token = remote.getGlobal('dados').param.token;
+                    }).toString()
+                    venda = new Venda(vendas[0].LCTO, vendas[0].DATA, vendas[0].ID_TRANSITO, vendas[0].CGC, vendas[0].INSC, vendas[0].CODCLI, vendas[0].NOMECLI, '', '', vendas[0].EMAIL, vendas[0].FONE, vendas[0].RAZAO, vendas[0].ENDERECO, vendas[0].NUMERO, vendas[0].BAIRRO, vendas[0].CEP, vendas[0].CODIBGE, vendas[0].CODCIDADE, vendas[0].CIDADE, vendas[0].ESTADO, vendas[0].COMPLEMENTO, vendas[0].DESCONTO, vendas[0].FRETE, vendas[0].SEGURO, vendas[0].TOTAL);
+                    vendas.forEach(function (item, index) {
+                        if (index) {
+                            venda.insereLcto(item.LCTO, item.ID_TRANSITO)
+                        }
+                    })
+                    var token = remote.getGlobal('dados').param.token;
                     var empresa = remote.getGlobal('dados').configs.empresa;
                     var deferred = $q.defer();
                     Firebird.attach(options, function (err, db) {
@@ -89,11 +89,11 @@ const remote = require('electron').remote;
                                 result.forEach(function (item) {
                                     if (item.QTDPEDIDO > 0) {
                                         venda.insereProduto(item)
-                                        console.log ("inseriu item")
+                                        console.log("inseriu item")
                                     }
                                     if (item.QTDPEDIDO < 0) {
                                         venda.insereDescontos(item);
-                                        console.log ("descontou item")
+                                        console.log("descontou item")
                                     }
                                 });
                                 deferred.resolve(venda);
@@ -112,10 +112,10 @@ const remote = require('electron').remote;
                         db.query("update or insert into venda (codcli,nomecli,codvend,obs,status,data,lcto) values (?,?,?,?,?,current_date,?) RETURNING LCTO ", dados, function (err, result) {
                             console.log(result)
                             if (err) throw err;
-                            db.query("select v.lcto,v.data,v.codcli,v.nomecli,v.empresa,v.codvend,v.total,f.nome,tr.id_transito,tr.status, tr.peso,tr.volumes,tr.frete,tr.outra_desp,tr.desconto,tr.total_nota,tr.tipofrete,c.cgc,c.razao,c.insc,c.endereco,c.numero,c.bairro,c.complemento,c.cidade,c.cep,c.fone,c.email,ci.codibge,c.codcidade,ci.estado,ci.cod_estado,mb.valor, mb.vcto as vencimento,mb.codban from venda v join transito tr on v.lcto = tr.documento join cliente c on c.codigo=v.codcli join func f on f.codigo = v.codvend join cidade ci on c.codcidade = ci.cod_cidade left join movban mb on mb.lctosaida = v.lcto left join transp on tr.codtransp = transp.codigo where lcto =? order by mb.codigo", result.LCTO, function (err, res) {
+                            db.query("select v.lcto,v.data,v.codcli,v.nomecli,v.empresa,v.codvend,v.total,f.nome,tr.id_transito,tr.status, tr.peso,tr.volumes,tr.frete,tr.outra_desp,tr.desconto,tr.total_nota,tr.tipofrete,c.cgc,c.razao,c.insc,c.endereco,c.numero,c.bairro,c.complemento,c.cidade,c.cep,c.fone,c.email,ci.codibge,c.codcidade,ci.estado,ci.cod_estado,mb.valor, mb.vcto as vencimento,mb.codban,f.nome as nomevend from venda v join transito tr on v.lcto = tr.documento join cliente c on c.codigo=v.codcli join func f on f.codigo = v.codvend join cidade ci on c.codcidade = ci.cod_cidade left join movban mb on mb.lctosaida = v.lcto left join transp on tr.codtransp = transp.codigo where lcto =? order by mb.codigo", result.LCTO, function (err, res) {
                                 if (err) throw err;
                                 console.log(res)
-                                venda = new Venda(res[0].LCTO,res[0].DATA ,res[0].ID_TRANSITO, res[0].CGC, res[0].INSC, res[0].CODCLI, res[0].NOMECLI, res[0].EMAIL, res[0].FONE, res[0].RAZAO, res[0].ENDERECO, res[0].NUMERO, res[0].BAIRRO, res[0].CEP, res[0].CODIBGE, res[0].CODCIDADE, res[0].CIDADE, res[0].ESTADO, res[0].COMPLEMENTO, res[0].DESCONTO, res[0].FRETE, res[0].SEGURO, res[0].TOTAL);
+                                venda = new Venda(res[0].LCTO, res[0].DATA, res[0].ID_TRANSITO, res[0].CGC, res[0].INSC, res[0].CODCLI, res[0].NOMECLI, res[0].CODVEND, res[0].NOMEVEND, res[0].EMAIL, res[0].FONE, res[0].RAZAO, res[0].ENDERECO, res[0].NUMERO, res[0].BAIRRO, res[0].CEP, res[0].CODIBGE, res[0].CODCIDADE, res[0].CIDADE, res[0].ESTADO, res[0].COMPLEMENTO, res[0].DESCONTO, res[0].FRETE, res[0].SEGURO, res[0].TOTAL);
                                 db.query("SELECT PRODUTO.CODIGO,PRODUTO.CODINTERNO,PRODUTO.ALIQ,PRODUTO.SITTRIB,PRODUTO.LOCAL,PRODUTO.DESCRICAO,PRODUTO.UNIDADE,PRODUTO.CEST,PRODVENDA.CODIGO AS CODPRODVENDA,PRODVENDA.QTD AS QTDPEDIDO,PRODVENDA.qtdreserva,PRODVENDA.valor,(prodvenda.VALOR*prodvenda.QTD) as total,prodvenda.valorini,prodvenda.prpromo FROM PRODVENDA JOIN PRODUTO ON PRODVENDA.CODPRO = PRODUTO.CODIGO WHERE PRODVENDA.CODVENDA = ?", venda.LCTO, function (err, result) {
                                     if (err) throw err;
                                     console.log(result)
@@ -240,7 +240,7 @@ const remote = require('electron').remote;
                     Firebird.attach(options, function (err, db) {
                         if (err)
                             throw err;
-                        db.query("select sum (vlbruto) as total,ent_sai  from movban where codcli=? and codban=107 and pagto is null group by ent_sai", cliente , function (err, result) {
+                        db.query("select sum (vlbruto) as total,ent_sai  from movban where codcli=? and codban=107 and pagto is null group by ent_sai", cliente, function (err, result) {
                             if (err) throw err;
                             // console.log(venda)
                             db.detach(function () {
@@ -278,7 +278,7 @@ const remote = require('electron').remote;
                         sql += "insert into movban (codban,data,ent_sai,hora,vlbruto,documento,despesa,usuario,vcto,lctosaida,codcli,tipopag,projecao,banco,agencia,conta,nrcheque,emnome)";
                         sql += "values (" + pagamento[i].codban + ",current_date,'E',current_time," + pagamento[i].valor + "," + venda.LCTO + ",1,'VANIUS','" + pagamento[i].vencimento.dataFirebird() + "'," + venda.LCTO + "," + venda.CODCLI + ",'" + pagamento[i].tipo + "','N'," + pagamento[i].banco + ",'" + pagamento[i].agencia + "','" + pagamento[i].conta + "','" + pagamento[i].nrcheque + "','" + pagamento[i].emnome + "');";
                     }
-                    sql += "update venda set status='F',data=current_date,nucupom=" + venda.NUCUPOM || '' + ",nf_cupom=" + venda.NFE || '' + ",empresa=" + empresa + " where lcto=" + venda.LCTO + ";";
+                    sql += "update venda set status='F',data=current_date,nucupom=" + (venda.NUCUPOM || null) + ",nf_cupom=" + (venda.NFE || null) + ",empresa=" + empresa + " where lcto=" + venda.LCTO + ";";
                     sql += 'end';
                     Firebird.attach(options, function (err, db) {
                         if (err)
@@ -286,7 +286,7 @@ const remote = require('electron').remote;
                         // db = DATABASE
                         db.execute(sql, function (err, result) {
                             if (err)
-                                throw err;
+                                throw sql;
                             // IMPORTANT: close the connection
                             db.detach(function () {
                                 console.log(sql)
@@ -301,15 +301,15 @@ const remote = require('electron').remote;
                     var deferred = $q.defer();
                     let pagamento = venda.PAGAMENTO;
                     let sql = "execute block as begin ";
-                    venda.PAGAMENTO.forEach(function(item,index){
+                    venda.PAGAMENTO.forEach(function (item, index) {
                         let docto = ''
                         // if (item.tipo == 'BL') { docto = venda.NFE+'-'+(index+1)+'/'+venda.PAGAMENTO.length}
                         sql += "insert into movban (codban,data,ent_sai,hora,vlbruto,documento,despesa,usuario,vcto,lctosaida,codcli,tipopag,projecao,banco,agencia,conta,nrcheque,emnome);";
                         sql += "values (" + item.codban + ",current_date,'E',current_time," + item.valor + ",'" + docto + "',1,'VANIUS','" + item.vencimento.dataFirebird() + "'," + venda.LCTO + "," + venda.CODCLI + ",'" + item.tipo + "','N'," + item.banco + ",'" + item.agencia + "','" + item.conta + "','" + item.nrcheque + "','" + item.emnome + "');";
                     })
-                    venda.LCTO.forEach(function(item,index){
-                        sql += "update movban set pagto=CURRENT_DATE where lctosaida ="+item;
-                    })                   
+                    venda.LCTO.forEach(function (item, index) {
+                        sql += "update movban set pagto=CURRENT_DATE where lctosaida =" + item;
+                    })
                     sql += 'end';
                     Firebird.attach(options, function (err, db) {
                         if (err)
@@ -327,7 +327,7 @@ const remote = require('electron').remote;
                     })
                     deferred.resolve(sql)
                     return deferred.promise;
-                }                
+                }
                 var retornaprodVenda = function () {
                     return prodVenda;
                 }
@@ -372,7 +372,7 @@ const remote = require('electron').remote;
                     descontoFechamento: descontoFechamento,
                     CarregaFechamento: CarregaFechamento,
                     carregaNPcli: carregaNPcli,
-                    confirmaFechamento : confirmaFechamento
+                    confirmaFechamento: confirmaFechamento
                 }
             }]);
 })();

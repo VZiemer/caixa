@@ -31,7 +31,7 @@ const bemafi = ffi.Library(DLL, {
   'Bematech_FI_FechaCupom': ['int', ['string', 'string', 'string', 'string', 'string', 'string']],
   'Bematech_FI_CancelaCupom': ['int', []],
   'Bematech_FI_VerificaImpressoraLigada': ['int', []],
-  'Bematech_FI_AumentaDescricaoItem': ['int',['string']],
+  'Bematech_FI_AumentaDescricaoItem': ['int', ['string']],
   'Bematech_FI_AbrePortaSerial': ['int', []],
   'Bematech_FI_FechaPortaSerial': ['int', []],
   'Bematech_FI_NumeroCupom': ['int', [stringPtr]]
@@ -45,10 +45,19 @@ async function gravaECF(venda) {
 
   // loop que faz a venda de todos os itens do cupom
   for (let item of venda.PRODUTOS) {
+    if (item.SITTRIB == '060') {
+      item.ALIQ = 'FF'
+    }
+    else if (!item.ALIQ) {
+      item.ALIQ = 'FF'
+    }
+    else {
+      item.ALIQ = item.ALIQ * 100
+    };
     const aumentadesc = await bemafi.Bematech_FI_AumentaDescricaoItem(item.DESCRICAO)
-    console.log ('aumentadesc ' + aumentadesc )
+    console.log('aumentadesc ' + aumentadesc)
     console.log(item.VALOR.valueStr())
-    const vendaItem = await bemafi.Bematech_FI_VendeItem(item.CODPRO.toString(), '', 'II', 'I', item.QTD.toString(), 2, item.VALOR.valueStr(), '%', '0000')
+    const vendaItem = await bemafi.Bematech_FI_VendeItem(item.CODPRO.toString(), '', item.ALIQ.toString(), 'I', item.QTD.toString(), 2, item.VALOR.valueStr(), '%', '0000')
     console.log('vende item ' + vendaItem);
   }
 

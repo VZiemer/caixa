@@ -54,10 +54,14 @@ async function gravaECF(venda) {
     else {
       item.ALIQ = item.ALIQ * 100
     };
-    const aumentadesc = await bemafi.Bematech_FI_AumentaDescricaoItem(item.DESCRICAO)
-    console.log('aumentadesc ' + aumentadesc)
-    console.log(item.VALOR.valueStr())
-    const vendaItem = await bemafi.Bematech_FI_VendeItem(item.CODPRO.toString(), '', item.ALIQ.toString(), 'I', item.QTD.toString(), 2, item.VALOR.valueStr(), '%', '0000')
+    let descr = item.DESCRICAO
+    if (descr.length > 29) {
+      descr = descr.slice(0, 28)
+    }
+    // const aumentadesc = await bemafi.Bematech_FI_AumentaDescricaoItem(item.DESCRICAO)
+    // console.log('aumentadesc ' + aumentadesc)
+    console.log(item.ALIQ.toString())
+    const vendaItem = await bemafi.Bematech_FI_VendeItem(item.CODPRO.toString(), descr, item.ALIQ.toString(), 'I', item.QTD.toString(), 2, item.VALOR.valueStr(), '%', '0000')
     console.log('vende item ' + vendaItem);
   }
 

@@ -440,7 +440,7 @@
         conteudo += "</table><hr><table><tr><td colspan='8'>Descricao<td></tr><tr><td></td><td>Qtd</td><td>UN</td><td colspan='3'>Código</td><td>Vl. Unit.</td><td>Subtotal</td>"
         for (let x of venda.PRODUTOS) {
           if (!x.QTDRESERVA)
-            conteudo += "<tr><td colspan='8'>" + x.DESCRICAO + "</td></tr><tr><td></td><td>" + x.QTD + "</td><td>" + x.UNIDADE + "</td><td colspan='3'>" + x.CODIGO + "</td><td>" + x.VALOR.toString() + "</td><td>" + x.TOTAL.toString() + "</td></tr>"
+            conteudo += "<tr><td colspan='8'>" + x.DESCRICAO + "</td></tr><tr><td></td><td>" + x.QTD + "</td><td>" + x.UNIDADE + "</td><td colspan='3'>" + x.CODPRO + "</td><td>" + x.VALOR.toString() + "</td><td>" + x.TOTAL.toString() + "</td></tr>"
         };
         venda.PRODUTOS.every(function (element, index) {
           if (element.QTDRESERVA) {

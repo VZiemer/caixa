@@ -343,7 +343,6 @@
       // $scope.param = remote.getGlobal('dados').param;
       $scope.cliente = locals.venda.CGC;
       //controla o modal que faz o pagamento
-       
       $scope.hide = function () {
         $mdDialog.hide();
       };
@@ -401,7 +400,7 @@
         function (response) {
           console.log(response.data);
           $scope.FormaPagto = response.data
-          // $scope.await = ''
+          $scope.await = ''
         })
       VendaSrvc.valeCliente(locals.dados.CODCLI).then(function (response) {
         if (locals.acao = 'V') {
@@ -433,7 +432,6 @@
         var conteudo = "<span>DOCUMENTO SEM VALOR FISCAL</span><hr><span class='pull-left'>" + remote.getGlobal('dados').configs.empresa + "</span><br><span class='pull-left'>Pedido: " + venda.LCTO + "   Emissão: " + new Date().toLocaleDateString() + "</span><br><span>Cliente: " + venda.NOMECLI + "</span><br><span>Cod. Cliente" + venda.CODCLI + "</span><br><span>Vendedor: " + venda.NOMEVEND + "</span><br>"
         conteudo += "<span>Forma de Pagamento--------------------------------</span><br>"
         conteudo += "<table>"
-        // $timeout(function () {
         for (let x of venda.PAGAMENTO) {
           conteudo += "<tr><td colspan='3'>" + x.vencimento.toLocaleDateString() + "</td><td>" + x.valor.toString() + "</td><td>" + x.tipo + "</td><td colspan='3'> </td></tr>"
         }
@@ -449,24 +447,21 @@
           }
           else return true
         })
-
         venda.PRODUTOS.forEach(function (x, index) {
           if (x.QTDRESERVA)
-            conteudo += "<tr><td colspan='8'>" + x.DESCRICAO + "</td></tr><tr><td></td><td>" + x.QTD + "</td><td>" + x.UNIDADE + "</td><td colspan='3'>" + x.CODIGO + "</td><td>" + x.VALOR.toString() + "</td><td>" + x.TOTAL.toString() + "</td></tr>"
+            conteudo += "<tr><td colspan='8'>" + x.DESCRICAO + "</td></tr><tr><td></td><td>" + x.QTD + "</td><td>" + x.UNIDADE + "</td><td colspan='3'>" + x.CODPRO + "</td><td>" + x.VALOR.toString() + "</td><td>" + x.TOTAL.toString() + "</td></tr>"
         });
         conteudo += "</table><br><span class='pull-right'>Total Produtos: " + venda.TOTAL.toString() + "</span>"
         conteudo += "<br><br><span>CONFERENTE.________________________________</span><br>"
         conteudo += "<br><br><span>ASS._______________________________________</span><br><br><br><br><br>"
         conteudo += conteudo;
         html += conteudo + "</body></html>"
-        // }, 1000, false).then(function () {
         const janela = await fs.writeFile('c:/temp/teste.html', html, (err) => {
           if (err) throw err;
           let modal = window.open('', 'modal')
           console.log('The file has been saved!');
         });
         $scope.venda = new Venda()
-        // });
       }
       $scope.concluirCupom = async function () {
         $scope.await = 'Imprimindo Cupom...'

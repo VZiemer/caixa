@@ -389,12 +389,10 @@
       $scope.hoje = new Date();
       $scope.acao = locals.acao
       $scope.param = remote.getGlobal('dados').param;
-      $mdToast.show($mdToast.simple({'hideDelay':0}).textContent('CARREGANDO...').position('top right left'));
       VendaSrvc.formasPagamento().then(
         function (response) {
           console.log(response.data);
           $scope.FormaPagto = response.data
-          $mdToast.show.hide()
         })
       VendaSrvc.valeCliente(locals.dados.CODCLI).then(function (response) {
         if (locals.acao = 'V') {

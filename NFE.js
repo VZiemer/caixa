@@ -167,15 +167,8 @@ Nota.prototype.GravaBanco = function (produtos, nomexml, protocolo) {
         sql1 += "update transito set nfe = " + this.Identificacao.nNF + " where documento = " + cliente[i].PEDIDO;
       }
       db.execute(sql1, function (err, result) {
-        db.detach(function () { 
-          watcher.close(); 
-          totais = {}; 
-          cliente = {}; 
-          TvProd = '';
-          TvFrete = '';
-          TvSeg = '';
-          TvDesc = '';
-          TvOutro = '';        
+        db.detach(function () {
+          watcher.close();
         });
       });
     });
@@ -543,6 +536,22 @@ Nota.prototype.InsereProduto = function (indice, orig, sittrib, cod, descricao, 
   };
 };
 exports.iniciaNota = function (venda, produtos, faturas, avista) {
+  totais = {};
+  cliente = {};
+  TvBC = 0;
+  TvICMS = 0;
+  TvICMSDeson = 0;
+  TvBCST = 0;
+  TvST = 0;
+  TvProd = 0;
+  TvFrete = 0;
+  TvSeg = 0;
+  TvDesc = 0;
+  TvII = 0;
+  TvIPI = 0;
+  TvPIS = 0;
+  TvCOFINS = 0;
+  TvOutro = 0;
   pgtoavista = avista
   cliente = {
     'CODCLI': venda.CODCLI,

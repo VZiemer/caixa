@@ -6,7 +6,13 @@ node-gyp rebuild --target=1.6.2 --arch=ia32 --dist-url=https://atom.io/download/
 
 
 
+node-gyp rebuild --target=1.8.4 --arch=x64 --dist-url=https://atom.io/download/electron
 
-.electron-gyp node-gyp rebuild --target=1.8.4 --arch=x64 --dist-url=https://atom.io/download/electron
+node-gyp rebuild --target=1.8.4 --arch=xia32 --dist-url=https://atom.io/download/electron
 
+
+
+
+
+11647,11648
 

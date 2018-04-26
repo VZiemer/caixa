@@ -344,7 +344,7 @@
       $scope.cliente = locals.venda.CGC;
       //controla o modal que faz o pagamento
       $scope.hide = function () {
-        $mdDialog.hide();
+        $mdDialog.hide($scope.cliente);
       };
       $scope.cancel = function () {
         $mdDialog.cancel();
@@ -525,7 +525,7 @@
             $scope.venda.CGC = valor;
             console.log(valor);
           }, function () {
-            console.log('You cancelled the dialog.');
+            // console.log('You cancelled the dialog.');
           });
       };
       $scope.InserePgto = function (ev, pagto) {

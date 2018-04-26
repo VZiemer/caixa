@@ -20,12 +20,10 @@
   // socket.on('error', function () { console.log("socket erro"); });
   // socket.emit('private message', { user: 'me', msg: 'whazzzup?' });
 
-
   const remote = require('electron').remote;
   angular.module('ventronElectron').controller('VendasCtrl', VendasCtrl);
-  VendasCtrl.$inject = ['$scope', '$q', 'VendaSrvc', '$mdDialog', '$location'];
-  function VendasCtrl($scope, $q, VendaSrvc, $mdDialog, $location) {
-
+  VendasCtrl.$inject = ['$scope', '$q', 'VendaSrvc', '$mdDialog','$mdToast', '$location'];
+  function VendasCtrl($scope, $q, VendaSrvc, $mdDialog,$mdToast, $location) {
     $scope.param = remote.getGlobal('dados').param;
     const screenElectron = electron.screen;
     $scope.mainScreen = screenElectron.getPrimaryDisplay().workAreaSize.height;
@@ -52,18 +50,16 @@
           console.log(response)
           console.log(valor)
           response.VALOR = response.VALOR.valor;
-          $scope.await = 'carregando...';
           VendaSrvc.atualizaProdVenda(response).then(function (response) {
             console.log(response)
             $scope.venda = response
-            $scope.await = ''
           });
           console.log(valor);
         }, function () {
           console.log('You cancelled the dialog.');
         });
     };
-    function geraNFCtrl($scope, $mdDialog, locals) {
+    function geraNFCtrl($scope, $mdDialog,$mdToast, locals) {
       $scope.Faturas = [];
       $scope.Vendas = [];
       $scope.Venda = {
@@ -92,9 +88,7 @@
       $scope.prodNotas = [];
       $scope.carregaVenda = function (venda) {
         console.log("aaaaa")
-        $scope.await = 'carregando...'
         VendaSrvc.vendaNota(venda).then(function (response) {
-          $scope.await = ''
           console.log(response)
           // $scope.Vendas.push(response[0][0])
           if (!$scope.Venda.LCTO) {
@@ -171,7 +165,7 @@
       //     });
       // };
     }
-    function alteraValorCtrl($scope, $mdDialog, locals) {
+    function alteraValorCtrl($scope, $mdDialog,$mdToast, locals) {
       $scope.produto = locals.produto;
       $scope.hide = function () {
         $mdDialog.hide();
@@ -198,17 +192,17 @@
       })
         .then(function (valor) {
           console.log('alteravalorvenda');
-          $scope.await = 'aplicando desconto...'
+          $mdToast.show($mdToast.simple({'hideDelay':0}).textContent('Aplicando Desconto...').position('top right left'));
+
           VendaSrvc.descontoTotalVenda($scope.venda.LCTO, valor).then(function (response) {
             $scope.prodVenda = response;
-            $scope.totals();
-            $scope.await = ''
+            $mdToast.hide();
           })
         }, function () {
           console.log('You cancelled the dialog.');
         });
     };
-    function alteraValorVendaCtrl($scope, $mdDialog, locals) {
+    function alteraValorVendaCtrl($scope, $mdDialog,$mdToast, locals) {
       $scope.VALOR = 0;
       $scope.hide = function () {
         $mdDialog.hide();
@@ -220,7 +214,7 @@
         $mdDialog.hide($scope.VALOR);
       };
     }
-    function puxaLocalCtrl($scope, $mdDialog, locals) {
+    function puxaLocalCtrl($scope, $mdDialog,$mdToast, locals) {
       // $scope.param = remote.getGlobal('dados').param;
       $scope.pedido = '';
       //controla o modal que faz o pagamento
@@ -232,7 +226,7 @@
         $mdDialog.cancel();
       };
     }
-    function PesquisaVendaFechamentoCtrl($scope, $mdDialog, locals) {
+    function PesquisaVendaFechamentoCtrl($scope, $mdDialog,$mdToast, locals) {
       // $scope.param = remote.getGlobal('dados').param;
       //controla o modal que pesquisa vendas
       $scope.status = locals.status;
@@ -265,7 +259,7 @@
         $mdDialog.hide($scope.selected);
       };
     }
-    function PesquisaVendaCtrl($scope, $mdDialog, locals) {
+    function PesquisaVendaCtrl($scope, $mdDialog, $mdToast, locals) {
       // $scope.param = remote.getGlobal('dados').param;
       //controla o modal que pesquisa vendas
       $scope.status = locals.status;
@@ -274,13 +268,13 @@
       $scope.dados = locals.dados;
       $scope.selected = [];
       $scope.$watch("selected[0].LCTO", function (newValue, oldValue) {
-        $scope.await = 'carregando...'
         console.log(newValue)
         if (newValue) {
+          $mdToast.show($mdToast.simple({'hideDelay':0}).textContent('CARREGANDO...').position('top right left'));
           VendaSrvc.listaProdVenda(newValue).then(function (response) {
             $scope.prodVendas = response;
             console.log($scope.prodVendas);
-            $scope.await = ''
+            $mdToast.hide()
           })
         }
       });
@@ -350,7 +344,7 @@
         $mdDialog.cancel();
       };
     }
-    function inserePgtoCtrl($scope, $mdDialog, locals) {  //controla o modal que faz o pagamento
+    function inserePgtoCtrl($scope, $mdDialog,$mdToast, locals) {  //controla o modal que faz o pagamento
       $scope.param = remote.getGlobal('dados').param;
       // $scope.venda = locals.dados;
       console.log(locals.venda)
@@ -391,16 +385,16 @@
         $mdDialog.hide(pagamento);
       };
     }
-    function PagamentoCtrl($scope, $mdDialog, locals, $timeout) {  //controla o modal que faz o pagamento
+    function PagamentoCtrl($scope, $mdDialog, locals, $timeout,$mdToast) {  //controla o modal que faz o pagamento       
       $scope.hoje = new Date();
       $scope.acao = locals.acao
       $scope.param = remote.getGlobal('dados').param;
-      $scope.await = 'carregando...'
+      $mdToast.show($mdToast.simple({'hideDelay':0}).textContent('CARREGANDO...').position('top right left'));
       VendaSrvc.formasPagamento().then(
         function (response) {
           console.log(response.data);
           $scope.FormaPagto = response.data
-          $scope.await = ''
+          $mdToast.show.hide()
         })
       VendaSrvc.valeCliente(locals.dados.CODCLI).then(function (response) {
         if (locals.acao = 'V') {
@@ -464,15 +458,15 @@
         $scope.venda = new Venda()
       }
       $scope.concluirCupom = async function () {
-        $scope.await = 'Imprimindo Cupom...'
+        $mdToast.show($mdToast.simple({'hideDelay':0}).textContent('Imprimindo Cupom...').position('top right left'));
         const Ncupom = await bemafi.gravaECF($scope.venda);
         console.log(Ncupom);
-        $scope.venda.insereNucupom(Ncupom)
-        $scope.await = 'Confirmando Venda...'
+        $scope.venda.insereNucupom(Ncupom);
+        $mdToast.updateTextContent('Confirmando Venda...');
         VendaSrvc.confirmaVenda($scope.venda).then(function (response) {
           $scope.imprime($scope.venda); $mdDialog.hide(); console.log(response)
+          $mdToast.hide();
         });
-        $scope.await = ''
       }
       $scope.nfFech = function () {
         let faturas = $scope.venda.PAGAMENTO.filter(function (item, index) {
@@ -647,9 +641,7 @@
             var status = 'C';
             var dados = [pedido.CODCLI, pedido.NOMECLI, pedido.CODVEND, pedido.OBS, status, pedido.LCTO];
             VendaSrvc.atualizaVenda(dados).then(function (res) {
-              // $scope.venda=new venda(res.LCTO,res.ID_TRANSITO,res.CGC,res.INSC,res.CODCLI,res.NOMECLI,res.EMAIL,res.FONE,res.RAZAO,res.ENDERECO,res.NUMERO,res.BAIRRO,res.CEP,res.CODIBGE,res.CODCIDADE,res.CIDADE,res.ESTADO,res.COMPLEMENTO,res.DESCONTO,res.FRETE,res.SEGURO,res.TOTAL );
               $scope.venda = res;
-              // VendaSrvc.retornaprodVenda().forEach(function(item){$scope.venda.insereProduto(item)});
               console.log($scope.venda)
             });
           }, function () {

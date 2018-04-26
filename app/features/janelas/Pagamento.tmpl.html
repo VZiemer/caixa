@@ -46,6 +46,7 @@
           </div> -->
           <md-card-content  layout="row">
             <div layout="column" flex layout-align="top center">
+              <span class="md-title">{{await}}</span>
               <span class="md-body-1">Total venda: {{venda.TOTAL.toString()}}</span>
               <span class="md-body-1" ng-if="venda.TOTAL!=venda.TOTALDESC">Desconto de {{venda.PERCENTDESC()}}% ({{venda.VLDESC().toString()}})</span>
               <span class="md-title">Total á pagar {{venda.TOTALDESC.toString()}}</span></br>

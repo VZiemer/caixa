@@ -1,10 +1,8 @@
 (function() {
 'use strict';
-
     angular
         .module('ventronElectron')
         .controller('HomeCtrl', HomeController);
-
     HomeController.$inject = ['$scope','$location', '$mdSidenav', '$mdToast','$mdDialog','LoginSrvc'];
     function HomeController($scope,$location,$mdSidenav,$mdToast,$mdDialog,LoginSrvc) {
         const remote = require('electron').remote;

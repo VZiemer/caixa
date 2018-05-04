@@ -67,6 +67,18 @@ Venda.prototype.calculaTotal = function () {
         return valorAnterior + (valorAtual.TOTAL);
     }, 0))
 }
+Venda.prototype.aplicaDesconto =  function (percent) {
+    for (let prod of this.PRODUTOS) {
+        console.log(prod.VALOR.valor)
+        prod.VALORDESCPREV = new dinheiro(prod.VALOR.desconto(4) * prod.QTD)
+        console.log(prod.VALORDESCPREV.valor)
+    }
+}
+Venda.prototype.descontoPrev = function (){
+    return new dinheiro(this.PRODUTOS.reduce(function (valorAnterior, valorAtual, indice, array) {
+        return valorAnterior + (valorAtual.VALORDESCPREV);
+    }, 0))
+}
 Venda.prototype.VLDESC = function () { return new dinheiro(this.TOTAL - this.TOTALDESC) }
 Venda.prototype.PERCENTDESC = function () { return (100- (this.TOTALDESC*100/this.TOTAL)).toFixed(0) }
 Venda.prototype.insereProduto = function (produto) {

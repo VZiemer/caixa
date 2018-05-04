@@ -8,17 +8,8 @@
   const dinheiro = require('./dinheiro');
   const venda = require('./venda');
   const fs = require('fs');
+  const nodemailer = require('nodemailer');
 
-
-  // teste socket
-
-  // var io = require('socket.io-client'),
-  //   socket = io.connect('localhost', {
-  //     port: 3434
-  //   });
-  // socket.on('connect', function () { console.log("socket connected"); });
-  // socket.on('error', function () { console.log("socket erro"); });
-  // socket.emit('private message', { user: 'me', msg: 'whazzzup?' });
 
   const remote = require('electron').remote;
   angular.module('ventronElectron').controller('VendasCtrl', VendasCtrl);
@@ -239,15 +230,35 @@
         limit: 5,
         page: 1
       };
-      $scope.voltaVenda = function (pedido) {
-        var status = 'A';
-        var dados = [pedido.CODCLI, pedido.NOMECLI, pedido.CODVEND, pedido.OBS, status, pedido.LCTO];
-        VendaSrvc.atualizaVenda(dados).then(function (response) {
-          VendaSrvc.listaVendas('C').then(function (response) {
-            $scope.dados = response.data;
-            $scope.prodVendas = [];
-          })
-        });
+      $scope.Relatorio = function (vendas) {
+        console.log (vendas)
+        VendaSrvc.carregaNPcli(vendas).then(function (res) {
+          let venda = res;
+          venda.aplicaDesconto()
+          console.log(venda.descontoPrev())
+          console.log(venda)
+          var html = "<html><head><style>@media print{@page {size:A4}}page {background: white;display: block;margin: 0 auto; margin-bottom: 0.5cm;}page[size='A4'] { width: 21cm; height: 29.7cm; }table,td,tr,span{font-size:11pt;font-family:Arial;}table{width: 100%;}td {min-width:4mm;}hr{border-top:1pt dashed #000;} </style></head><body>"
+          html += "<h2>FLORESTAL</h2><span>Relatório de Movimento de Contas</span></br><span>Período 01/05/2018 a 31/05/2018</span><hr><span>Cliente: "+ venda.CODCLI +"  -  " + venda.RAZAO + "</span><hr>"
+          html+="<table><thead>"
+          html+="<tr><td>Documento</td><td>Data</td><td>Vencimento</td><td>Valor Entrada</td><td>Valor Saida</td><td></td></tr>"
+          html+="</thead><tbody>"
+          let saida = new dinheiro(0);
+          for (let item of vendas) {
+            if (item.VALORSAIDA) {saida.soma(item.VALORSAIDA)}
+            console.log (saida)
+            html += "<tr><td>"+(item.LCTO || '')+"</td><td>"+item.DATA.toLocaleDateString()+"</td><td>"+item.VENCIMENTO.toLocaleDateString()+"</td><td>"+item.VALOR.toString()+"</td><td>"+item.VALORSAIDA.toString()+"</td><td></td></tr>"
+          }
+          html += "</tbody><tfoot><tr><td colspan='6'><hr></td></tr>"
+          html += "<tr><td>TOTAIS</td><td colspan='2'><td>"+venda.TOTAL.valor+"</td><td>"+saida.valor+"</td><th>= "+venda.TOTAL.subtrai(saida).toString()+"</th></tr>"
+          html += "<tr><td colspan='5'>Para pagamento até 15/05/2018 (4% desconto)</td><th>= "+venda.descontoPrev().subtrai(saida).toString()+"</th></tr>"
+          html += "</tfoot></table></body></html>"
+          const janela = fs.writeFile('c:/temp/teste.html', html, (err) => {
+            if (err) throw err;
+            let modal = window.open('', 'relatorio')
+            console.log('The file has been saved!');
+          });          
+        });        
+         
       }
       $scope.hide = function () {
         $mdDialog.hide();
@@ -479,7 +490,6 @@
           // $scope.imprime($scope.venda); $mdDialog.hide(); console.log(response)
           console.log(response)
         });
-
       }
       $scope.emitirCupom = function () {
         VendaSrvc.confirmaVenda($scope.venda).then(function (response) {
@@ -672,9 +682,7 @@
           .then(function (vendas) {
             // var dados = [pedido.CODCLI, pedido.NOMECLI, pedido.CODVEND, pedido.OBS, status, pedido.LCTO];
             VendaSrvc.carregaNPcli(vendas).then(function (res) {
-              // $scope.venda=new venda(res.LCTO,res.ID_TRANSITO,res.CGC,res.INSC,res.CODCLI,res.NOMECLI,res.EMAIL,res.FONE,res.RAZAO,res.ENDERECO,res.NUMERO,res.BAIRRO,res.CEP,res.CODIBGE,res.CODCIDADE,res.CIDADE,res.ESTADO,res.COMPLEMENTO,res.DESCONTO,res.FRETE,res.SEGURO,res.TOTAL );
               $scope.venda = res;
-              // VendaSrvc.retornaprodVenda().forEach(function(item){$scope.venda.insereProduto(item)});
               console.log($scope.venda)
             });
           }, function () {

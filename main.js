@@ -1,5 +1,6 @@
 const {app, BrowserWindow, ipcMain, dialog} = require('electron');
 const autoUpdater = require("electron-updater").autoUpdater
+const homedir = require('os').homedir();
 global.dados={ 
   'configs' : {
     computador: '059ed89922706c792646',
@@ -52,6 +53,7 @@ global.dados={
   }
 }
 const path = require('path')
+const fs = require('fs')
 const url = require('url')
 var testeurl = url.format({
   pathname: path.join(__dirname, 'teste.js'),
@@ -114,6 +116,40 @@ function createWindow () {
         event.newGuest.webContents.print({silent: false, printBackground: true, deviceName: ''})
       })
     }
+    if (frameName === 'relatorio') {
+      //abre a janela de impressão
+      // open window as modal
+      event.preventDefault()
+      event.newGuest = new BrowserWindow({ 
+        minimizable :false,
+        closable :true,
+        movable:true,
+        frame:true,
+        title:'Relatório de Fechamento',
+        width: 700, 
+        height: 400,
+        fullscreen :false,
+        enableLargerThanScreen  :false,
+        skipTaskbar:false,
+        autoHideMenuBar:true,
+        defaultFontFamily : 'monospace',
+        experimentalFeatures:false,
+        webPreferences: {
+          nativeWindowOpen: true
+        }
+      })
+      event.newGuest.loadURL('file://c:/temp/teste.html')
+      event.newGuest.webContents.on('did-finish-load', () => {
+        // Use default printing options
+        event.newGuest.webContents.printToPDF({}, (error, data) => {
+          if (error) throw error
+          fs.writeFile(homedir+'/desktop/relatorio.pdf', data, (error) => {
+            if (error) throw error
+            console.log('Write PDF successfully.')
+          })
+        })
+      })
+    }    
   })
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {

@@ -15,6 +15,10 @@ Dinheiro.prototype.soma = function (valor) {
         valor = new Dinheiro(valor)
     }
     this.valor = ((this.cents() + valor.cents()) / 100);
+    return this;
+}
+Dinheiro.prototype.desconto = function (percent) {
+    return ((this.cents()-(this.cents() * percent/100)) / 100).toFixed(2);
 }
 Dinheiro.prototype.subtrai = function (valor) {
     console.log(this)
@@ -23,6 +27,7 @@ Dinheiro.prototype.subtrai = function (valor) {
         valor = new Dinheiro(valor)
     }
     this.valor = ((this.cents() - valor.cents()) / 100);
+    return this;
 }
 Dinheiro.prototype.toString = function () {
     return "R$ " + this.valor.toFixed(2).replace('.', ',').replace(/(\d)(?=(\d{3})+\,)/g, "$1.");

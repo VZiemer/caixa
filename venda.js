@@ -34,7 +34,7 @@ function Venda(lcto, data, transito, cgc, insc, codcli, nomecli,codvend, nomeven
     this.SEGURO = new dinheiro(seguro) || 0
     this.TOTAL = 0
     this.TOTALDESC = 0
-    this.DESCONTOITEM = 0
+    this.DESCONTOITEM = new dinheiro(0)
     this.PAGAR = 0
     //produtos
     this.PRODUTOS = []
@@ -70,13 +70,19 @@ Venda.prototype.calculaTotal = function () {
 Venda.prototype.aplicaDesconto =  function (percent) {
     for (let prod of this.PRODUTOS) {
         console.log(prod.VALOR.valor)
+        if (prod.VALOR.valor === prod.VALORINI.valor) {
         prod.VALORDESCPREV = new dinheiro(prod.VALOR.desconto(4) * prod.QTD)
         console.log(prod.VALORDESCPREV.valor)
+        }
+        else {
+            prod.VALORDESCPREV = prod.TOTAL
+        }
     }
 }
 Venda.prototype.descontoPrev = function (){
     return new dinheiro(this.PRODUTOS.reduce(function (valorAnterior, valorAtual, indice, array) {
         return valorAnterior + (valorAtual.VALORDESCPREV);
+
     }, 0))
 }
 Venda.prototype.VLDESC = function () { return new dinheiro(this.TOTAL - this.TOTALDESC) }
@@ -89,7 +95,7 @@ Venda.prototype.inserePagamento = function (pagamento) {
     this.PAGAMENTO.push(pagamento);
 }
 Venda.prototype.insereDescontos = function (produto) {
-    this.DESCONTOITEM += produto.VALOR * produto.QTDPEDIDO
+    this.DESCONTOITEM.soma(produto.VALOR * produto.QTDPEDIDO)
 }
 Venda.prototype.alteraValorProduto = function (codprodvenda, valor) {
     console.log(codprodvenda)

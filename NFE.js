@@ -217,6 +217,7 @@ Nota.prototype.InsereEmitente = function (CNPJCPF, xNome, xFant, IE, CRT, xLgr, 
   };
 }
 Nota.prototype.InsereDestinatario = function (CNPJCPF, xNome, IE, xLgr, nro, xCpl, xBairro, cMun, xMun, UF, CEP, cPais, xPais, Fone, Email) {
+  // if (UF !==)
   let indIE = 1;
   let IEe = IE;
   if (CNPJCPF.length == 11) { indIE = 9; IEe = ''; }

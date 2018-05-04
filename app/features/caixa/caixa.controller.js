@@ -249,8 +249,8 @@
             html += "<tr><td>"+(item.LCTO || '')+"</td><td>"+item.DATA.toLocaleDateString()+"</td><td>"+item.VENCIMENTO.toLocaleDateString()+"</td><td>"+item.VALOR.toString()+"</td><td>"+item.VALORSAIDA.toString()+"</td><td></td></tr>"
           }
           html += "</tbody><tfoot><tr><td colspan='6'><hr></td></tr>"
-          html += "<tr><td>TOTAIS</td><td colspan='2'><td>"+venda.TOTAL.valor+"</td><td>"+saida.valor+"</td><th>= "+venda.TOTAL.subtrai(saida).toString()+"</th></tr>"
-          html += "<tr><td colspan='5'>Para pagamento até 15/05/2018 (4% desconto)</td><th>= "+venda.descontoPrev().subtrai(saida).toString()+"</th></tr>"
+          html += "<tr><td>TOTAIS</td><td colspan='2'><td>"+venda.TOTALDESC.soma(venda.DESCONTOITEM).valor+"</td><td>"+saida.valor+"</td><th>= "+venda.TOTALDESC.subtrai(saida).toString()+"</th></tr>"
+          html += "<tr><td colspan='5'>Para pagamento até 15/05/2018 (4% desconto)</td><th>= "+venda.descontoPrev().soma(venda.DESCONTOITEM.desconto(4)).subtrai(saida).toString()+"</th></tr>"
           html += "</tfoot></table></body></html>"
           const janela = fs.writeFile('c:/temp/teste.html', html, (err) => {
             if (err) throw err;

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 <Bematech>
     <Sistema>
-        <Porta>COM1</Porta>
+        <Porta>COM3</Porta>
         <BaudRate>9600</BaudRate>
-        <Path>./</Path>
+        <Path>C:\CAIXA\LOCAL/</Path>
         <Status>1</Status>
         <Retorno>1</Retorno>
         <StatusFuncao>0</StatusFuncao>

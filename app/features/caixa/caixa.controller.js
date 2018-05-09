@@ -454,14 +454,13 @@
           if (x.QTDRESERVA)
             conteudo += "<tr><td colspan='8'>" + x.DESCRICAO + "</td></tr><tr><td></td><td>" + x.QTD + "</td><td>" + x.UNIDADE + "</td><td colspan='3'>" + x.CODPRO + "</td><td>" + x.VALOR.toString() + "</td><td>" + x.TOTAL.toString() + "</td></tr>"
         });
-        conteudo += "</table><br><span class='pull-right'>Total Produtos: " + venda.TOTAL.toString() + "</span>"
+        conteudo += "</table><br><span class='pull-right'>Total Produtos: " + venda.TOTALDESC.toString() + "</span>"
         conteudo += "<br><br><span>CONFERENTE.________________________________</span><br>"
-        conteudo += "<br><br><span>ASS._______________________________________</span><br><br><br><br><br>"
-        conteudo += conteudo;
+        conteudo += "<br><br><span>ASS._______________________________________</span>"
         html += conteudo + "</body></html>"
         const janela = await fs.writeFile('c:/temp/teste.html', html, (err) => {
           if (err) throw err;
-          let modal = window.open('', 'modal')
+          let modal = window.open('', 'impressao')
           console.log('The file has been saved!');
         });
         $scope.venda = new Venda()
@@ -481,11 +480,18 @@
         let faturas = $scope.venda.PAGAMENTO.filter(function (item, index) {
           if (item.tipo == 'BL') { return item }
         })
-        let pgtoAvista = $scope.venda.PAGAMENTO[0].valor.valueOf()
-        NFe.iniciaNota($scope.venda, $scope.venda.PRODUTOS, faturas, pgtoAvista)
+        let pgtoAvista = $scope.venda.PAGAMENTO.filter(function (item, index) {
+          if (item.tipo == 'NP') { return valor.valueOf() }
+        })
+        VendaSrvc.NumNota().then(function(nota){
+          $scope.venda.NFE = nota;
+          console.log ($scope.venda); 
+          NFe.iniciaNota($scope.venda, $scope.venda.PRODUTOS, faturas, pgtoAvista,nota)
+        })
       }
       $scope.concluirFech = function () {
-        VendaSrvc.confirmaFechamento($scope.venda).then(function (response) {
+        console.log (venda)
+        VendaSrvc.confirmaVenda($scope.venda).then(function (response) {
           alert('pedido confirmado'); $mdDialog.hide();
           // $scope.imprime($scope.venda); $mdDialog.hide(); console.log(response)
           console.log(response)
@@ -622,7 +628,11 @@
       })
         .then(function (response) {
           console.log(response)
-          NFe.iniciaNota(response[1], response[0], response[2]);
+          VendaSrvc.NumNota().then(function(nota){
+            $scope.venda.NFE = nota;
+            NFe.iniciaNota(response[1], response[0], response[2],nota);
+          })          
+        
         }, function () {
           console.log('You cancelled the dialog.');
         });

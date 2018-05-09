@@ -91,7 +91,7 @@ function createWindow () {
   // Open the DevTools.
   //  mainWindow.webContents.openDevTools()
   mainWindow.webContents.on('new-window', (event, url, frameName, disposition, options, additionalFeatures) => {
-    if (frameName === 'modal') {
+    if (frameName === 'impressao') {
       //abre a janela de impressão
       // open window as modal
       event.preventDefault()

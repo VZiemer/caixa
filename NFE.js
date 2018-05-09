@@ -210,7 +210,9 @@ Nota.prototype.InsereEmitente = function (CNPJCPF, xNome, xFant, IE, CRT, xLgr, 
   };
 }
 Nota.prototype.InsereDestinatario = function (CNPJCPF, xNome, IE, xLgr, nro, xCpl, xBairro, cMun, xMun, UF, CEP, cPais, xPais, Fone, Email) {
-  // if (UF !==)
+  if (UF !== this.Emitente.UF) {
+    this.Identificacao.idDest = 2;
+  }
   let indIE = 1;
   let IEe = IE;
   if (CNPJCPF.length == 11) { indIE = 9; IEe = ''; }
@@ -529,7 +531,7 @@ Nota.prototype.InsereProduto = function (indice, orig, sittrib, cod, descricao, 
     indIncentivo: ''
   };
 };
-exports.iniciaNota = function (venda, produtos, faturas, avista) {
+exports.iniciaNota = function (venda, produtos, faturas, avista,nota) {
   totais = {};
   cliente = {};
   TvBC = 0;
@@ -562,11 +564,11 @@ exports.iniciaNota = function (venda, produtos, faturas, avista) {
     'PRODICMS': 0,
     'PRODST': 0
   }
-  numNota = '';
+  numNota = nota;
   let hoje = new Date();
   let AAMM = '' + hoje.getFullYear().toString().substr(-2) + '' + zeroEsq(hoje.getMonth() + 1, 2, 0)
+  faznota();
   function faznota() {
-
     var NF = new Nota('3.10', 52, AAMM, '49419732000100', '55', '001', numNota, '1', '1');
     NF.InsereEmitente('49419732000100', 'FLORESTAL COMÉRCIO DE FERRAGENS LTDA EPP', 'FLORESTAL FERRAGENS', '244147383110', '2', 'RUA SALTO GRANDE', '583', '', 'JARDIM DO TREVO', '3509502', 'CAMPINAS', 'SP', '13040001', '1058', 'BRASIL', '32783644', '35', '3509502')
     NF.InsereDestinatario(venda.CGC, venda.RAZAO, venda.INSC, venda.ENDERECO, venda.NUMERO, venda.COMPLEMENTO, venda.BAIRRO, venda.CODIBGE, venda.CIDADE, venda.ESTADO, venda.CEP, '1058', 'BRASIL', venda.FONE, venda.EMAIL)
@@ -614,16 +616,4 @@ exports.iniciaNota = function (venda, produtos, faturas, avista) {
       })
     });
   }
-  Firebird.attach(options, function (err, db) {
-    if (err)
-      throw err;
-    // db = DATABASE
-    db.query('SELECT FIRST 1 NOTA FROM NFE ORDER BY NOTA DESC', function (err, result) {
-      console.log(result[0].NOTA)
-      numNota = result[0].NOTA + 1;
-      db.detach(faznota());
-      // IMPORTANT: close the connection
-    });
-  });
-
 }

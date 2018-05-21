@@ -36,6 +36,17 @@ const bemafi = ffi.Library(DLL, {
   'Bematech_FI_FechaPortaSerial': ['int', []],
   'Bematech_FI_NumeroCupom': ['int', [stringPtr]]
 });
+
+
+
+//cancelamento retorna o código
+async function cancelaCupom() {
+  const cancela = await bemafi.Bematech_FI_CancelaCupom()
+  console.log('Cancela cupom ' + cancela)
+  return cancela;
+}
+
+
 // inicio da função
 async function gravaECF(venda) {
 
@@ -79,6 +90,7 @@ async function gravaECF(venda) {
 }
 
 exports.gravaECF = gravaECF
+exports.cancelaCupom = cancelaCupom
 
 exports.leituraX = function () {
   bemafi.Bematech_FI_LeituraX()

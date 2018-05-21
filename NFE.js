@@ -23,6 +23,7 @@ function dinheiro(decimal) {
   return Math.floor((decimal * 100) + 0.0001) / 100
 }
 let numNota = '';
+let infoAdic = '';
 let pgtoavista = '';
 let ProdNota = [];
 let totais = {};
@@ -270,9 +271,10 @@ Nota.prototype.CalculaTotais = function () {
     'vTotTrib': ''
   };
   this.DadosAdicionais = {
-    'infCpl': 'Documento emitido por ME ou EPP optante pelo simples nacional;Estabelecimento impedido de recolher o ICMS pelo simples nacional no inciso 1 do art. 2 da LC 123/2006;IMPOSTO RECOLHIDO POR SUBSTITUICAO ART 313-Y DO RICMS;Valor dos produtos Substituicao Tributaria R$ ' + totais.PRODST.toFixed(2).replace('.', ',').replace(/(\d)(?=(\d{3})+\,)/g, "$1.") + ';Valor dos produtos Tributado pelo Simples Nacional R$ ' + totais.PRODICMS.toFixed(2).replace('.', ',').replace(/(\d)(?=(\d{3})+\,)/g, "$1.") + '.'
+    'infCpl': pgtoavista + 'Documento emitido por ME ou EPP optante pelo simples nacional;Estabelecimento impedido de recolher o ICMS pelo simples nacional no inciso 1 do art. 2 da LC 123/2006;IMPOSTO RECOLHIDO POR SUBSTITUICAO ART 313-Y DO RICMS;Valor dos produtos Substituicao Tributaria R$ ' + totais.PRODST.toFixed(2).replace('.', ',').replace(/(\d)(?=(\d{3})+\,)/g, "$1.") + ';Valor dos produtos Tributado pelo Simples Nacional R$ ' + totais.PRODICMS.toFixed(2).replace('.', ',').replace(/(\d)(?=(\d{3})+\,)/g, "$1.") + '.'
+    // pgtoavista +';'+ infoAdic+ '
   };
-  //Valor pago a vista R$ ' + pgtoavista + ';
+
 }
 Nota.prototype.InsereDuplicatas = function (numero, valor, vencimento) {
   if (typeof valor == 'object') { valor = valor.valueOf() }
@@ -531,7 +533,8 @@ Nota.prototype.InsereProduto = function (indice, orig, sittrib, cod, descricao, 
     indIncentivo: ''
   };
 };
-exports.iniciaNota = function (venda, produtos, faturas, avista,nota) {
+exports.iniciaNota = function (venda, produtos, faturas, avista, nota, info) {
+  infoAdic = info;
   totais = {};
   cliente = {};
   TvBC = 0;
@@ -548,7 +551,6 @@ exports.iniciaNota = function (venda, produtos, faturas, avista,nota) {
   TvPIS = 0;
   TvCOFINS = 0;
   TvOutro = 0;
-  pgtoavista = avista
   cliente = {
     'CODCLI': venda.CODCLI,
     'CODCIDADE': venda.CODCIDADE,
@@ -572,9 +574,17 @@ exports.iniciaNota = function (venda, produtos, faturas, avista,nota) {
     var NF = new Nota('3.10', 52, AAMM, '49419732000100', '55', '001', numNota, '1', '1');
     NF.InsereEmitente('49419732000100', 'FLORESTAL COMÉRCIO DE FERRAGENS LTDA EPP', 'FLORESTAL FERRAGENS', '244147383110', '2', 'RUA SALTO GRANDE', '583', '', 'JARDIM DO TREVO', '3509502', 'CAMPINAS', 'SP', '13040001', '1058', 'BRASIL', '32783644', '35', '3509502')
     NF.InsereDestinatario(venda.CGC, venda.RAZAO, venda.INSC, venda.ENDERECO, venda.NUMERO, venda.COMPLEMENTO, venda.BAIRRO, venda.CODIBGE, venda.CIDADE, venda.ESTADO, venda.CEP, '1058', 'BRASIL', venda.FONE, venda.EMAIL)
-    faturas.forEach(function (item, index) {
-      NF.InsereDuplicatas(zeroEsq(index + 1, 3, 0), item.valor, item.vencimento)
-    })
+    let indice = 1;
+    for (let item of venda.PAGAMENTO) {
+      if (item.tipo === 'BL') {
+        NF.InsereDuplicatas(zeroEsq(indice, 3, 0), item.valor, item.vencimento)
+        indice++;
+      }
+    }
+    if (venda.DESCONTOITEM.valor) {
+      pgtoavista = "Valor pago a vista R$ " + venda.DESCONTOITEM.valor*(-1) + ";";
+    }    
+    indice = 1;
     produtos.forEach(function (item, index) {
       NF.InsereProduto(zeroEsq(index + 1, 3, 0), item.ORIG, item.SITTRIB, item.CODPRO, item.DESCRICAO, item.NCM, item.CEST, item.UNIDADE, item.QTD, item.VALOR, item.ALIQ, item.CODPRO);
     })

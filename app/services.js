@@ -60,6 +60,7 @@ const remote = require('electron').remote;
                     return deferred.promise;
                 }
                 var carregaNPcli = function (vendas) { // atualiza e/ ou carrega uma venda
+
                     let listaPedido = vendas.map(function (item, index) {
                         return item.LCTO;
                     }).toString()
@@ -246,27 +247,36 @@ const remote = require('electron').remote;
                     // },function(response){console.log(response)}); 
                     // return deferred.promise;      
                 }
-                var confirmaVenda = function (venda) {
+                var confirmaVenda = function (venda, acao) {
                     let sql = "execute block as begin ";
                     var empresa = remote.getGlobal('dados').configs.empresa;
                     var deferred = $q.defer();
-                    if (venda.LCTO.length === 1) { // pagamento de uma venda no caixa
+                    if (acao === 'V') { // pagamento de uma venda no caixa
                         for (let item of venda.PAGAMENTO) {
                             sql += "insert into movban (codban,data,ent_sai,hora,vlbruto,documento,despesa,usuario,vcto,lctosaida,codcli,tipopag,projecao,banco,agencia,conta,nrcheque,emnome)";
                             sql += "values (" + item.codban + ",current_date,'E',current_time," + item.valor + "," + venda.LCTO + ",1,'VANIUS','" + item.vencimento.dataFirebird() + "'," + venda.LCTO + "," + venda.CODCLI + ",'" + item.tipo + "','N'," + item.banco + ",'" + item.agencia + "','" + item.conta + "','" + item.nrcheque + "','" + item.emnome + "');";
                         }
                         sql += "update venda set status='F',data=current_date,nucupom=" + (venda.NUCUPOM || null) + ",nf_cupom=" + (venda.NFE || null) + ",empresa=" + empresa + " where lcto=" + venda.LCTO + ";";
                     }
-                    if (venda.LCTO.length > 1) { // pagamento de um fechamento no caixa
+                    if (acao === 'F') { // pagamento de um fechamento no caixa
+
                         sql += "insert into movban (codban,pagto,data,ent_sai,hora,vlbruto,documento,despesa,usuario,vcto,lctosaida,codcli,tipopag,projecao,banco,agencia,conta,nrcheque,emnome,historico) ";
-                        sql += "values (107,current_date,current_date,'S',current_time," + venda.TOTALDESC.valor + ",'',80,'VANIUS',current_date," + null + "," + venda.CODCLI + ",'NP','N',null,'','','','','Transf. para a Conta BOLETO');";
+                        sql += "values (107,current_date,current_date,'S',current_time," + venda.TOTALDESC.valueStr() + ",'',80,'VANIUS',current_date," + null + "," + venda.CODCLI + ",'NP','N',null,'','','','','Transf. para a Conta BOLETO');";
                         let numfat = 0
+                        let totFaturas = venda.PAGAMENTO.reduce(function (acumulador, item) {
+                            if (item.tipo === 'BL') { return acumulador + 1 };
+                            return acumulador;
+                        }, 0)
                         for (let item of venda.PAGAMENTO) {
-                            numfat++;
                             // if (item.tipo == 'BL') { docto = venda.NFE+'-'+(index+1)+'/'+venda.PAGAMENTO.length}
-                            if (item.tipo !== 'NP') {
+                            if (item.tipo === 'BL') {
+                                numfat++;
                                 sql += "insert into movban (codban,data,ent_sai,hora,vlbruto,documento,despesa,usuario,vcto,lctosaida,codcli,tipopag,projecao,banco,agencia,conta,nrcheque,emnome,historico) ";
-                                sql += "values (" + item.codban + ",current_date,'E',current_time," + item.valor + ",'" + (venda.NFE+"-"+numfat+'/'+venda.PAGAMENTO.length || '') + "',80,'VANIUS','" + item.vencimento.dataFirebird() + "'," + null + "," + venda.CODCLI + ",'" + item.tipo + "','N'," + item.banco + ",'" + item.agencia + "','" + item.conta + "','" + item.nrcheque + "','" + item.emnome + "','Transf. da Conta CLIENTES');";
+                                sql += "values (" + item.codban + ",current_date,'E',current_time," + item.valor + ",'" + (venda.NFE + "-" + numfat + '/' + totFaturas || '') + "',80,'VANIUS','" + item.vencimento.dataFirebird() + "'," + null + "," + venda.CODCLI + ",'" + item.tipo + "','N'," + item.banco + ",'" + item.agencia + "','" + item.conta + "','" + item.nrcheque + "','" + item.emnome + "','Transf. da Conta CLIENTES');";
+                            }
+                            if (item.tipo !== 'BL' && item.tipo !== 'NP') {
+                                sql += "insert into movban (codban,data,ent_sai,hora,vlbruto,documento,despesa,usuario,vcto,lctosaida,codcli,tipopag,projecao,banco,agencia,conta,nrcheque,emnome,historico) ";
+                                sql += "values (" + item.codban + ",current_date,'E',current_time," + item.valor + ",'',80,'VANIUS','" + item.vencimento.dataFirebird() + "'," + null + "," + venda.CODCLI + ",'" + item.tipo + "','N'," + item.banco + ",'" + item.agencia + "','" + item.conta + "','" + item.nrcheque + "','" + item.emnome + "','Transf. da Conta CLIENTES');";
                             }
                         }
                         for (let item of venda.LCTO) {
@@ -293,8 +303,6 @@ const remote = require('electron').remote;
                 var retornaprodVenda = function () {
                     return prodVenda;
                 }
-
-
                 var NumNota = function () {
                     var empresa = remote.getGlobal('dados').configs.empresa;
                     var deferred = $q.defer();
@@ -312,20 +320,57 @@ const remote = require('electron').remote;
                     return deferred.promise;
 
                 }
-
-                var vendaNota = function (venda) {
-                    var token = remote.getGlobal('dados').param.token;
+                var cancelaCupom = function() {
                     var empresa = remote.getGlobal('dados').configs.empresa;
                     var deferred = $q.defer();
-
                     Firebird.attach(options, function (err, db) {
                         if (err)
                             throw err;
-                        db.query("select v.lcto,v.codcli,v.empresa,v.total,tr.peso,tr.volumes,tr.frete,tr.outra_desp,tr.desconto,tr.total_nota,tr.tipofrete,c.cgc,c.razao,c.insc,c.endereco,c.numero,c.bairro,c.complemento,c.cidade,c.cep,c.fone,c.email,ci.codibge,c.codcidade,ci.estado,ci.cod_estado,mb.valor,  mb.vcto as vencimento,mb.codban,transp.codigo as codtransp, transp.transportador from venda v join transito tr on v.lcto = tr.documento join cliente c on c.codigo=v.codcli join cidade ci on c.codcidade = ci.cod_cidade join movban mb on mb.lctosaida = v.lcto left join transp on tr.codtransp = transp.codigo where lcto = ? order by mb.codigo", venda, function (err, vendanf) {
-                            db.query("select pv.codpro,pv.valor,pv.qtd,pr.codinterno, pr.descricao, pr.unidade, pr.sittrib, pr.classfis as ncm,pr.cest, pr.orig, pr.grupo, pr.aliq FROM prodvenda pv join produto pr on pr.codigo = pv.codpro where pv.codvenda = ?", venda, function (err, prodvenda) {
-                                // IMPORTANT: close the connection
+                        // db = DATABASE
+                        db.query("update venda  set cancela = 'S' where lcto = (select first 1 lcto from venda where empresa = 1 and nucupom is not null order by nucupom desc )", function (err, result) {
+                            db.detach(function () {
+                                deferred.resolve('ok')
+                            });
+                            // IMPORTANT: close the connection
+                        });
+                    });
+                    return deferred.promise;                    
+                }
+                var vendaNota = function (pedido) {
+                    var token = remote.getGlobal('dados').param.token;
+                    var empresa = remote.getGlobal('dados').configs.empresa;
+                    var deferred = $q.defer();
+                    Firebird.attach(options, function (err, db) {
+                        if (err)
+                            throw err;
+                        db.query("select v.lcto,v.codcli,v.empresa,v.total,tr.peso,tr.volumes,tr.frete,tr.outra_desp,tr.desconto,tr.total_nota,tr.tipofrete,c.cgc,c.razao,c.insc,c.endereco,c.numero,c.bairro,c.complemento,c.cidade,c.cep,c.fone,c.email,ci.codibge,c.codcidade,ci.estado,ci.cod_estado,mb.valor,  mb.vcto as vencimento,mb.codban,mb.tipopag,transp.codigo as codtransp, transp.transportador from venda v join transito tr on v.lcto = tr.documento join cliente c on c.codigo=v.codcli join cidade ci on c.codcidade = ci.cod_cidade join movban mb on mb.lctosaida = v.lcto left join transp on tr.codtransp = transp.codigo where lcto = ? order by mb.codigo", pedido, function (err, res) {
+                            venda = new Venda(res[0].LCTO, res[0].DATA, res[0].ID_TRANSITO, res[0].CGC, res[0].INSC, res[0].CODCLI, res[0].NOMECLI, res[0].CODVEND, res[0].NOMEVEND, res[0].EMAIL, res[0].FONE, res[0].RAZAO, res[0].ENDERECO, res[0].NUMERO, res[0].BAIRRO, res[0].CEP, res[0].CODIBGE, res[0].CODCIDADE, res[0].CIDADE, res[0].ESTADO, res[0].COMPLEMENTO, res[0].DESCONTO, res[0].FRETE, res[0].SEGURO, res[0].TOTAL);
+                            res.forEach(function (item) {
+                                venda.inserePagamento({
+                                    'valor': new dinheiro(item.VALOR),
+                                    'tipo': item.TIPOPAG,
+                                    'vencimento': item.VENCIMENTO,
+                                    'pagto': '',
+                                    'codban': item.CODBAN,
+                                    'banco': null,
+                                    'agencia': '',
+                                    'conta': '',
+                                    'nrcheque': '',
+                                    'emnome': ''
+                                })
+                                console.log("inseriu item")
+                            });
+                            db.query("select * from LISTAPRODVENDAS(?)", pedido, function (err, result) {
+                                if (err) throw err;
+                                console.log(result)
                                 db.detach(function () {
-                                    deferred.resolve([vendanf, prodvenda])
+                                    result.forEach(function (item) {
+                                        if (item.QTDPEDIDO > 0) {
+                                            venda.insereProduto(item)
+                                            console.log("inseriu item")
+                                        }
+                                    });
+                                    deferred.resolve(venda);
                                 });
                             });
                         });

@@ -51,74 +51,11 @@
         });
     };
     function geraNFCtrl($scope, $mdDialog,$mdToast, locals) {
-      $scope.Faturas = [];
-      $scope.Vendas = [];
-      $scope.Venda = {
-        BAIRRO: '',
-        CEP: '',
-        CGC: '',
-        CIDADE: '',
-        CODCLI: '',
-        CODIBGE: '',
-        CODCIDADE: '',
-        COMPLEMENTO: '',
-        DESCONTO: 0,
-        EMAIL: '',
-        ENDERECO: '',
-        ESTADO: '',
-        FONE: '',
-        FRETE: 0,
-        INSC: '',
-        LCTO: '',
-        NUMERO: '',
-        RAZAO: '',
-        SEGURO: 0,
-        TOTAL: 0,
-        PAGAR: 0
-      };
-      $scope.prodNotas = [];
       $scope.carregaVenda = function (venda) {
         console.log("aaaaa")
         VendaSrvc.vendaNota(venda).then(function (response) {
-          console.log(response)
-          // $scope.Vendas.push(response[0][0])
-          if (!$scope.Venda.LCTO) {
-            $scope.Venda.BAIRRO = response[0][0].BAIRRO,
-              $scope.Venda.CEP = response[0][0].CEP,
-              $scope.Venda.CGC = response[0][0].CGC,
-              $scope.Venda.CIDADE = response[0][0].CIDADE,
-              $scope.Venda.CODCLI = response[0][0].CODCLI,
-              $scope.Venda.CODIBGE = response[0][0].CODIBGE,
-              $scope.Venda.CODCIDADE = response[0][0].CODCIDADE,
-              $scope.Venda.COMPLEMENTO = response[0][0].COMPLEMENTO,
-              $scope.Venda.DESCONTO = response[0][0].DESCONTO,
-              $scope.Venda.EMAIL = response[0][0].EMAIL,
-              $scope.Venda.ENDERECO = response[0][0].ENDERECO,
-              $scope.Venda.ESTADO = response[0][0].ESTADO,
-              $scope.Venda.FONE = response[0][0].FONE,
-              $scope.Venda.INSC = response[0][0].INSC,
-              $scope.Venda.LCTO = response[0][0].LCTO,
-              $scope.Venda.NUMERO = response[0][0].NUMERO,
-              $scope.Venda.RAZAO = response[0][0].RAZAO,
-              $scope.Venda.SEGURO = response[0][0].SEGURO,
-              $scope.Venda.TOTAL = response[0][0].TOTAL,
-              $scope.Venda.FRETE = response[0][0].FRETE,
-              $scope.Venda.VOLUMES = response[0][0].VOLUMES,
-              $scope.Venda.PESO = response[0][0].PESO,
-              $scope.Venda.TRANSPORTADOR = response[0][0].TRANSPORTADOR,
-              $scope.Venda.CODTRANSP = response[0][0].CODTRANSP,
-              $scope.Venda.TIPOFRETE = response[0][0].TIPOFRETE
-          }
-          response[0].forEach(function (valor, index, array) {
-            if (valor.CODBAN == 109 || valor.CODBAN == 209) {
-              $scope.Faturas.push({ 'valor': valor.VALOR, 'vencimento': valor.VENCIMENTO })
-            }
-          })
-          response[1].forEach(function (valor, index, array) {
-            $scope.prodNotas.push(valor)
-          })
-          console.log($scope.Vendas)
-          console.log($scope.prodNotas)
+          $scope.Venda = response;
+          console.log($scope.Venda)
         })
         $scope.venda = '';
       }
@@ -127,8 +64,7 @@
       };
       $scope.ok = function () {
         console.log('aa')
-        console.log($scope.prodNotas)
-        $mdDialog.hide([$scope.prodNotas, $scope.Venda, $scope.Faturas]);
+        $mdDialog.hide($scope.Venda);
       };
       // $scope.InserePgto = function (ev, pagto) {
       //   // console.log(pagto)
@@ -250,7 +186,7 @@
           }
           html += "</tbody><tfoot><tr><td colspan='6'><hr></td></tr>"
           html += "<tr><td>TOTAIS</td><td colspan='2'><td>"+venda.TOTALDESC.soma(venda.DESCONTOITEM).valor+"</td><td>"+saida.valor+"</td><th>= "+venda.TOTALDESC.subtrai(saida).toString()+"</th></tr>"
-          html += "<tr><td colspan='5'>Para pagamento até 15/05/2018 (4% desconto)</td><th>= "+venda.descontoPrev().soma(venda.DESCONTOITEM.desconto(4)).subtrai(saida).toString()+"</th></tr>"
+          html += "<tr><td colspan='5'>Desconto para pagamento até 15/05/2018</td><th>= "+venda.descontoPrev().soma(venda.DESCONTOITEM.desconto(4)).subtrai(saida).toString()+"</th></tr>"
           html += "</tfoot></table></body></html>"
           const janela = fs.writeFile('c:/temp/teste.html', html, (err) => {
             if (err) throw err;
@@ -267,7 +203,12 @@
         $mdDialog.cancel();
       };
       $scope.seleciona = function () {
-        $mdDialog.hide($scope.selected);
+        let saida = new dinheiro(0);
+        for (let item of $scope.selected) {
+          if (item.VALORSAIDA) {saida.subtrai(item.VALORSAIDA)}
+          console.log (saida)
+        }
+        $mdDialog.hide([$scope.selected,saida]);
       };
     }
     function PesquisaVendaCtrl($scope, $mdDialog, $mdToast, locals) {
@@ -412,11 +353,6 @@
             return acumulador += atual.TOTAL;
           }, 0);
         }
-        if (locals.acao = 'F') {
-          $scope.vale = response.filter(function (item) {
-            if (item.ENT_SAI == 'S') { return item }
-          })[0].TOTAL + locals.descontoitem;
-        }
         console.log($scope.vale)
       })
       $scope.venda = locals.dados;
@@ -471,7 +407,7 @@
         console.log(Ncupom);
         $scope.venda.insereNucupom(Ncupom);
         $mdToast.updateTextContent('Confirmando Venda...');
-        VendaSrvc.confirmaVenda($scope.venda).then(function (response) {
+        VendaSrvc.confirmaVenda($scope.venda,'V').then(function (response) {
           $scope.imprime($scope.venda); $mdDialog.hide(); console.log(response)
           $mdToast.hide();
         });
@@ -481,7 +417,7 @@
           if (item.tipo == 'BL') { return item }
         })
         let pgtoAvista = $scope.venda.PAGAMENTO.filter(function (item, index) {
-          if (item.tipo == 'NP') { return valor.valueOf() }
+          if (item.tipo == 'NP') { return item.valor }
         })
         VendaSrvc.NumNota().then(function(nota){
           $scope.venda.NFE = nota;
@@ -491,14 +427,14 @@
       }
       $scope.concluirFech = function () {
         console.log (venda)
-        VendaSrvc.confirmaVenda($scope.venda).then(function (response) {
+        VendaSrvc.confirmaVenda($scope.venda,'F').then(function (response) {
           alert('pedido confirmado'); $mdDialog.hide();
           // $scope.imprime($scope.venda); $mdDialog.hide(); console.log(response)
           console.log(response)
         });
       }
       $scope.emitirCupom = function () {
-        VendaSrvc.confirmaVenda($scope.venda).then(function (response) {
+        VendaSrvc.confirmaVenda($scope.venda,'V').then(function (response) {
           bemafi.gravaECF(
             {
               'Cliente': $scope.venda.CGC || '',
@@ -511,7 +447,7 @@
         });
       }
       $scope.concluir = function () {
-        VendaSrvc.confirmaVenda($scope.venda).then(function (response) {
+        VendaSrvc.confirmaVenda($scope.venda,'V').then(function (response) {
           $scope.imprime($scope.venda); $mdDialog.hide(); console.log(response)
         });
       }
@@ -629,11 +565,11 @@
         .then(function (response) {
           console.log(response)
           VendaSrvc.NumNota().then(function(nota){
-            $scope.venda.NFE = nota;
-            NFe.iniciaNota(response[1], response[0], response[2],nota);
-          })          
-        
-        }, function () {
+            // $scope.venda.NFE = nota;
+            // NFe.iniciaNota(response[1], response[0], response[2],"",nota);
+            NFe.iniciaNota(response, response.PRODUTOS, response.PAGAMENTO, "",nota)
+                      })          
+                }, function () {
           console.log('You cancelled the dialog.');
         });
     };
@@ -691,8 +627,11 @@
         })
           .then(function (vendas) {
             // var dados = [pedido.CODCLI, pedido.NOMECLI, pedido.CODVEND, pedido.OBS, status, pedido.LCTO];
-            VendaSrvc.carregaNPcli(vendas).then(function (res) {
+            VendaSrvc.carregaNPcli(vendas[0]).then(function (res) {
               $scope.venda = res;
+              $scope.venda.DESCONTOITEM.soma(vendas[1]);
+              $scope.venda.PAGAR.soma($scope.venda.DESCONTOITEM);
+              $scope.venda.TOTALDESC.soma($scope.venda.DESCONTOITEM);              
               console.log($scope.venda)
             });
           }, function () {
@@ -717,8 +656,17 @@
     cx.reducaoZ = function (ev) {
       console.log(bemafi.reducaoZ())
     }
-    cx.acertaHora = function (ev) {
-      console.log(bemafi.acertaHora())
+    cx.cancelaCupom = async function(ev) {
+      const cancela = await bemafi.cancelaCupom();
+      console.log (cancela);
+      if (cancela===1){
+        VendaSrvc.cancelaCupom().then(function(response){
+          console.log(response)
+        })
+      }
+      else {
+        console.log('deu errado')
+      }
     }
     cx.novaVenda = function (ev) {
       $mdDialog.show({
@@ -749,8 +697,7 @@
         fullscreen: true, // Only for -xs, -sm breakpoints.,
         locals: {
           dados: $scope.venda,
-          acao: $scope.acao,
-          descontoitem: $scope.venda.DESCONTOITEM
+          acao: $scope.acao
         }
       })
         .then(function () {

@@ -320,21 +320,21 @@ const remote = require('electron').remote;
                     return deferred.promise;
 
                 }
-                var cancelaCupom = function() {
+                var cancelaCupom = function () {
                     var empresa = remote.getGlobal('dados').configs.empresa;
                     var deferred = $q.defer();
                     Firebird.attach(options, function (err, db) {
                         if (err)
                             throw err;
                         // db = DATABASE
-                        db.query("update venda  set cancela = 'S' where lcto = (select first 1 lcto from venda where empresa = 1 and nucupom is not null order by nucupom desc )", function (err, result) {
+                        db.query("update venda set cancela = 'S' where lcto = (select first 1 lcto from venda where empresa = ? and nucupom is not null order by nucupom desc )", empresa, function (err, result) {
                             db.detach(function () {
                                 deferred.resolve('ok')
                             });
                             // IMPORTANT: close the connection
                         });
                     });
-                    return deferred.promise;                    
+                    return deferred.promise;
                 }
                 var vendaNota = function (pedido) {
                     var token = remote.getGlobal('dados').param.token;
@@ -345,6 +345,7 @@ const remote = require('electron').remote;
                             throw err;
                         db.query("select v.lcto,v.codcli,v.empresa,v.total,tr.peso,tr.volumes,tr.frete,tr.outra_desp,tr.desconto,tr.total_nota,tr.tipofrete,c.cgc,c.razao,c.insc,c.endereco,c.numero,c.bairro,c.complemento,c.cidade,c.cep,c.fone,c.email,ci.codibge,c.codcidade,ci.estado,ci.cod_estado,mb.valor,  mb.vcto as vencimento,mb.codban,mb.tipopag,transp.codigo as codtransp, transp.transportador from venda v join transito tr on v.lcto = tr.documento join cliente c on c.codigo=v.codcli join cidade ci on c.codcidade = ci.cod_cidade join movban mb on mb.lctosaida = v.lcto left join transp on tr.codtransp = transp.codigo where lcto = ? order by mb.codigo", pedido, function (err, res) {
                             venda = new Venda(res[0].LCTO, res[0].DATA, res[0].ID_TRANSITO, res[0].CGC, res[0].INSC, res[0].CODCLI, res[0].NOMECLI, res[0].CODVEND, res[0].NOMEVEND, res[0].EMAIL, res[0].FONE, res[0].RAZAO, res[0].ENDERECO, res[0].NUMERO, res[0].BAIRRO, res[0].CEP, res[0].CODIBGE, res[0].CODCIDADE, res[0].CIDADE, res[0].ESTADO, res[0].COMPLEMENTO, res[0].DESCONTO, res[0].FRETE, res[0].SEGURO, res[0].TOTAL);
+                            venda.insereTransporte(res[0].VOLUMES, res[0].PESO, res[0].TIPOFRETE, res[0].TRANSPORTADOR)
                             res.forEach(function (item) {
                                 venda.inserePagamento({
                                     'valor': new dinheiro(item.VALOR),
@@ -365,9 +366,12 @@ const remote = require('electron').remote;
                                 console.log(result)
                                 db.detach(function () {
                                     result.forEach(function (item) {
-                                        if (item.QTDPEDIDO > 0) {
+                                        if (item.QTDPEDIDO > 0 && item.CODIGO !== 20031) {
                                             venda.insereProduto(item)
                                             console.log("inseriu item")
+                                        }
+                                        else if (item.CODIGO === 20031) {
+                                            venda.insereFrete(item.VALOR*item.QTDPEDIDO)
                                         }
                                     });
                                     deferred.resolve(venda);

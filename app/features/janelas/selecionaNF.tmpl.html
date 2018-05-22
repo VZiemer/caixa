@@ -22,7 +22,7 @@
             <input type='submit' value='ok' ng-click="carregaVenda(venda)">
           </form>     
           <!-- exact table from live demo -->
-          <md-table-container style="overflow: auto;" ng-style="{'height':'130px'}">
+          <md-table-container style="overflow: auto;" ng-style="{'height':'50px'}">
             <table md-table md-row-select  > <!-- multiple -->
               <thead fix-head md-head>
                 <tr md-row>
@@ -33,9 +33,9 @@
               </thead>
               <tbody md-body>
                 <tr md-row ng-style="{'height':'23px'}">
-                  <td md-cell>{{Venda.LCTO}}</td>
+                  <td md-cell>{{Venda.LCTO[0]}}</td>
                   <td md-cell>{{Venda.RAZAO}}</td>
-                  <td md-cell>{{Venda.TOTAL}}</td>
+                  <td md-cell>{{Venda.TOTALDESC}}</td>
                 </tr>
               </tbody>
             </table>
@@ -53,14 +53,15 @@
                 </tr>
               </thead>
               <tbody md-body>
-                <tr md-row ng-repeat="item in prodNotas" ng-style="{'height':'23px'}">
+                <tr md-row ng-repeat="item in Venda.PRODUTOS" ng-style="{'height':'23px'}">
                   <td md-cell>{{item.CODPRO}}</td>
                   <td md-cell>{{item.QTD}}</td>
                   <td md-cell>{{item.DESCRICAO}}</td>
                   <td md-cell>{{item.VALOR}}</td>
                   <td md-cell>{{item.VALOR * item.QTD || currency}}</td>
                 </tr>
-              </tbody>
+              </tbody>              
+
             </table>
           </md-table-container>
       </div>

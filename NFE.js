@@ -588,8 +588,9 @@ exports.iniciaNota = function (venda, produtos, faturas, avista, nota, info) {
     produtos.forEach(function (item, index) {
       NF.InsereProduto(zeroEsq(index + 1, 3, 0), item.ORIG, item.SITTRIB, item.CODPRO, item.DESCRICAO, item.NCM, item.CEST, item.UNIDADE, item.QTD, item.VALOR, item.ALIQ, item.CODPRO);
     })
-    NF.InsereTransportador(venda.TIPOFRETE, venda.TRANSPORTADOR)
-    NF.InsereVolume(venda.VOLUMES, 'CX', venda.PESO)
+    NF.InsereTransportador(venda.TRANSPORTE.TIPOFRETE, venda.TRANSPORTE.TRANSPORTADOR)
+    NF.InsereVolume(venda.TRANSPORTE.VOLUMES, 'CX', venda.TRANSPORTE.PESO)
+
     NF.CalculaTotais();
     watcher = fs.watch("" + config.PASTA + "", { persistent: true }, (eventType, filename) => {
       console.log(filename);

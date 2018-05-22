@@ -41,7 +41,28 @@ function Venda(lcto, data, transito, cgc, insc, codcli, nomecli,codvend, nomeven
     this.PAGAMENTO = []
     this.NUCUPOM = null
     this.NFE = null
+    this.TRANSPORTE = [];
 };
+
+Venda.prototype.insereFrete = function(valor) {
+    this.FRETE = new dinheiro(valor);
+    this.calculaTotal()
+}
+Venda.prototype.insereTransporte = function (volumes,peso,tipofrete,transportador) {
+
+   /* TIPOS DE FRETE
+    0– Por conta do emitente;
+    1– Por conta do destinatário/remetente;
+    2– Por conta de terceiros;
+    9– Sem frete. (V2.0) */
+
+    this.TRANSPORTE.push({
+        VOLUMES : volumes || '',
+        PESO : peso || '',
+        TIPOFRETE : tipofrete || '',
+        TRANSPORTADOR : transportador || ''
+    })
+}
 Venda.prototype.insereNucupom = function (cupom) {
     this.NUCUPOM = cupom;
 }
@@ -59,13 +80,13 @@ Venda.prototype.insereLcto = function (lcto, transito) {
 Venda.prototype.calculaTotal = function () {
     this.TOTAL = new dinheiro(this.PRODUTOS.reduce(function (valorAnterior, valorAtual, indice, array) {
         return valorAnterior + (valorAtual.TOTALSD);
-    }, 0))
+    }, 0)).soma(this.FRETE)
     this.TOTALDESC = new dinheiro(this.PRODUTOS.reduce(function (valorAnterior, valorAtual, indice, array) {
         return valorAnterior + (valorAtual.TOTAL);
-    }, 0))
+    }, 0)).soma(this.FRETE)
     this.PAGAR = new dinheiro(this.PRODUTOS.reduce(function (valorAnterior, valorAtual, indice, array) {
         return valorAnterior + (valorAtual.TOTAL);
-    }, 0))
+    }, 0)).soma(this.FRETE)
 }
 Venda.prototype.aplicaDesconto =  function (percent) {
     for (let prod of this.PRODUTOS) {

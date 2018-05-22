@@ -13,8 +13,8 @@
 
   const remote = require('electron').remote;
   angular.module('ventronElectron').controller('VendasCtrl', VendasCtrl);
-  VendasCtrl.$inject = ['$scope', '$q', 'VendaSrvc', '$mdDialog','$mdToast', '$location'];
-  function VendasCtrl($scope, $q, VendaSrvc, $mdDialog,$mdToast, $location) {
+  VendasCtrl.$inject = ['$scope', '$q', 'VendaSrvc', '$mdDialog', '$mdToast', '$location'];
+  function VendasCtrl($scope, $q, VendaSrvc, $mdDialog, $mdToast, $location) {
     $scope.param = remote.getGlobal('dados').param;
     const screenElectron = electron.screen;
     $scope.mainScreen = screenElectron.getPrimaryDisplay().workAreaSize.height;
@@ -50,7 +50,7 @@
           console.log('You cancelled the dialog.');
         });
     };
-    function geraNFCtrl($scope, $mdDialog,$mdToast, locals) {
+    function geraNFCtrl($scope, $mdDialog, $mdToast, locals) {
       $scope.carregaVenda = function (venda) {
         console.log("aaaaa")
         VendaSrvc.vendaNota(venda).then(function (response) {
@@ -92,7 +92,7 @@
       //     });
       // };
     }
-    function alteraValorCtrl($scope, $mdDialog,$mdToast, locals) {
+    function alteraValorCtrl($scope, $mdDialog, $mdToast, locals) {
       $scope.produto = locals.produto;
       $scope.hide = function () {
         $mdDialog.hide();
@@ -119,7 +119,7 @@
       })
         .then(function (valor) {
           console.log('alteravalorvenda');
-          $mdToast.show($mdToast.simple({'hideDelay':0}).textContent('Aplicando Desconto...').position('top right left'));
+          $mdToast.show($mdToast.simple({ 'hideDelay': 0 }).textContent('Aplicando Desconto...').position('top right left'));
 
           VendaSrvc.descontoTotalVenda($scope.venda.LCTO, valor).then(function (response) {
             $scope.prodVenda = response;
@@ -129,7 +129,7 @@
           console.log('You cancelled the dialog.');
         });
     };
-    function alteraValorVendaCtrl($scope, $mdDialog,$mdToast, locals) {
+    function alteraValorVendaCtrl($scope, $mdDialog, $mdToast, locals) {
       $scope.VALOR = 0;
       $scope.hide = function () {
         $mdDialog.hide();
@@ -141,7 +141,7 @@
         $mdDialog.hide($scope.VALOR);
       };
     }
-    function puxaLocalCtrl($scope, $mdDialog,$mdToast, locals) {
+    function puxaLocalCtrl($scope, $mdDialog, $mdToast, locals) {
       // $scope.param = remote.getGlobal('dados').param;
       $scope.pedido = '';
       //controla o modal que faz o pagamento
@@ -153,7 +153,7 @@
         $mdDialog.cancel();
       };
     }
-    function PesquisaVendaFechamentoCtrl($scope, $mdDialog,$mdToast, locals) {
+    function PesquisaVendaFechamentoCtrl($scope, $mdDialog, $mdToast, locals) {
       // $scope.param = remote.getGlobal('dados').param;
       //controla o modal que pesquisa vendas
       $scope.status = locals.status;
@@ -167,35 +167,80 @@
         page: 1
       };
       $scope.Relatorio = function (vendas) {
-        console.log (vendas)
+        console.log(vendas)
         VendaSrvc.carregaNPcli(vendas).then(function (res) {
           let venda = res;
           venda.aplicaDesconto()
           console.log(venda.descontoPrev())
           console.log(venda)
           var html = "<html><head><style>@media print{@page {size:A4}}page {background: white;display: block;margin: 0 auto; margin-bottom: 0.5cm;}page[size='A4'] { width: 21cm; height: 29.7cm; }table,td,tr,span{font-size:11pt;font-family:Arial;}table{width: 100%;}td {min-width:4mm;}hr{border-top:1pt dashed #000;} </style></head><body>"
-          html += "<h2>FLORESTAL</h2><span>Relatório de Movimento de Contas</span></br><span>Período 01/05/2018 a 31/05/2018</span><hr><span>Cliente: "+ venda.CODCLI +"  -  " + venda.RAZAO + "</span><hr>"
-          html+="<table><thead>"
-          html+="<tr><td>Documento</td><td>Data</td><td>Vencimento</td><td>Valor Entrada</td><td>Valor Saida</td><td></td></tr>"
-          html+="</thead><tbody>"
+          html += "<h2>FLORESTAL</h2><span>Relatório de Movimento de Contas</span></br><span>Período 01/05/2018 a 31/05/2018</span><hr><span>Cliente: " + venda.CODCLI + "  -  " + venda.RAZAO + "</span><hr>"
+          html += "<table><thead>"
+          html += "<tr><td>Documento</td><td>Data</td><td>Vencimento</td><td>Valor Entrada</td><td>Valor Saida</td><td></td></tr>"
+          html += "</thead><tbody>"
           let saida = new dinheiro(0);
           for (let item of vendas) {
-            if (item.VALORSAIDA) {saida.soma(item.VALORSAIDA)}
-            console.log (saida)
-            html += "<tr><td>"+(item.LCTO || '')+"</td><td>"+item.DATA.toLocaleDateString()+"</td><td>"+item.VENCIMENTO.toLocaleDateString()+"</td><td>"+item.VALOR.toString()+"</td><td>"+item.VALORSAIDA.toString()+"</td><td></td></tr>"
+            if (item.VALORSAIDA) { saida.soma(item.VALORSAIDA) }
+            console.log(saida)
+            html += "<tr><td>" + (item.LCTO || '') + "</td><td>" + item.DATA.toLocaleDateString() + "</td><td>" + item.VENCIMENTO.toLocaleDateString() + "</td><td>" + item.VALOR.toString() + "</td><td>" + item.VALORSAIDA.toString() + "</td><td></td></tr>"
           }
           html += "</tbody><tfoot><tr><td colspan='6'><hr></td></tr>"
-          html += "<tr><td>TOTAIS</td><td colspan='2'><td>"+venda.TOTALDESC.soma(venda.DESCONTOITEM).valor+"</td><td>"+saida.valor+"</td><th>= "+venda.TOTALDESC.subtrai(saida).toString()+"</th></tr>"
-          html += "<tr><td colspan='5'>Desconto para pagamento até 15/05/2018</td><th>= "+venda.descontoPrev().soma(venda.DESCONTOITEM.desconto(4)).subtrai(saida).toString()+"</th></tr>"
+          html += "<tr><td>TOTAIS</td><td colspan='2'><td>" + venda.TOTALDESC.soma(venda.DESCONTOITEM).valor + "</td><td>" + saida.valor + "</td><th>= " + venda.TOTALDESC.subtrai(saida).toString() + "</th></tr>"
+          html += "<tr><td colspan='5'>Desconto para pagamento até 15/05/2018</td><th>= " + venda.descontoPrev().soma(venda.DESCONTOITEM.desconto(4)).subtrai(saida).toString() + "</th></tr>"
           html += "</tfoot></table></body></html>"
           const janela = fs.writeFile('c:/temp/teste.html', html, (err) => {
             if (err) throw err;
             let modal = window.open('', 'relatorio')
             console.log('The file has been saved!');
-          });          
-        });        
-         
+          });
+        });
+
       }
+
+      $scope.enviaEmail = function () {
+        // Generate test SMTP service account from ethereal.email
+        // Only needed if you don't have a real mail account for testing
+        nodemailer.createTestAccount((err, account) => {
+          // create reusable transporter object using the default SMTP transport
+          let transporter = nodemailer.createTransport({
+            host: 'email-ssl.com.br',
+            port: 465,
+            secure: true, // true for 465, false for other ports
+            auth: {
+              user: "suporte@florestalferragens.com.br", // generated ethereal user
+              pass: "Shin0t4m4" // generated ethereal password
+            }
+          });
+
+          // setup email data with unicode symbols
+          let mailOptions = {
+            from: '"Suporte Florestal" <suporte@florestalferragens.com.br>', // sender address
+            to: 'vanius@live.com', // list of receivers
+            subject: 'aaaaa', // Subject line
+            text: 'Hello world?', // plain text body
+            attachments: [{   // file on disk as an attachment
+              path: './relatorio.pdf' // stream this file
+            }]
+          };
+
+          // send mail with defined transport object
+          transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+              return console.log(error);
+            }
+            console.log('Message sent: %s', info.messageId);
+            // Preview only available when sending through an Ethereal account
+            console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+
+            // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
+            // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
+          });
+        });
+      }
+
+
+
+
       $scope.hide = function () {
         $mdDialog.hide();
       };
@@ -205,10 +250,10 @@
       $scope.seleciona = function () {
         let saida = new dinheiro(0);
         for (let item of $scope.selected) {
-          if (item.VALORSAIDA) {saida.subtrai(item.VALORSAIDA)}
-          console.log (saida)
+          if (item.VALORSAIDA) { saida.subtrai(item.VALORSAIDA) }
+          console.log(saida)
         }
-        $mdDialog.hide([$scope.selected,saida]);
+        $mdDialog.hide([$scope.selected, saida]);
       };
     }
     function PesquisaVendaCtrl($scope, $mdDialog, $mdToast, locals) {
@@ -222,7 +267,7 @@
       $scope.$watch("selected[0].LCTO", function (newValue, oldValue) {
         console.log(newValue)
         if (newValue) {
-          $mdToast.show($mdToast.simple({'hideDelay':0}).textContent('CARREGANDO...').position('top right left'));
+          $mdToast.show($mdToast.simple({ 'hideDelay': 0 }).textContent('CARREGANDO...').position('top right left'));
           VendaSrvc.listaProdVenda(newValue).then(function (response) {
             $scope.prodVendas = response;
             console.log($scope.prodVendas);
@@ -296,7 +341,7 @@
         $mdDialog.cancel();
       };
     }
-    function inserePgtoCtrl($scope, $mdDialog,$mdToast, locals) {  //controla o modal que faz o pagamento
+    function inserePgtoCtrl($scope, $mdDialog, $mdToast, locals) {  //controla o modal que faz o pagamento
       $scope.param = remote.getGlobal('dados').param;
       // $scope.venda = locals.dados;
       console.log(locals.venda)
@@ -337,7 +382,7 @@
         $mdDialog.hide(pagamento);
       };
     }
-    function PagamentoCtrl($scope, $mdDialog, locals, $timeout,$mdToast) {  //controla o modal que faz o pagamento       
+    function PagamentoCtrl($scope, $mdDialog, locals, $timeout, $mdToast) {  //controla o modal que faz o pagamento       
       $scope.hoje = new Date();
       $scope.acao = locals.acao
       $scope.param = remote.getGlobal('dados').param;
@@ -368,7 +413,7 @@
       };
       $scope.imprime = async function (venda) {
         var html = "<html><head><style>@page { size: portrait;margin: 1%; }table,td,tr,span{font-size:8pt;font-family:Arial;}table {width:80mm;}td {min-width:2mm;}hr{border-top:1pt dashed #000;} </style></head><body ng-controller='BaixaController'>"
-        var conteudo = "<span>DOCUMENTO SEM VALOR FISCAL</span><hr><span class='pull-left'>" + remote.getGlobal('dados').configs.empresa + "</span><br><span class='pull-left'>Pedido: " + venda.LCTO + "   Emissão: " + new Date().toLocaleDateString() + "</span><br><span>Cliente: " + venda.NOMECLI + "</span><br><span>Cod. Cliente" + venda.CODCLI + "</span><br><span>Vendedor: " + venda.NOMEVEND + "</span><br>"
+        var conteudo = "<div><span>DOCUMENTO SEM VALOR FISCAL</span><hr><span class='pull-left'>" + remote.getGlobal('dados').configs.empresa + "</span><br><span class='pull-left'>Pedido: " + venda.LCTO + "   Emissão: " + new Date().toLocaleDateString() + "</span><br><span>Cliente: " + venda.NOMECLI + "</span><br><span>Cod. Cliente" + venda.CODCLI + "</span><br><span>Vendedor: " + venda.NOMEVEND + "</span><br>"
         conteudo += "<span>Forma de Pagamento--------------------------------</span><br>"
         conteudo += "<table>"
         for (let x of venda.PAGAMENTO) {
@@ -392,7 +437,8 @@
         });
         conteudo += "</table><br><span class='pull-right'>Total Produtos: " + venda.TOTALDESC.toString() + "</span>"
         conteudo += "<br><br><span>CONFERENTE.________________________________</span><br>"
-        conteudo += "<br><br><span>ASS._______________________________________</span>"
+        conteudo += "<br><br><span>ASS._______________________________________</span></div></br><hr>"
+        conteudo += conteudo;
         html += conteudo + "</body></html>"
         const janela = await fs.writeFile('c:/temp/teste.html', html, (err) => {
           if (err) throw err;
@@ -402,12 +448,12 @@
         $scope.venda = new Venda()
       }
       $scope.concluirCupom = async function () {
-        $mdToast.show($mdToast.simple({'hideDelay':0}).textContent('Imprimindo Cupom...').position('top right left'));
+        $mdToast.show($mdToast.simple({ 'hideDelay': 0 }).textContent('Imprimindo Cupom...').position('top right left'));
         const Ncupom = await bemafi.gravaECF($scope.venda);
         console.log(Ncupom);
         $scope.venda.insereNucupom(Ncupom);
         $mdToast.updateTextContent('Confirmando Venda...');
-        VendaSrvc.confirmaVenda($scope.venda,'V').then(function (response) {
+        VendaSrvc.confirmaVenda($scope.venda, 'V').then(function (response) {
           $scope.imprime($scope.venda); $mdDialog.hide(); console.log(response)
           $mdToast.hide();
         });
@@ -419,22 +465,22 @@
         let pgtoAvista = $scope.venda.PAGAMENTO.filter(function (item, index) {
           if (item.tipo == 'NP') { return item.valor }
         })
-        VendaSrvc.NumNota().then(function(nota){
+        VendaSrvc.NumNota().then(function (nota) {
           $scope.venda.NFE = nota;
-          console.log ($scope.venda); 
-          NFe.iniciaNota($scope.venda, $scope.venda.PRODUTOS, faturas, pgtoAvista,nota)
+          console.log($scope.venda);
+          NFe.iniciaNota($scope.venda, $scope.venda.PRODUTOS, faturas, pgtoAvista, nota)
         })
       }
       $scope.concluirFech = function () {
-        console.log (venda)
-        VendaSrvc.confirmaVenda($scope.venda,'F').then(function (response) {
+        console.log(venda)
+        VendaSrvc.confirmaVenda($scope.venda, 'F').then(function (response) {
           alert('pedido confirmado'); $mdDialog.hide();
           // $scope.imprime($scope.venda); $mdDialog.hide(); console.log(response)
           console.log(response)
         });
       }
       $scope.emitirCupom = function () {
-        VendaSrvc.confirmaVenda($scope.venda,'V').then(function (response) {
+        VendaSrvc.confirmaVenda($scope.venda, 'V').then(function (response) {
           bemafi.gravaECF(
             {
               'Cliente': $scope.venda.CGC || '',
@@ -447,7 +493,7 @@
         });
       }
       $scope.concluir = function () {
-        VendaSrvc.confirmaVenda($scope.venda,'V').then(function (response) {
+        VendaSrvc.confirmaVenda($scope.venda, 'V').then(function (response) {
           $scope.imprime($scope.venda); $mdDialog.hide(); console.log(response)
         });
       }
@@ -564,12 +610,12 @@
       })
         .then(function (response) {
           console.log(response)
-          VendaSrvc.NumNota().then(function(nota){
+          VendaSrvc.NumNota().then(function (nota) {
             // $scope.venda.NFE = nota;
             // NFe.iniciaNota(response[1], response[0], response[2],"",nota);
-            NFe.iniciaNota(response, response.PRODUTOS, response.PAGAMENTO, "",nota)
-                      })          
-                }, function () {
+            NFe.iniciaNota(response, response.PRODUTOS, response.PAGAMENTO, "", nota)
+          })
+        }, function () {
           console.log('You cancelled the dialog.');
         });
     };
@@ -631,7 +677,7 @@
               $scope.venda = res;
               $scope.venda.DESCONTOITEM.soma(vendas[1]);
               $scope.venda.PAGAR.soma($scope.venda.DESCONTOITEM);
-              $scope.venda.TOTALDESC.soma($scope.venda.DESCONTOITEM);              
+              $scope.venda.TOTALDESC.soma($scope.venda.DESCONTOITEM);
               console.log($scope.venda)
             });
           }, function () {
@@ -656,11 +702,11 @@
     cx.reducaoZ = function (ev) {
       console.log(bemafi.reducaoZ())
     }
-    cx.cancelaCupom = async function(ev) {
+    cx.cancelaCupom = async function (ev) {
       const cancela = await bemafi.cancelaCupom();
-      console.log (cancela);
-      if (cancela===1){
-        VendaSrvc.cancelaCupom().then(function(response){
+      console.log(cancela);
+      if (cancela === 1) {
+        VendaSrvc.cancelaCupom().then(function (response) {
           console.log(response)
         })
       }

@@ -143,7 +143,8 @@ function createWindow () {
         // Use default printing options
         event.newGuest.webContents.printToPDF({}, (error, data) => {
           if (error) throw error
-          fs.writeFile(homedir+'/desktop/relatorio.pdf', data, (error) => {
+          // fs.writeFile(homedir+'/desktop/relatorio.pdf', data, (error) => {
+            fs.writeFile('./relatorio.pdf', data, (error) => {
             if (error) throw error
             console.log('Write PDF successfully.')
           })

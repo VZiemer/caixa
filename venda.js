@@ -1,5 +1,5 @@
 const dinheiro = require('./dinheiro');
-function Venda(lcto, data, transito, cgc, insc, codcli, nomecli,codvend, nomevend, email, fone, razao, endereco, numero, bairro, cep, codibge, codcidade, cidade, estado, complemento, desconto, frete, seguro, total) {
+function Venda(lcto, data, transito, cgc, insc, codcli, nomecli, codvend, nomevend, email, fone, razao, endereco, numero, bairro, cep, codibge, codcidade, cidade, estado, complemento, desconto, frete, seguro, total) {
     //venda
     this.LCTO = []
     this.DATA = new Date(data)
@@ -44,24 +44,24 @@ function Venda(lcto, data, transito, cgc, insc, codcli, nomecli,codvend, nomeven
     this.TRANSPORTE = [];
 };
 
-Venda.prototype.insereFrete = function(valor) {
+Venda.prototype.insereFrete = function (valor) {
     this.FRETE = new dinheiro(valor);
     this.calculaTotal()
 }
-Venda.prototype.insereTransporte = function (volumes,peso,tipofrete,transportador) {
+Venda.prototype.insereTransporte = function (volumes, peso, tipofrete, transportador) {
 
-   /* TIPOS DE FRETE
-    0– Por conta do emitente;
-    1– Por conta do destinatário/remetente;
-    2– Por conta de terceiros;
-    9– Sem frete. (V2.0) */
+    /* TIPOS DE FRETE
+     0– Por conta do emitente;
+     1– Por conta do destinatário/remetente;
+     2– Por conta de terceiros;
+     9– Sem frete. (V2.0) */
 
-    this.TRANSPORTE.push({
-        VOLUMES : volumes || '',
-        PESO : peso || '',
-        TIPOFRETE : tipofrete || '',
-        TRANSPORTADOR : transportador || ''
-    })
+    this.TRANSPORTE = {
+        VOLUMES: volumes || '',
+        PESO: peso || '',
+        TIPOFRETE: tipofrete || '',
+        TRANSPORTADOR: transportador || ''
+    }
 }
 Venda.prototype.insereNucupom = function (cupom) {
     this.NUCUPOM = cupom;
@@ -87,27 +87,30 @@ Venda.prototype.calculaTotal = function () {
     this.PAGAR = new dinheiro(this.PRODUTOS.reduce(function (valorAnterior, valorAtual, indice, array) {
         return valorAnterior + (valorAtual.TOTAL);
     }, 0)).soma(this.FRETE)
+    this.TOTALPRODUTOS = new dinheiro(this.PRODUTOS.reduce(function (valorAnterior, valorAtual, indice, array) {
+        return valorAnterior + (valorAtual.TOTAL);
+    }, 0))
 }
-Venda.prototype.aplicaDesconto =  function (percent) {
+Venda.prototype.aplicaDesconto = function (percent) {
     for (let prod of this.PRODUTOS) {
         console.log(prod.VALOR.valor)
         if (prod.VALOR.valor === prod.VALORINI.valor) {
-        prod.VALORDESCPREV = new dinheiro(prod.VALOR.desconto(4) * prod.QTD)
-        console.log(prod.VALORDESCPREV.valor)
+            prod.VALORDESCPREV = new dinheiro(prod.VALOR.desconto(4) * prod.QTD)
+            console.log(prod.VALORDESCPREV.valor)
         }
         else {
             prod.VALORDESCPREV = prod.TOTAL
         }
     }
 }
-Venda.prototype.descontoPrev = function (){
+Venda.prototype.descontoPrev = function () {
     return new dinheiro(this.PRODUTOS.reduce(function (valorAnterior, valorAtual, indice, array) {
         return valorAnterior + (valorAtual.VALORDESCPREV);
 
     }, 0))
 }
 Venda.prototype.VLDESC = function () { return new dinheiro(this.TOTAL - this.TOTALDESC) }
-Venda.prototype.PERCENTDESC = function () { return (100- (this.TOTALDESC*100/this.TOTAL)).toFixed(0) }
+Venda.prototype.PERCENTDESC = function () { return (100 - (this.TOTALDESC * 100 / this.TOTAL)).toFixed(0) }
 Venda.prototype.insereProduto = function (produto) {
     this.PRODUTOS.push(new Produto(produto.CODIGO, produto.VALOR, produto.QTDPEDIDO, produto.QTDRESERVA, produto.UNIDADE, produto.CODPRODVENDA, produto.VALORINI, produto.PRPROMO, produto.DESCRICAO, produto.CODINTERNO, produto.SITTRIB, produto.NCM, produto.ORIG, produto.GRUPO, produto.ALIQ, produto.CEST));
     this.calculaTotal()

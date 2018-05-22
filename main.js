@@ -1,4 +1,4 @@
-const {app, BrowserWindow, ipcMain, dialog} = require('electron');
+const {app, BrowserWindow, ipcMain, dialog, globalShortcut} = require('electron');
 const autoUpdater = require("electron-updater").autoUpdater
 const homedir = require('os').homedir();
 global.dados={ 
@@ -6,7 +6,8 @@ global.dados={
     computador: '059ed89922706c792646',
     usuario : '',
     senha : '',
-    empresa : ''
+    empresa : '',
+    razao : ''
 
   },
   'param' : {
@@ -65,6 +66,12 @@ var testeurl = url.format({
 let mainWindow
 function createWindow () {
   // Create the browser window.
+
+  // globalShortcut.register('f5', function() {
+	// 	console.log('f5 is pressed')
+	// 	mainWindow.reload()
+	// })
+
   mainWindow = new BrowserWindow(
     { 
       minimizable :true,

@@ -425,7 +425,6 @@ const remote = require('electron').remote;
                         remote.getGlobal('dados').param = response.data;
                         deferred.resolve(response);
                     }, function (response) {
-                        console.log(response);
                     });
                     return deferred.promise;
                 }

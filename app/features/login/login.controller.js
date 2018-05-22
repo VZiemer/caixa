@@ -1,29 +1,30 @@
-(function() {
-'use strict';
+(function () {
+    'use strict';
     angular
         .module('ventronElectron')
         .controller('HomeCtrl', HomeController);
-    HomeController.$inject = ['$scope','$location', '$mdSidenav', '$mdToast','$mdDialog','LoginSrvc'];
-    function HomeController($scope,$location,$mdSidenav,$mdToast,$mdDialog,LoginSrvc) {
+    HomeController.$inject = ['$scope', '$location', '$mdSidenav', '$mdToast', '$mdDialog', 'LoginSrvc'];
+    function HomeController($scope, $location, $mdSidenav, $mdToast, $mdDialog, LoginSrvc) {
         const remote = require('electron').remote;
-        remote.getGlobal('dados').configs.usuario='';
-        remote.getGlobal('dados').configs.senha='';
-        remote.getGlobal('dados').configs.empresa='';
+        remote.getGlobal('dados').configs.usuario = '';
+        remote.getGlobal('dados').configs.senha = '';
+        remote.getGlobal('dados').configs.empresa = '';
+        remote.getGlobal('dados').configs.razao = '';
         var lg = this;
         lg.Login = login;
         lg.dados = remote.getGlobal('dados').configs;
-        console.log (lg.dados)
-        function login(ev){
-            console.log (lg.dados)
-            LoginSrvc.login(lg.dados).then(function(response){
-                console.log(response.data);
+        function login(ev) {
+            LoginSrvc.login(lg.dados).then(function (response) {
                 if (response.data.message == 'Acesso Liberado') {
-                    if (lg.dados.empresa == 2) {
-                        // vm.theme = 'localdecor'
-                    }
+                    if (lg.dados.empresa === 1) {
+                        remote.getGlobal('dados').configs.razao='FLORESTAL FERRAGENS';
+                    }                    
+                    if (lg.dados.empresa === 2) {
+                        remote.getGlobal('dados').configs.razao='LOCALDECOR FERRAGENS';
+                    }          
                     console.log($location.url());
                     $location.path('/caixa');
-                }                   
+                }
             })
             // $mdDialog.show(
             //     $mdDialog.alert()

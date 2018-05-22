@@ -413,7 +413,7 @@
       };
       $scope.imprime = async function (venda) {
         var html = "<html><head><style>@page { size: portrait;margin: 1%; }table,td,tr,span{font-size:8pt;font-family:Arial;}table {width:80mm;}td {min-width:2mm;}hr{border-top:1pt dashed #000;} </style></head><body ng-controller='BaixaController'>"
-        var conteudo = "<div><span>DOCUMENTO SEM VALOR FISCAL</span><hr><span class='pull-left'>" + remote.getGlobal('dados').configs.empresa + "</span><br><span class='pull-left'>Pedido: " + venda.LCTO + "   Emissão: " + new Date().toLocaleDateString() + "</span><br><span>Cliente: " + venda.NOMECLI + "</span><br><span>Cod. Cliente" + venda.CODCLI + "</span><br><span>Vendedor: " + venda.NOMEVEND + "</span><br>"
+        var conteudo = "<div><span>DOCUMENTO SEM VALOR FISCAL</span><hr><span class='pull-left'>" + remote.getGlobal('dados').configs.razao + "</span><br><span class='pull-left'>Pedido: " + venda.LCTO + "   Emissão: " + new Date().toLocaleDateString() + "</span><br><span>Cliente: " + venda.NOMECLI + "</span><br><span>Cod. Cliente" + venda.CODCLI + "</span><br><span>Vendedor: " + venda.NOMEVEND + "</span><br>"
         conteudo += "<span>Forma de Pagamento--------------------------------</span><br>"
         conteudo += "<table>"
         for (let x of venda.PAGAMENTO) {

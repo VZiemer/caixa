@@ -102,7 +102,7 @@ Nota.prototype.InsereVolume = function (qtd, esp, peso) {
 }
 Nota.prototype.InsereTransportador = function (tipofrete, nomeTransp) {
   this.Transportador = {
-    modFrete: tipofrete || 9,
+    modFrete: tipofrete,
     CNPJCPF: '',
     xNome: nomeTransp || '',
     IE: '',
@@ -554,11 +554,11 @@ exports.iniciaNota = function (venda, produtos, faturas, avista, nota, info) {
   cliente = {
     'CODCLI': venda.CODCLI,
     'CODCIDADE': venda.CODCIDADE,
-    'PEDIDO': venda.LCTO,
-    'CODTRANSP': venda.CODTRANSP || null
+    'PEDIDO': venda.LCTO.toString(),
+    'CODTRANSP': venda.TRANSPORTE.CODTRANSP || null
   }
   totais = {
-    'TOTAL': venda.TOTAL || 0,
+    'TOTAL': venda.TOTALPRODUTOS || 0,
     'DESCONTO': venda.DESCONTO || 0,
     'OUTRO': venda.OUTRO || 0,
     'FRETE': venda.FRETE || 0,

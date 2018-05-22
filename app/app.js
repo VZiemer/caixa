@@ -175,7 +175,8 @@ angular
 
 function AppCtrl ($scope, $timeout, $mdSidenav,$location) {
   $scope.appVersion = window.require('electron').remote.app.getVersion()
-
+  $scope.empresa = remote.getGlobal('dados').configs.razao;
+  console.log ($scope.empresa)
   var vm = this;
   vm.theme = 'localdecor'
   vm.msgs = [];

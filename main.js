@@ -67,10 +67,10 @@ let mainWindow
 function createWindow () {
   // Create the browser window.
 
-  // globalShortcut.register('f5', function() {
-	// 	console.log('f5 is pressed')
-	// 	mainWindow.reload()
-	// })
+  globalShortcut.register('shift + f9', function() {
+		console.log('f9 is pressed')
+		mainWindow.webContents.openDevTools()
+	})
 
   mainWindow = new BrowserWindow(
     { 

@@ -1,5 +1,6 @@
 (function () {
- 
+  
+
   Date.prototype.YYYYMMDD = function (){
     return this.toISOString().split('T')[0];
   }
@@ -172,8 +173,9 @@ angular
 .module('ventronElectron')
 .controller('AppCtrl', AppCtrl)
 .directive("keyboard", keyboard);
-
-function AppCtrl ($scope, $timeout, $mdSidenav,$location) {
+// VendasCtrl.$inject = ['$scope', '$q', 'VendaSrvc', '$mdDialog', '$mdToast', '$location'];
+function AppCtrl ($scope, $timeout, $mdSidenav,$location,VendaSrvc) {
+  const bemafi = require('./Bemafi32.js');
   $scope.appVersion = window.require('electron').remote.app.getVersion()
   $scope.empresa = remote.getGlobal('dados').configs.razao;
   console.log ($scope.empresa)
@@ -192,6 +194,23 @@ function AppCtrl ($scope, $timeout, $mdSidenav,$location) {
   $scope.janela = function(janela) {
     $location.url('/'+janela)
   };
+
+$scope.tiraReducaoZ = function () {
+  console.log(bemafi.reducaoZ())
+}
+$scope.cancelaCupom = async function (ev) {
+  const cancela = await bemafi.cancelaCupom();
+  console.log(cancela);
+  if (cancela === 1) {
+    VendaSrvc.cancelaCupom().then(function (response) {
+      console.log(response)
+    })
+  }
+  else {
+    console.log('deu errado')
+  }
+}
+
   // $scope.apertatecla = function (e) {
   //     if ( !e.metaKey ) {
   //       e.preventDefault();
@@ -218,16 +237,12 @@ function keyboard($document, keyCodes) {
           var keyCode = keyCodes[keyName];
           keyHandlers[keyCode] = { callback: callback, name: keyName };
         });
-        
         // Bind to document keydown event
-        $document.on("keydown", function(event) {
-          
+        $document.on("keydown", function(event) {        
           var keyDown = keyHandlers[event.keyCode];
-          
           // Handler is registered
           if (keyDown) {
             // event.preventDefault();
-            
             // Invoke the handler and digest
             scope.$apply(function() {
               keyDown.callback(keyDown.name, event.keyCode);

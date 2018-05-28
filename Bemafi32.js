@@ -97,5 +97,6 @@ exports.leituraX = function () {
 }
 
 exports.reducaoZ = function () {
-  bemafi.Bematech_FI_ReducaoZ('', '')
+  console.log('redução Z')
+  return bemafi.Bematech_FI_ReducaoZ('', '')
 }

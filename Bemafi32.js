@@ -51,7 +51,7 @@ async function cancelaCupom() {
 async function gravaECF(venda) {
 
   // abre um novo cupom com CPF se houver
-  const abrecupom = await bemafi.Bematech_FI_AbreCupom(venda.CGC)
+  const abrecupom = await bemafi.Bematech_FI_AbreCupom(venda.CPFCupom)
   console.log('abre cupom ' + abrecupom)
 
   // loop que faz a venda de todos os itens do cupom

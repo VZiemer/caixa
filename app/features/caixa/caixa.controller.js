@@ -479,19 +479,6 @@
           console.log(response)
         });
       }
-      $scope.emitirCupom = function () {
-        VendaSrvc.confirmaVenda($scope.venda, 'V').then(function (response) {
-          bemafi.gravaECF(
-            {
-              'Cliente': $scope.venda.CGC || '',
-              'produtos': $scope.venda.PRODUTOS,
-              'pagamento': $scope.venda.TOTAL,
-              'codvenda': $scope.venda.LCTO,
-              'empresa': remote.getGlobal('dados').configs.empresa
-            });
-          $scope.imprime($scope.venda); $mdDialog.hide(); console.log(response)
-        });
-      }
       $scope.concluir = function () {
         VendaSrvc.confirmaVenda($scope.venda, 'V').then(function (response) {
           $scope.imprime($scope.venda); $mdDialog.hide(); console.log(response)
@@ -512,7 +499,7 @@
           }
         })
           .then(function (valor) {
-            $scope.venda.CGC = valor;
+            $scope.venda.insereCPFCupom(valor)
             console.log(valor);
           }, function () {
             // console.log('You cancelled the dialog.');

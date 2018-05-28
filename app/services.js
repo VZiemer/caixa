@@ -256,7 +256,7 @@ const remote = require('electron').remote;
                             sql += "insert into movban (codban,data,ent_sai,hora,vlbruto,documento,despesa,usuario,vcto,lctosaida,codcli,tipopag,projecao,banco,agencia,conta,nrcheque,emnome)";
                             sql += "values (" + item.codban + ",current_date,'E',current_time," + item.valor + "," + venda.LCTO + ",1,'VANIUS','" + item.vencimento.dataFirebird() + "'," + venda.LCTO + "," + venda.CODCLI + ",'" + item.tipo + "','N'," + item.banco + ",'" + item.agencia + "','" + item.conta + "','" + item.nrcheque + "','" + item.emnome + "');";
                         }
-                        sql += "update venda set status='F',data=current_date,nucupom=" + (venda.NUCUPOM || null) + ",nf_cupom=" + (venda.NFE || null) + ",empresa=" + empresa + " where lcto=" + venda.LCTO + ";";
+                            sql += "update venda set status='F',data=current_date,nucupom=" + (venda.NUCUPOM || null) + ",nf_cupom=" + (venda.NFE || null) + ",empresa=" + empresa + ",cpfcupom= "+'' + venda.CPFCupom+ " where lcto=" + venda.LCTO + ";";
                     }
                     if (acao === 'F') { // pagamento de um fechamento no caixa
 
@@ -402,7 +402,8 @@ const remote = require('electron').remote;
                     vendaNota: vendaNota,
                     NumNota: NumNota,
                     CarregaFechamento: CarregaFechamento,
-                    carregaNPcli: carregaNPcli
+                    carregaNPcli: carregaNPcli,
+                    cancelaCupom : cancelaCupom
                 }
             }]);
 })();

@@ -11,6 +11,7 @@ function Venda(lcto, data, transito, cgc, insc, codcli, nomecli, codvend, nomeve
     this.TRANSITO.push(transito)
     //cliente
     this.CGC = cgc || null
+    this.CPFCupom = null
     this.INSC = insc || null
     this.NFE = null
     this.CODCLI = codcli || null
@@ -43,6 +44,10 @@ function Venda(lcto, data, transito, cgc, insc, codcli, nomecli, codvend, nomeve
     this.NFE = null
     this.TRANSPORTE = [];
 };
+
+Venda.prototype.insereCPFCupom = function (valor) {
+    this.CPFCupom = valor;
+}
 
 Venda.prototype.insereFrete = function (valor) {
     this.FRETE = new dinheiro(valor);

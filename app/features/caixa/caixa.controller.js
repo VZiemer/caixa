@@ -188,7 +188,16 @@
           html += "<tr><td>TOTAIS</td><td colspan='2'><td>" + venda.TOTALDESC.soma(venda.DESCONTOITEM).valor + "</td><td>" + saida.valor + "</td><th>= " + venda.TOTALDESC.subtrai(saida).toString() + "</th></tr>"
           html += "<tr><td colspan='5'>Desconto para pagamento até 15/05/2018</td><th>= " + venda.descontoPrev().soma(venda.DESCONTOITEM.desconto(4)).subtrai(saida).toString() + "</th></tr>"
           html += "</tfoot></table></body></html>"
-          const janela = fs.writeFile('c:/temp/teste.html', html, (err) => {
+          var pdf = require('html-pdf');
+
+          var options = { format: 'Letter' };
+ 
+          // pdf.create(html, options).toFile('c:/temp/teste.pdf', function(err, res) {
+          //   if (err) return console.log(err);
+          //   console.log(res); // { filename: '/app/businesscard.pdf' }
+          // });
+
+          const janela = fs.writeFile('c:/temp/teste.html', html,'binary', (err) => {
             if (err) throw err;
             let modal = window.open('', 'relatorio')
             console.log('The file has been saved!');

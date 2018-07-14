@@ -174,7 +174,22 @@ function createWindow () {
   
 // });
 app.on('ready', function() { createWindow();
-  autoUpdater.checkForUpdates()
+  autoUpdater.checkForUpdates(function(){
+    console.log('verificando atualizações')
+  })
+  autoUpdater.on('update-available', (ev, info) => {
+    console.log(info)
+    dialog.showMessageBox({
+      type: 'info',
+      title: 'Found Updates',
+      message: info.releaseNotes,
+      buttons: ['Yes', 'No']
+    }, (buttonIndex) => {
+      if (buttonIndex === 0) {
+        autoUpdater.downloadUpdate()
+      }
+    })
+  })
 })
 // Quit when all windows are closed.
 autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {

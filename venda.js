@@ -1,12 +1,12 @@
 const dinheiro = require('./dinheiro');
 function Venda(lcto, data, transito, cgc, insc, codcli, nomecli, codvend, nomevend, email, fone, razao, endereco, numero, bairro, cep, codibge, codcidade, cidade, estado, complemento, desconto, frete, seguro, total) {
-    //venda
+    //dados da venda
     this.LCTO = []
     this.DATA = new Date(data)
     this.LCTO.push(lcto)
     this.CODVEND = codvend || null
     this.NOMEVEND = nomevend || null
-    //transito
+    //dados do transito
     this.TRANSITO = []
     this.TRANSITO.push(transito)
     //cliente
@@ -29,20 +29,25 @@ function Venda(lcto, data, transito, cgc, insc, codcli, nomecli, codvend, nomeve
     this.CIDADE = cidade || null
     this.ESTADO = estado || null
     this.COMPLEMENTO = complemento || null
-    //valores
+    //valores que vem da tabela
     this.DESCONTO = new dinheiro(desconto) || 0
     this.FRETE = new dinheiro(frete) || 0
     this.SEGURO = new dinheiro(seguro) || 0
-    this.TOTAL = 0
-    this.TOTALDESC = 0
-    this.DESCONTOITEM = new dinheiro(0)
-    this.PAGAR = 0
+    // valores calculados ao inserir itens na venda
+    this.TOTALPRODUTOS = new dinheiro(0) // inicia zerado
+    this.TOTAL = new dinheiro(0) // inicia zerado
+    this.TOTALDESC = new dinheiro(0) // inicia zerado
+    this.DESCONTOITEM = new dinheiro(0) // inicia zerado
+    this.PAGAR = new dinheiro(0) // inicia zerado
     //produtos
     this.PRODUTOS = []
+    //pagamentos
     this.PAGAMENTO = []
-    this.NUCUPOM = null
-    this.NFE = null
+    //dados do transportador
     this.TRANSPORTE = [];
+    //documentos fiscais
+    this.NUCUPOM = null
+    this.NFE = null  
 };
 
 Venda.prototype.insereCPFCupom = function (valor) {

@@ -186,7 +186,7 @@
           }
           html += "</tbody><tfoot><tr><td colspan='6'><hr></td></tr>"
           html += "<tr><td>TOTAIS</td><td colspan='2'><td>" + venda.TOTALDESC.soma(venda.DESCONTOITEM).valor + "</td><td>" + saida.valor + "</td><th>= " + venda.TOTALDESC.subtrai(saida).toString() + "</th></tr>"
-          html += "<tr><td colspan='5'>Desconto para pagamento até 15/05/2018</td><th>= " + venda.descontoPrev().soma(venda.DESCONTOITEM.desconto(4)).subtrai(saida).toString() + "</th></tr>"
+          html += "<tr><td colspan='5'>Desconto para pagamento até 15/06/2018</td><th>= " + venda.descontoPrev().soma(venda.DESCONTOITEM.desconto(4)).subtrai(saida).toString() + "</th></tr>"
           html += "</tfoot></table></body></html>"
           var pdf = require('html-pdf');
 

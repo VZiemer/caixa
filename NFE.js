@@ -168,6 +168,7 @@ Nota.prototype.GravaBanco = function (produtos, nomexml, protocolo) {
     });
   });
   console.log(sql)
+  pgtoavista = ''
   cliente = {
     'CODCLI': '',
     'CODCIDADE': '',
@@ -338,8 +339,7 @@ Nota.prototype.InsereProduto = function (indice, orig, sittrib, cod, descricao, 
       }
     }
     if (RegimeTrib == 2) {
-      if (orig == 2) { aliq = 4 }
-      if (UFOrig != UFDest) { aliq = 12; if (orig == 2) { aliq = 4 } }
+      // if (UFOrig != UFDest) { aliq = 12; if (orig == 2) { aliq = 4 } }
       if (sittrib == '101') {  // sem S.T.
         vBC = dinheiro(qtd * valor * totais.FRETE / totais.TOTAL + (valor * qtd));
         TvBC += vBC;

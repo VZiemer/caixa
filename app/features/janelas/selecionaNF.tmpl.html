@@ -1,80 +1,207 @@
 <style>
-  .md-checkbox {display:none}
+  .md-checkbox {
+    display: none
+  }
 </style>
 <md-dialog class="fullscreen-dialog" aria-label="" layout='column'>
-    <form ng-cloak>
-      <md-toolbar>
-        <div class="md-toolbar-tools">
-          <h2>Vendas</h2>
-          <span flex></span>
-          <md-button class="md-icon-button" ng-click="cancel()">
-            <md-icon class="material-icons" style="color: white;">close</md-icon>
-          </md-button>
-        </div>
-      </md-toolbar>
-      <md-dialog-content >
-        <div class="md-dialog-content">
-          <form ng-submit="carregaVenda(venda)" action="#">
+  <form ng-cloak>
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>Nova Nota</h2>
+        <span flex></span>
+        <form ng-submit="carregaVenda(venda)" action="#">
             <md-input-container>
               <label>Venda</label>
               <input type="text" ng-model="venda" required >
             </md-input-container> 
             <input type='submit' value='ok' ng-click="carregaVenda(venda)">
-          </form>     
-          <!-- exact table from live demo -->
-          <md-table-container style="overflow: auto;" ng-style="{'height':'50px'}">
-            <table md-table md-row-select  > <!-- multiple -->
-              <thead fix-head md-head>
-                <tr md-row>
-                  <th md-column md-order-by="LCTO"><span>LCTO</span></th>
-                  <th md-column md-order-by="RAZÃO"><span>CLIENTE</span></th>
-                  <th md-column md-order-by="TOTAL">TOTAL</th>
-                </tr>
-              </thead>
-              <tbody md-body>
-                <tr md-row ng-style="{'height':'23px'}">
-                  <td md-cell>{{Venda.LCTO[0]}}</td>
-                  <td md-cell>{{Venda.RAZAO}}</td>
-                  <td md-cell>{{Venda.TOTALDESC}}</td>
-                </tr>
-              </tbody>
-            </table>
-          </md-table-container>
-        <!-- <md-table-pagination md-limit="" md-limit-options="[5, 10, 15]" md-page="" md-total="" md-on-paginate="" md-page-select></md-table-pagination>		 -->
-        <md-table-container style="overflow: auto;" ng-style="{'height':'200px'}">
-            <table md-table>
-              <thead fix-head md-head>
-                <tr md-row >
-                  <th md-column ><span>CODIGO</span></th>
-                  <th md-column ><span>QTD</span></th>
-                  <th md-column >DESCRICAO</th>
-                  <th md-column >VALOR</th>
-                   <th md-column >TOTAL</th>
-                </tr>
-              </thead>
-              <tbody md-body>
-                <tr md-row ng-repeat="item in Venda.PRODUTOS" ng-style="{'height':'23px'}">
-                  <td md-cell>{{item.CODPRO}}</td>
-                  <td md-cell>{{item.QTD}}</td>
-                  <td md-cell>{{item.DESCRICAO}}</td>
-                  <td md-cell>{{item.VALOR}}</td>
-                  <td md-cell>{{item.VALOR * item.QTD || currency}}</td>
-                </tr>
-              </tbody>              
-
-            </table>
-          </md-table-container>
+          </form> 
+        <md-button class="md-icon-button" ng-click="cancel()">
+          <md-icon class="material-icons" style="color: white;">close</md-icon>
+        </md-button>
       </div>
-      </md-dialog-content>
-  
-      <md-dialog-actions layout="row" layout-align="end">
-        <!-- <md-button href="http://en.wikipedia.org/wiki/Mango" target="_blank" md-autofocus>
+    </md-toolbar>
+    <md-dialog-content>
+      <div class="md-dialog-content">
+        <md-tabs md-dynamic-height md-border-bottom>
+          <md-tab label="Dados Gerais">
+            <md-content layout-padding>
+              <div>
+                <form name="cabecalhoForm">
+                  <fieldset>
+                    <legend>Dados Gerais</legend>
+                    <div layout-gt-xs="row">
+
+                      <md-input-container class="md-block" flex-gt-xs="15">
+                        <label>Nota Fiscal</label>
+                        <input disabled md-no-asterisk name="Nota" ng-model="nota.Cabecalho.NOTA">
+                      </md-input-container>
+
+                      <md-input-container>
+                        <label>Data</label>
+                        <md-datepicker name="data" md-hide-icons="calendar" ng-model="hoje"></md-datepicker>
+                      </md-input-container>
+
+                      <md-input-container class="md-block" flex-gt-xs="15">
+                        <label>CFOP</label>
+                        <input md-no-asterisk name="cfop" ng-model="nota">
+                      </md-input-container>
+
+                      <md-input-container class="md-icon-float md-icon-left md-block">
+                        <md-icon class="material-icons" style="color: rgb(44, 155, 58);">search</md-icon>
+                        <label>Nat. Operação</label>
+                        <input name="natoper" ng-model="nota.getDesconto()" type="text">
+                      </md-input-container>
+
+                      <md-input-container>
+                        <label>Data Saída</label>
+                        <md-datepicker name="dt_saida" md-hide-icons="calendar" ng-model="nota.Cabecalho.DT_SAIDA"></md-datepicker>
+                      </md-input-container>
+
+                      <md-input-container class="md-block" flex-gt-xs>
+                        <label>Pedido</label>
+                        <input required disabled name="pedido" ng-model="nota.Cabecalho.PEDIDO">
+                      </md-input-container>
+
+                    </div>
+                  </fieldset>
+
+                  <fieldset>
+                    <legend>Destinatário</legend>
+                    <div layout-gt-xs="row">
+
+                      <md-input-container class="md-block" flex-gt-xs="10">
+                        <label>Código</label>
+                        <input md-no-asterisk name="codcli" ng-value="nota._destinatario._codigo">
+                      </md-input-container>
+
+                      <md-input-container class="md-icon-float md-icon-left md-block">
+                        <md-icon class="material-icons" style="color: rgb(44, 155, 58);">search</md-icon>
+                        <label>Razão Social</label>
+                        <input name="nome" ng-model="nota._destinatario._codigo" type="text">
+                      </md-input-container>
+
+                      <md-input-container>
+                        <label>Telefone</label>
+                        <input name="fone" ng-model="nota.Cabecalho.FONE" type="text" ui-br-phone-number>
+                      </md-input-container>
+
+                      <md-input-container class="md-block" flex-gt-xs="15">
+                        <label>CEP</label>
+                        <input md-no-asterisk name="cep" ng-model="nota.Cabecalho.CEP" ui-br-cep-mask>
+                      </md-input-container>
+                    </div>
+
+                    <div layout-gt-xs="row">
+                      <md-input-container>
+                        <label>Endereço</label>
+                        <input name="endereco" ng-model="nota.Cabecalho.ENDERECO" max='255' min='1' md-maxlength="255" md-no-asterisk></input>
+                      </md-input-container>
+
+                      <md-input-container class="md-block" flex-gt-xs>
+                        <label>Número</label>
+                        <input name="numero" ng-model="nota.Cabecalho.NUMERO" max='60' min='1' md-maxlength="60" md-no-asterisk>
+                      </md-input-container>
+
+                      <md-input-container class="md-block" flex-gt-xs>
+                        <label>Complemento</label>
+                        <input name="complemento" ng-model="nota.Cabecalho.COMPLEMENTO" max='60' min='1' md-maxlength="60" md-no-asterisk>
+                      </md-input-container>
+
+                      <md-input-container class="md-block" flex-gt-xs>
+                        <label>Bairro</label>
+                        <input name="bairro" ng-model="nota.Cabecalho.BAIRRO" max='60' min='1' md-maxlength="60" md-no-asterisk>
+                      </md-input-container>
+                    </div>
+
+                    <div layout-gt-xs="row">
+                      <md-input-container>
+                        <label>CNPJ / CPF</label>
+                        <input name="cgc" ng-model="nota.Cabecalho.CGC" ui-br-cpfcnpj-mask md-no-asterisk></input>
+                      </md-input-container>
+
+                      <md-input-container class="md-block" flex-gt-xs>
+                        <label>I. E.</label>
+                        <input name="inscest" ng-model="nota.Cabecalho.IE" ui-br-ie-mask='PR' md-no-asterisk>
+                      </md-input-container>
+
+                      <md-input-container class="md-block" flex-gt-xs required>
+                        <label>Contribuinte</label>
+                        <md-select ng-model="nota.Cabecalho.INDIEDEST">
+                          <md-option value="C">Contribuinte</md-option>
+                          <md-option value="I">Isento</md-option>
+                          <md-option value="N">Não Contrib.</md-option>
+                        </md-select>
+                      </md-input-container>
+
+                      <md-input-container class="md-block" flex-gt-xs>
+                        <label>Cod</label>
+                        <input name="codcidade" ng-model="nota.Cabecalho.CODCIDADE" max='7' min='7' md-no-asterisk>
+                      </md-input-container>
+
+                      <md-input-container class="md-block" flex-gt-xs>
+                        <label>Cidade</label>
+                        <input name="cidade" ng-model="nota.Cabecalho.CIDADE" max='60' min='1' md-maxlength="60" md-no-asterisk>
+                      </md-input-container>
+
+                      <md-input-container class="md-block" flex-gt-xs>
+                        <label>Estado</label>
+                        <input name="estado" ng-model="nota.Cabecalho.ESTADO" max='2' min='1' md-no-asterisk>
+                      </md-input-container>
+
+                    </div>
+                  </fieldset>
+                </form>
+              </div>
+
+            </md-content>
+          </md-tab>
+          <md-tab label="PRODUTOS">
+            <md-content class="md-padding">
+              <md-table-container style="overflow: auto;" ng-style="{'height':'200px'}">
+                <table md-table>
+                  <thead fix-head md-head>
+                    <tr md-row>
+                      <th md-column>
+                        <span>CODIGO</span>
+                      </th>
+                      <th md-column>
+                        <span>QTD</span>
+                      </th>
+                      <th md-column>DESCRICAO</th>
+                      <th md-column>VALOR</th>
+                      <th md-column>TOTAL</th>
+                    </tr>
+                  </thead>
+                  <tbody md-body>
+                    <tr md-row ng-repeat="item in nota.getItens()" ng-style="{'height':'23px'}">
+                      <td md-cell>{{item.getDescricao()}}</td>
+                      <td md-cell>{{item.QTD}}</td>
+                      <td md-cell>{{item.DESCRICAO}}</td>
+                      <td md-cell>{{item.getValor()}}</td>
+                      <td md-cell>{{item.VALOR * item.QTD || currency}}</td>
+                    </tr>
+                  </tbody>
+
+                </table>
+              </md-table-container>
+            </md-content>
+          </md-tab>
+          <md-tab label="PAGAMENTOS">
+            <md-content class="md-padding">
+            </md-content>
+          </md-tab>
+        </md-tabs>
+    </md-dialog-content>
+
+    <md-dialog-actions layout="row" layout-align="end">
+      <!-- <md-button href="http://en.wikipedia.org/wiki/Mango" target="_blank" md-autofocus>
           More on Wikipedia
         </md-button> -->
-        <span flex></span>                             
-        <md-button ng-click="ok()">
-          Gerar Nota
-        </md-button>
-      </md-dialog-actions>
-    </form>    
-  </md-dialog>
+      <span flex></span>
+      <md-button ng-click="ok()">
+        Gerar Nota
+      </md-button>
+    </md-dialog-actions>
+  </form>
+</md-dialog>

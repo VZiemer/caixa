@@ -485,7 +485,7 @@ dadosEmitente(1, 1359424).then(carregaVenda).then(dadosNota).then(criaNf).then(i
         }
         Geraini['ICMS' + zeroEsq(i + 1, 3, 0)] = {
             orig: itens[i].getIcms().getOrigem(),
-            CST: (danfe.getEmitente().getCodigoRegimeTributario() === '1') ? '' : itens[i].getIcms().getSituacaoTributaria(),
+            CST: (danfe.getEmitente().getCodigoRegimeTributario() !== '1') ? '' : itens[i].getIcms().getSituacaoTributaria(),
             CSOSN: (danfe.getEmitente().getCodigoRegimeTributario() === '1') ? itens[i].getIcms().getSituacaoTributaria() : '',
             modBC: 0,
             pRedBC: 0,

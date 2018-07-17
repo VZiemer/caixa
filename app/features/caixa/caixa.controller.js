@@ -266,7 +266,7 @@
               item.ORIG
             )
             danfe.adicionarItem(new Item()
-              .comCodigo(item.CODIGO)
+              .comCodigo(item.CODPRO)
               .comDescricao(item.DESCRICAO)
               .comNcmSh(item.NCM)
               .comIcms(icms)

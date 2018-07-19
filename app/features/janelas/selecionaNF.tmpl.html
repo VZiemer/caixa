@@ -4,23 +4,23 @@
   }
 </style>
 <md-dialog class="fullscreen-dialog" aria-label="" layout='column'>
+  <md-toolbar>
+    <div class="md-toolbar-tools">
+      <md-button aria-label="Go Back" ng-click="carregaVenda('1361009')">
+        Carrega Venda
+      </md-button>
+      <md-button aria-label="Go Back" ng-click="">
+        Gera Nota
+      </md-button>
+      <md-button aria-label="Go Back" ng-click="">
+        Envia Nota
+      </md-button>
+      <!-- <md-button class="md-fab md-mini md-hue-3" aria-label="Favorite"> -->
+      <md-icon class="material-icons" style="color: white;" ng-click="cancel()">close</md-icon>
+      </md-button>
+    </div>
+  </md-toolbar>
   <form ng-cloak>
-    <md-toolbar>
-      <div class="md-toolbar-tools">
-        <h2>Nova Nota</h2>
-        <span flex></span>
-        <form ng-submit="carregaVenda(venda)" action="#">
-          <md-input-container>
-            <label>Venda</label>
-            <input type="text" ng-model="venda" required>
-          </md-input-container>
-          <input type='submit' value='ok' ng-click="carregaVenda(venda)">
-        </form>
-        <md-button class="md-icon-button" ng-click="cancel()">
-          <md-icon class="material-icons" style="color: white;">close</md-icon>
-        </md-button>
-      </div>
-    </md-toolbar>
     <md-dialog-content>
       <div class="md-dialog-content">
         <md-tabs md-dynamic-height md-border-bottom>
@@ -33,7 +33,7 @@
                     <div layout-gt-xs="row">
                       <md-input-container class="md-block" flex-gt-xs="15">
                         <label>Nota Fiscal</label>
-                        <input disabled md-no-asterisk name="Nota" ng-model="nota.Cabecalho.NOTA">
+                        <input disabled name="Nota" ng-model="nota.Cabecalho.NOTA">
                       </md-input-container>
                       <md-input-container>
                         <label>Data</label>
@@ -44,17 +44,14 @@
                         <label>Nat. Operação</label>
                         <input name="natoper" ng-model="nota.getNaturezaDaOperacao()" type="text">
                       </md-input-container>
-
                     </div>
                   </fieldset>
-
                   <fieldset>
                     <legend>Destinatário</legend>
                     <div layout-gt-xs="row">
-
                       <md-input-container class="md-block" flex-gt-xs="10">
                         <label>Código</label>
-                        <input md-no-asterisk name="codcli" ng-value="nota.getDestinatario().getCodigo()">
+                        <input name="codcli" ng-value="nota.getDestinatario().getCodigo()">
                       </md-input-container>
                       <md-input-container class="md-block" flex-gt-xs>
                         <!-- <md-icon class="material-icons" style="color: rgb(44, 155, 58);">search</md-icon> -->
@@ -63,13 +60,13 @@
                       </md-input-container>
                       <md-input-container class="md-block" flex-gt-xs="15">
                         <label>CNPJ / CPF</label>
-                        <input name="cgc" ng-model="nota.getDestinatario().getRegistroNacional()" ui-br-cpfcnpj-mask md-no-asterisk></input>
+                        <input name="cgc" ng-model="nota.getDestinatario().getRegistroNacional()" ui-br-cpfcnpj-mask></input>
                       </md-input-container>
                     </div>
                     <div layout-gt-xs="row">
                       <md-input-container class="md-block" flex-gt-xs>
                         <label>I. E.</label>
-                        <input name="inscest" ng-model="nota.getInscricaoEstadual()" ui-br-ie-mask md-no-asterisk>
+                        <input name="inscest" ng-model="nota.getInscricaoEstadual()" ui-br-ie-mask>
                       </md-input-container>
                       <md-input-container class="md-block" flex-gt-xs>
                         <label>Contribuinte</label>
@@ -85,28 +82,23 @@
                         <label>CEP</label>
                         <input md-no-asterisk name="cep" ng-model="nota.getDestinatario().getEndereco().getCep()" ui-br-cep-mask>
                       </md-input-container>
-
                       <md-input-container class="md-block" flex-gt-xs>
                         <label>Endereço</label>
-                        <input name="endereco" ng-model="nota.getDestinatario().getEndereco().getLogradouro()" md-no-asterisk></input>
+                        <input name="endereco" ng-model="nota.getDestinatario().getEndereco().getLogradouro()">
                       </md-input-container>
-
                       <md-input-container class="md-block" flex-gt-xs="8">
                         <label>Número</label>
-                        <input name="numero" ng-model="nota.getDestinatario().getEndereco().getNumero()" md-no-asterisk>
+                        <input name="numero" ng-model="nota.getDestinatario().getEndereco().getNumero()">
                       </md-input-container>
-
                       <md-input-container class="md-block" flex-gt-xs="25">
                         <label>Bairro</label>
-                        <input name="bairro" ng-model="nota.getDestinatario().getEndereco().getBairro()" md-no-asterisk>
+                        <input name="bairro" ng-model="nota.getDestinatario().getEndereco().getBairro()">
                       </md-input-container>
                     </div>
-
                     <div layout-gt-xs="row">
-
                       <md-input-container class="md-block" flex-gt-xs>
                         <label>Complemento</label>
-                        <input name="complemento" ng-model="nota.getDestinatario().getEndereco().getComplemento()" md-no-asterisk>
+                        <input name="complemento" ng-model="nota.getDestinatario().getEndereco().getComplemento()">
                       </md-input-container>
                       <md-input-container flex-gt-xs="15">
                         <label>Telefone</label>
@@ -114,21 +106,20 @@
                       </md-input-container>
                       <md-input-container class="md-block" flex-gt-xs="8">
                         <label>Cod</label>
-                        <input name="codcidade" ng-model="nota.getDestinatario().getEndereco().getCodMunicipio()" max='7' min='7' md-no-asterisk>
+                        <input name="codcidade" ng-model="nota.getDestinatario().getEndereco().getCodMunicipio()">
                       </md-input-container>
                       <md-input-container class="md-block" flex-gt-xs="20">
                         <label>Cidade</label>
-                        <input name="cidade" ng-model="nota.getDestinatario().getEndereco().getMunicipio()" max='60' min='1' md-maxlength="60" md-no-asterisk>
+                        <input name="cidade" ng-model="nota.getDestinatario().getEndereco().getMunicipio()">
                       </md-input-container>
                       <md-input-container class="md-block" flex-gt-xs="8">
                         <label>Estado</label>
-                        <input name="estado" ng-model="nota.getDestinatario().getEndereco().getUf()" max='2' min='1' md-no-asterisk>
+                        <input name="estado" ng-model="nota.getDestinatario().getEndereco().getUf()">
                       </md-input-container>
                     </div>
                   </fieldset>
                 </form>
               </div>
-
             </md-content>
           </md-tab>
           <md-tab label="PRODUTOS">
@@ -147,6 +138,9 @@
                         <span>Ncm/Sh</span>
                       </th>
                       <th md-column>
+                        <span>CST/CSOSN</span>
+                      </th>
+                      <th md-column>
                         <span>CFOP</span>
                       </th>
                       <th md-column>
@@ -155,12 +149,11 @@
                       <th md-column>
                         <span>Un</span>
                       </th>
-
                       <th md-column>
                         <span>V. Unit</span>
                       </th>
                       <th md-column>
-                        <span>CST/CSOSN</span>
+                        <span>V. Unit</span>
                       </th>
                     </tr>
                   </thead>
@@ -169,14 +162,14 @@
                       <td md-cell>{{item.getCodigo()}}</td>
                       <td md-cell>{{item.getDescricao()}}</td>
                       <td md-cell>{{item.getNcmSh()}}</td>
+                      <td md-cell>{{item.getIcms().getSituacaoTributaria()}}</td>
                       <td md-cell>{{item.getIcms().getCfop()}}</td>
                       <td md-cell>{{item.getQuantidade()}}</td>
                       <td md-cell>{{item.getUnidade()}}</td>
                       <td md-cell>{{item.getValorUnitario()}}</td>
-                      <td md-cell>{{item.getIcms().getSituacaoTributaria()}}</td>
+                      <td md-cell>{{item.getValorTotal()}}</td>
                     </tr>
                   </tbody>
-
                 </table>
               </md-table-container>
             </md-content>
@@ -201,22 +194,14 @@
                       <td md-cell>{{item.getValor()}}</td>
                     </tr>
                   </tbody>
-
                 </table>
               </md-table-container>
             </md-content>
           </md-tab>
         </md-tabs>
     </md-dialog-content>
-
     <md-dialog-actions layout="row" layout-align="end">
-      <!-- <md-button href="http://en.wikipedia.org/wiki/Mango" target="_blank" md-autofocus>
-          More on Wikipedia
-        </md-button> -->
       <span flex></span>
-      <md-button ng-click="ok()">
-        Gerar Nota
-      </md-button>
     </md-dialog-actions>
   </form>
 </md-dialog>

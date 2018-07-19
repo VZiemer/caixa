@@ -2,6 +2,8 @@
   'use strict';
   const bemafi = require('./Bemafi32.js');
   const nfe = require('nfejs'),
+    fs = require('fs'),
+    ini = require('ini'),
     firebird = require('node-firebird'),
     conexao = require('./db'),
     NFe = nfe.NFe,
@@ -19,12 +21,6 @@
     Icms = nfe.Icms,
     GravaBanco = nfe.Gravabanco,
     Pagamento = nfe.Pagamento;
-
-
-
-
-
-
 
   //cria as variáveis necessárias
   var emitente = new Emitente();
@@ -44,13 +40,7 @@
   const Pagto = require('./pagamentos');
   const dinheiro = require('./dinheiro');
   const venda = require('./venda');
-  const fs = require('fs');
   const nodemailer = require('nodemailer');
-
-
-
-
-
 
 
   const remote = require('electron').remote;
@@ -58,6 +48,7 @@
   VendasCtrl.$inject = ['$scope', '$q', 'VendaSrvc', '$mdDialog', '$mdToast', '$location'];
   function VendasCtrl($scope, $q, VendaSrvc, $mdDialog, $mdToast, $location) {
     $scope.param = remote.getGlobal('dados').param;
+    
     const screenElectron = electron.screen;
     $scope.mainScreen = screenElectron.getPrimaryDisplay().workAreaSize.height;
     $scope.venda = new venda()
@@ -92,9 +83,13 @@
           console.log('You cancelled the dialog.');
         });
     };
+
+    // # gera nfe
+
     function geraNFCtrl($scope, $mdDialog, $mdToast, locals) {
 
       // funções de criação da nota
+
 
       function dadosEmitente(empresa, venda) {
         return new Promise((resolve, reject) => {
@@ -261,7 +256,7 @@
               danfe.getDestinatario().getEndereco().getUf(),
               1,
               1,
-              item.VALOR,
+              item.BASECALC,
               item.ALIQ,
               item.ORIG
             )
@@ -275,7 +270,8 @@
               .comUnidade(item.UNIDADE)
               .comQuantidade(item.QTD)
               .comValorUnitario(item.VALOR)
-              .comValorTotal(item.VALOR * item.QTD));
+              .comValorDoFrete(item.FRETEPROD)
+              );
           }
           resolve(venda);
 
@@ -302,35 +298,466 @@
           impostos.comValorTotalDoIpi(0);
           impostos.comValorDaCofins(0);
           impostos.comBaseDeCalculoDoIssqn(0);
-          impostos.comValorTotalDoIssqn(30);
-
+          impostos.comValorTotalDoIssqn(0);
           danfe.comImpostos(impostos);
           danfe.comInformacoesComplementares('');
-          danfe.comValorTotalDaNota(250.13);
-          danfe.comValorTotalDosProdutos(120.10);
-          danfe.comValorTotalDosServicos(130.03);
-          danfe.comValorDoFrete(23.34);
-          danfe.comValorDoSeguro(78.65);
-          danfe.comDesconto(1.07);
-          danfe.comOutrasDespesas(13.32);
+          danfe.comValorTotalDaNota(0);
+          danfe.comValorTotalDosProdutos(0);
+          danfe.comValorTotalDosServicos(0);
+          danfe.comValorDoFrete(0);
+          danfe.comValorDoSeguro(0);
+          danfe.comDesconto(0);
+          danfe.comOutrasDespesas(0);
           resolve(danfe);
         })
 
       };
+
+
+
       $scope.nota = new NFe()
       $scope.carregaVenda = function (venda) {
         console.log("aaaaa")
         VendaSrvc.vendaNota(venda).then(function (response) {
-          dadosEmitente(1, response).then(dadosNota).then(criaNf).then(itensNota).then(pagamentosNota).then(totalizadorNfe).then(function (res) {
+          dadosEmitente(remote.getGlobal('dados').configs.empresa, response).then(dadosNota).then(criaNf).then(itensNota).then(pagamentosNota).then(totalizadorNfe).then(function (res) {
             $scope.nota = res;
             $scope.$apply();
+            var Geraini = {
+              infNFe: {
+                versao: '4.0'
+              },
+              Identificacao: {
+                cNF: '',
+                natOp: res.getNaturezaDaOperacao(),
+                indPag: '',
+                mod: '55',
+                serie: res.getSerie(),
+                nNF: res.getNumero(),
+                dhEmi: res.getDataDaEmissaoFormatada(),
+                dhSaiEnt: '',
+                tpNF: res.getTipo(),
+                idDest: res.getEmitente().getEndereco().getUf() === res.getDestinatario().getEndereco().getUf() ? '1' : '2',
+                tpImp: '1', // 1=DANFE normal, Retrato; 
+                tpEmis: '1', // normal
+                finNFe: res.getCodigoFinalidade(),
+                indFinal: '1', // consumidor final
+                indPres: '1',  // presente no local
+                procEmi: '0', // 0 - emissão de NF-e com aplicativo do contribuinte; 
+                verProc: '1.0.0',
+                dhCont: '',
+                xJust: ''
+              },
+              Volume001: {
+                qVol: res.getVolumes().getQuantidade(),
+                esp: res.getVolumes().getEspecie(),
+                Marca: res.getVolumes().getMarca(),
+                nVol: res.getVolumes().getNumeracao(),
+                pesoL: res.getVolumes().getPesoLiquido(),
+                pesoB: res.getVolumes().getPesoBruto()
+              },
+              Transportador: {
+                modFrete: res.getCodigoModalidadeDoFrete(),
+                CNPJCPF: res.getTransportador().getRegistroNacional(),
+                xNome: res.getTransportador().getNome(),
+                IE: res.getTransportador().getInscricaoEstadual(),
+                xEnder: res.getTransportador().getEndereco().getLogradouro(),
+                xMun: res.getTransportador().getEndereco().getMunicipio(),
+                UF: res.getTransportador().getEndereco().getUf(),
+                vServ: '',
+                vBCRet: '',
+                pICMSRet: '',
+                vICMSRet: '',
+                CFOP: '',
+                cMunFG: '',
+                Placa: '',
+                UFPlaca: '',
+                RNTC: '',
+                vagao: '',
+                balsa: ''
+              },
+              Emitente: {
+                CNPJCPF: res.getEmitente().getRegistroNacional(),
+                xNome: res.getEmitente().getNome(),
+                xFant: res.getEmitente().getNome(),
+                IE: res.getEmitente().getInscricaoEstadual(),
+                IEST: '',
+                IM: '',
+                CNAE: '',
+                CRT: res.getEmitente().getCrt(),
+                xLgr: res.getEmitente().getEndereco().getLogradouro(),
+                nro: res.getEmitente().getEndereco().getNumero(),
+                xCpl: res.getEmitente().getEndereco().getComplemento(),
+                xBairro: res.getEmitente().getEndereco().getBairro(),
+                cMun: res.getEmitente().getEndereco().getCodMunicipio(),
+                xMun: res.getEmitente().getEndereco().getMunicipio(),
+                UF: res.getEmitente().getEndereco().getUf(),
+                CEP: res.getEmitente().getEndereco().getCep(),
+                cPais: res.getEmitente().getEndereco().getCodPais(),
+                xPais: res.getEmitente().getEndereco().getPais(),
+                Fone: res.getEmitente().getTelefone(),
+                cUF: res.getEmitente().getEndereco().getUf(),
+                cMunFG: ''
+              },
+              Destinatario: {
+                idEstrangeiro: '',
+                CNPJCPF: res.getDestinatario().getRegistroNacional(),
+                xNome: res.getDestinatario().getNome(),
+                indIEDest: '',
+                IE: res.getDestinatario().getInscricaoEstadual(),
+                ISUF: '',
+                Email: res.getDestinatario().getEmail(),
+                xLgr: res.getDestinatario().getEndereco().getLogradouro(),
+                nro: res.getDestinatario().getEndereco().getNumero(),
+                xCpl: res.getDestinatario().getEndereco().getComplemento(),
+                xBairro: res.getDestinatario().getEndereco().getBairro(),
+                cMun: res.getDestinatario().getEndereco().getCodMunicipio(),
+                xMun: res.getDestinatario().getEndereco().getMunicipio(),
+                UF: res.getDestinatario().getEndereco().getUf(),
+                CEP: res.getDestinatario().getEndereco().getCep(),
+                cPais: res.getDestinatario().getEndereco().getCodPais(),
+                xPais: res.getDestinatario().getEndereco().getPais(),
+                Fone: res.getDestinatario().getTelefone()
+              },
+              Total: {
+                vBC: '',
+                vICMS: '',
+                vICMSDeson: '',
+                vBCST: '',
+                vST: '',
+                vProd: '',
+                vFrete: res.getValorDoFrete(),
+                vSeg: res.getValorDoSeguro(),
+                vDesc: res.getDesconto(),
+                vII: '',
+                vIPI: '',
+                vPIS: '',
+                vCOFINS: '',
+                vOutro: res.getOutrasDespesas(),
+                vNF: res.getValorTotalDaNota(),
+                vTotTrib: ''
+              },
+              DadosAdicionais: {
+                infCpl: res.getInformacoesComplementares()
+                // pgtoavista +';'+ infoAdic+ '
+              },
+              // ['Duplicata' + 'xxx'] : {
+              //     nDup: '',
+              //     dVenc: '',
+              //     vDup': ''
+              //   },
+
+            }
+            var pagtos = res.getPagamento();
+            for (let i = 0; i < pagtos.length; i++) {
+              Geraini['PAG' + zeroEsq(i + 1, 3, 0)] = {
+                tpag: pagtos[i].getCodMeioDePagamento(),
+                vPag: pagtos[i].getValor(),
+                tpIntegra: pagtos[i].getCodIntegracaoDePagamento(),
+                CNPJ: pagtos[i].getCnpjDaCredenciadoraDeCartao(),
+                tBand: pagtos[i].getCodBandeiraDoCartao(),
+                cAut: pagtos[i].getAutorizacaoDeOperacao(),
+                vTroco: pagtos[i].getValorDoTroco(),
+              }
+            }
+            var itens = res.getItens();
+            for (let i = 0; i < itens.length; i++) {
+              Geraini['Produto' + zeroEsq(i + 1, 3, 0)] = {
+                cProd: itens[i].getCodigo(),
+             
+                xProd: itens[i].getDescricao(),
+                NCM: itens[i].getNcmSh(),
+                CEST: '',
+                EXTIPI: '',
+                CFOP: itens[i].getIcms().getCfop(),
+                uCom: itens[i].getUnidade(),
+                qCom: itens[i].getQuantidade(),
+                vUnCom: itens[i].getValorUnitario(),
+                vProd: itens[i].getValorUnitario(),
+                cEANTrib: '',
+                uTrib: itens[i].getUnidade(),
+                qTrib: itens[i].getQuantidade(),
+                vUnTrib: itens[i].getValorUnitario(),
+                vFrete: itens[i].getValorDoFrete(),
+                vSeg: '',
+                vDesc: '',
+                vOutro: '',
+                indTot: 1,
+                xPed: '',
+                nItemPed: '',
+                nFCI: '',
+                nRECOPI: '',
+                pDevol: '',
+                vIPIDevol: '',
+                vTotTrib: '',
+                infAdProd: ''
+              }
+              Geraini['ICMS' + zeroEsq(i + 1, 3, 0)] = {
+                orig: itens[i].getIcms().getOrigem(),
+                CST: (res.getEmitente().getCodigoRegimeTributario() === '1') ? '' : itens[i].getIcms().getSituacaoTributaria(),
+                CSOSN: (res.getEmitente().getCodigoRegimeTributario() === '1') ? itens[i].getIcms().getSituacaoTributaria() : '',
+                modBC: 0,
+                pRedBC: 0,
+                vBC: itens[i].getIcms().getBaseDeCalculoDoIcms().valor,
+                pICMS: itens[i].getIcms().getAliquotaDoIcms(),
+                vICMS: itens[i].getIcms().getValorDoIcms(),
+                modBCST: '',
+                pMVAST: '',
+                pRedBCST: '',
+                vBCST: itens[i].getIcms().getBaseDeCalculoDoIcmsSt().valor,
+                pICMSST: itens[i].getIcms().getAliquotaDoIcmsSt(),
+                vICMSST: itens[i].getIcms().getValorDoIcmsSt(),
+                UFST: '',
+                pBCOp: '',
+                vBCSTRet: '',
+                vICMSSTRet: '',
+                motDesICMS: '',
+                pCredSN: '',
+                vCredICMSSN: '',
+                vBCSTDest: '',
+                vICMSSTDest: '',
+                vICMSDeson: '',
+                vICMSOp: '',
+                pDif: '',
+                vICMSDif: ''
+              }
+
+            }
+
+            console.log(res);
+            let textoini = ini.stringify(Geraini);
+            fs.writeFile("arquivoini.txt", 'NFe.CriarEnviarNFe("\n' + textoini + '\n",1)', (err) => {
+              if (err) throw err;
+              console.log("arquivo salvo com sucesso");
+
+
+
+              console.log($scope.nota);
+            })
+          })
+
+        })
+      }
+//teste
+      if (locals.venda.LCTO) {
+
+        dadosEmitente(remote.getGlobal('dados').configs.empresa, locals.venda).then(dadosNota).then(criaNf).then(itensNota).then(pagamentosNota).then(totalizadorNfe).then(function (res) {
+          $scope.nota = res;
+          $scope.$apply();
+          var Geraini = {
+            infNFe: {
+              versao: '4.0'
+            },
+            Identificacao: {
+              cNF: '',
+              natOp: res.getNaturezaDaOperacao(),
+              indPag: '',
+              mod: '55',
+              serie: res.getSerie(),
+              nNF: res.getNumero(),
+              dhEmi: res.getDataDaEmissaoFormatada(),
+              dhSaiEnt: '',
+              tpNF: res.getTipo(),
+              idDest: res.getEmitente().getEndereco().getUf() === res.getDestinatario().getEndereco().getUf() ? '1' : '2',
+              tpImp: '1', // 1=DANFE normal, Retrato; 
+              tpEmis: '1', // normal
+              finNFe: res.getCodigoFinalidade(),
+              indFinal: '1', // consumidor final
+              indPres: '1',  // presente no local
+              procEmi: '0', // 0 - emissão de NF-e com aplicativo do contribuinte; 
+              verProc: '1.0.0',
+              dhCont: '',
+              xJust: ''
+            },
+            Volume001: {
+              qVol: res.getVolumes().getQuantidade(),
+              esp: res.getVolumes().getEspecie(),
+              Marca: res.getVolumes().getMarca(),
+              nVol: res.getVolumes().getNumeracao(),
+              pesoL: res.getVolumes().getPesoLiquido(),
+              pesoB: res.getVolumes().getPesoBruto()
+            },
+            Transportador: {
+              modFrete: res.getCodigoModalidadeDoFrete(),
+              CNPJCPF: res.getTransportador().getRegistroNacional(),
+              xNome: res.getTransportador().getNome(),
+              IE: res.getTransportador().getInscricaoEstadual(),
+              xEnder: res.getTransportador().getEndereco().getLogradouro(),
+              xMun: res.getTransportador().getEndereco().getMunicipio(),
+              UF: res.getTransportador().getEndereco().getUf(),
+              vServ: '',
+              vBCRet: '',
+              pICMSRet: '',
+              vICMSRet: '',
+              CFOP: '',
+              cMunFG: '',
+              Placa: '',
+              UFPlaca: '',
+              RNTC: '',
+              vagao: '',
+              balsa: ''
+            },
+            Emitente: {
+              CNPJCPF: res.getEmitente().getRegistroNacional(),
+              xNome: res.getEmitente().getNome(),
+              xFant: res.getEmitente().getNome(),
+              IE: res.getEmitente().getInscricaoEstadual(),
+              IEST: '',
+              IM: '',
+              CNAE: '',
+              CRT: res.getEmitente().getCrt(),
+              xLgr: res.getEmitente().getEndereco().getLogradouro(),
+              nro: res.getEmitente().getEndereco().getNumero(),
+              xCpl: res.getEmitente().getEndereco().getComplemento(),
+              xBairro: res.getEmitente().getEndereco().getBairro(),
+              cMun: res.getEmitente().getEndereco().getCodMunicipio(),
+              xMun: res.getEmitente().getEndereco().getMunicipio(),
+              UF: res.getEmitente().getEndereco().getUf(),
+              CEP: res.getEmitente().getEndereco().getCep(),
+              cPais: res.getEmitente().getEndereco().getCodPais(),
+              xPais: res.getEmitente().getEndereco().getPais(),
+              Fone: res.getEmitente().getTelefone(),
+              cUF: res.getEmitente().getEndereco().getUf(),
+              cMunFG: ''
+            },
+            Destinatario: {
+              idEstrangeiro: '',
+              CNPJCPF: res.getDestinatario().getRegistroNacional(),
+              xNome: res.getDestinatario().getNome(),
+              indIEDest: '',
+              IE: res.getDestinatario().getInscricaoEstadual(),
+              ISUF: '',
+              Email: res.getDestinatario().getEmail(),
+              xLgr: res.getDestinatario().getEndereco().getLogradouro(),
+              nro: res.getDestinatario().getEndereco().getNumero(),
+              xCpl: res.getDestinatario().getEndereco().getComplemento(),
+              xBairro: res.getDestinatario().getEndereco().getBairro(),
+              cMun: res.getDestinatario().getEndereco().getCodMunicipio(),
+              xMun: res.getDestinatario().getEndereco().getMunicipio(),
+              UF: res.getDestinatario().getEndereco().getUf(),
+              CEP: res.getDestinatario().getEndereco().getCep(),
+              cPais: res.getDestinatario().getEndereco().getCodPais(),
+              xPais: res.getDestinatario().getEndereco().getPais(),
+              Fone: res.getDestinatario().getTelefone()
+            },
+            Total: {
+              vBC: '',
+              vICMS: '',
+              vICMSDeson: '',
+              vBCST: '',
+              vST: '',
+              vProd: '',
+              vFrete: res.getValorDoFrete(),
+              vSeg: res.getValorDoSeguro(),
+              vDesc: res.getDesconto(),
+              vII: '',
+              vIPI: '',
+              vPIS: '',
+              vCOFINS: '',
+              vOutro: res.getOutrasDespesas(),
+              vNF: res.getValorTotal(),
+              vTotTrib: ''
+            },
+            DadosAdicionais: {
+              infCpl: res.getInformacoesComplementares()
+              // pgtoavista +';'+ infoAdic+ '
+            },
+            // ['Duplicata' + 'xxx'] : {
+            //     nDup: '',
+            //     dVenc: '',
+            //     vDup': ''
+            //   },
+
+          }
+          var pagtos = res.getPagamento();
+          for (let i = 0; i < pagtos.length; i++) {
+            Geraini['PAG' + zeroEsq(i + 1, 3, 0)] = {
+              tpag: pagtos[i].getCodMeioDePagamento(),
+              vPag: pagtos[i].getValor(),
+              tpIntegra: pagtos[i].getCodIntegracaoDePagamento(),
+              CNPJ: pagtos[i].getCnpjDaCredenciadoraDeCartao(),
+              tBand: pagtos[i].getCodBandeiraDoCartao(),
+              cAut: pagtos[i].getAutorizacaoDeOperacao(),
+              vTroco: pagtos[i].getValorDoTroco(),
+            }
+          }
+          var itens = res.getItens();
+          for (let i = 0; i < itens.length; i++) {
+            Geraini['Produto' + zeroEsq(i + 1, 3, 0)] = {
+              cProd: itens[i].getCodigo(),
+              cEAN: '',
+              xProd: itens[i].getDescricao(),
+              NCM: itens[i].getNcmSh(),
+              CEST: '',
+              EXTIPI: '',
+              CFOP: itens[i].getIcms().getCfop(),
+              uCom: itens[i].getUnidade(),
+              qCom: itens[i].getQuantidade(),
+              vUnCom: itens[i].getValorUnitario(),
+              vProd: itens[i].getValorUnitario(),
+              cEANTrib: '',
+              uTrib: itens[i].getUnidade(),
+              qTrib: itens[i].getQuantidade(),
+              vUnTrib: itens[i].getValorUnitario(),
+              vFrete: itens[i].getValorDoFrete(),
+              vSeg: '',
+              vDesc: '',
+              vOutro: '',
+              indTot: 1,
+              xPed: '',
+              nItemPed: '',
+              nFCI: '',
+              nRECOPI: '',
+              pDevol: '',
+              vIPIDevol: '',
+              vTotTrib: '',
+              infAdProd: ''
+            }
+            Geraini['ICMS' + zeroEsq(i + 1, 3, 0)] = {
+              orig: itens[i].getIcms().getOrigem(),
+              CST: (res.getEmitente().getCodigoRegimeTributario() === '1') ? '' : itens[i].getIcms().getSituacaoTributaria(),
+              CSOSN: (res.getEmitente().getCodigoRegimeTributario() === '1') ? itens[i].getIcms().getSituacaoTributaria() : '',
+              modBC: 0,
+              pRedBC: 0,
+              vBC: itens[i].getIcms().getBaseDeCalculoDoIcms().valor,
+              pICMS: itens[i].getIcms().getAliquotaDoIcms(),
+              vICMS: itens[i].getIcms().getValorDoIcms(),
+              modBCST: '',
+              pMVAST: '',
+              pRedBCST: '',
+              vBCST: itens[i].getIcms().getBaseDeCalculoDoIcmsSt().valor,
+              pICMSST: itens[i].getIcms().getAliquotaDoIcmsSt(),
+              vICMSST: itens[i].getIcms().getValorDoIcmsSt(),
+              UFST: '',
+              pBCOp: '',
+              vBCSTRet: '',
+              vICMSSTRet: '',
+              motDesICMS: '',
+              pCredSN: '',
+              vCredICMSSN: '',
+              vBCSTDest: '',
+              vICMSSTDest: '',
+              vICMSDeson: '',
+              vICMSOp: '',
+              pDif: '',
+              vICMSDif: ''
+            }
+
+          }
+
+          console.log(res);
+          let textoini = ini.stringify(Geraini);
+          fs.writeFile("arquivoini.txt", 'NFe.CriarEnviarNFe("\n' + textoini + '\n",1)', (err) => {
+            if (err) throw err;
+            console.log("arquivo salvo com sucesso");
+
+
+
             console.log($scope.nota);
           })
         })
 
+        
       }
-
-
 
       $scope.cancel = function () {
         $mdDialog.cancel();
@@ -872,9 +1299,9 @@
         parent: angular.element(document.body),
         targetEvent: ev,
         focusOnOpen: true,
-        clickOutsideToClose: true,
+        clickOutsideToClose: false,
         multiple: true,
-        fullscreen: false, // Only for -xs, -sm breakpoints.,
+        fullscreen: true, // Only for -xs, -sm breakpoints.,
         locals: { 'venda': $scope.venda }
       })
         .then(function (response) {

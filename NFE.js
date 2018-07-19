@@ -346,7 +346,7 @@ Nota.prototype.InsereProduto = function (indice, orig, sittrib, cod, descricao, 
         console.log(vBC)
         vICMS = dinheiro(vBC * aliq / 100);
         TvICMS += vICMS;
-        CST = orig + '00';
+        CST = '00';
         pICMS = aliq;
         totais.PRODICMS += dinheiro(valor * qtd);
       }
@@ -355,7 +355,7 @@ Nota.prototype.InsereProduto = function (indice, orig, sittrib, cod, descricao, 
         TvBC += 0;
         vICMS = 0;
         TvICMS += vICMS;
-        CST = orig + '60';
+        CST = '60';
         pICMS = 0;
         totais.PRODST += dinheiro(valor * qtd);
       }

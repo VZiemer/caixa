@@ -122,7 +122,7 @@ Venda.prototype.descontoPrev = function () {
 Venda.prototype.VLDESC = function () { return new dinheiro(this.TOTAL - this.TOTALDESC) }
 Venda.prototype.PERCENTDESC = function () { return (100 - (this.TOTALDESC * 100 / this.TOTAL)).toFixed(0) }
 Venda.prototype.insereProduto = function (produto) {
-    this.PRODUTOS.push(new Produto(produto.CODIGO, produto.VALOR, produto.QTDPEDIDO, produto.QTDRESERVA, produto.UNIDADE, produto.CODPRODVENDA, produto.VALORINI, produto.PRPROMO, produto.DESCRICAO, produto.CODINTERNO, produto.SITTRIB, produto.NCM, produto.ORIG, produto.GRUPO, produto.ALIQ, produto.CEST));
+    this.PRODUTOS.push(new Produto(produto.CODIGO, produto.VALOR, produto.QTDPEDIDO, produto.QTDRESERVA, produto.UNIDADE, produto.CODPRODVENDA, produto.VALORINI, produto.PRPROMO, produto.DESCRICAO, produto.CODINTERNO, produto.SITTRIB, produto.NCM, produto.ORIG, produto.GRUPO, produto.ALIQ, produto.CEST,produto.BASECALC,produto.FRETEPROD));
     this.calculaTotal()
 }
 Venda.prototype.inserePagamento = function (pagamento) {
@@ -140,7 +140,7 @@ Venda.prototype.alteraValorProduto = function (codprodvenda, valor) {
     this.PRODUTOS[index].TOTAL = new dinheiro(valor * this.PRODUTOS[index].QTD)
     this.calculaTotal()
 }
-function Produto(codpro, valor, qtd, qtdreserva, unidade, codprodvenda, valorini, valorpromo, descricao, codinterno, sittrib, ncm, orig, grupo, aliq, cest) {
+function Produto(codpro, valor, qtd, qtdreserva, unidade, codprodvenda, valorini, valorpromo, descricao, codinterno, sittrib, ncm, orig, grupo, aliq, cest,basecalc,freteprod) {
     this.CODPRO = codpro || null
     this.CODPRODVENDA = codprodvenda || null
     this.CODINTERNO = codinterno || null
@@ -159,6 +159,9 @@ function Produto(codpro, valor, qtd, qtdreserva, unidade, codprodvenda, valorini
     this.ORIG = orig
     this.GRUPO = grupo || null
     this.ALIQ = aliq || 0
+    this.BASECALC = new dinheiro(basecalc)
+    this.FRETEPROD = new dinheiro(freteprod)
+
 }
 
 

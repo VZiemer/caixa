@@ -193,7 +193,7 @@
               let duplicata = new Duplicata();
               duplicata.comNumero(_numDuplicata)
                 .comValor(item.valor)
-                .comVencimento(_meioPagto)
+                .comVencimento(item.vencimento)
               danfe._duplicatas.push(duplicata)
             }
             else if (item.tipo === "CC") {
@@ -240,7 +240,6 @@
             danfe._pagamentos.push(pagamento)
 
           }
-          console.log(danfe._pagamentos)
           resolve(venda);
         })
       }
@@ -251,7 +250,7 @@
             var prodst = (item.SITTRIB === "060") ? true : false;
             var icms = new Icms().CalculaIcms(
               prodst,
-              danfe.getEmitente().getCrt(),
+              danfe.getEmitente().getCodigoRegimeTributario(),
               danfe.getEmitente().getEndereco().getUf(),
               danfe.getDestinatario().getEndereco().getUf(),
               1,
@@ -301,10 +300,16 @@
           impostos.comValorTotalDoIssqn(0);
           danfe.comImpostos(impostos);
           danfe.comInformacoesComplementares('');
-          danfe.comValorTotalDaNota(0);
-          danfe.comValorTotalDosProdutos(0);
+          danfe.comValorTotalDaNota(danfe.getItens().reduce(function (a, item) {
+            return a.soma(item.getValorDoFrete()).soma(item.getValorTotal());
+          }, new dinheiro(0)));
+          danfe.comValorTotalDosProdutos(danfe.getItens().reduce(function (a, item) {
+            return a.soma(item.getValorTotal());
+          }, new dinheiro(0)));
           danfe.comValorTotalDosServicos(0);
-          danfe.comValorDoFrete(0);
+          danfe.comValorDoFrete(danfe.getItens().reduce(function (a, item) {
+            return a.soma(item.getValorDoFrete());
+          }, new dinheiro(0)));
           danfe.comValorDoSeguro(0);
           danfe.comDesconto(0);
           danfe.comOutrasDespesas(0);
@@ -317,7 +322,7 @@
 
       $scope.nota = new NFe()
       $scope.carregaVenda = function (venda) {
-        console.log("aaaaa")
+        console.log("Carrega Venda")
         VendaSrvc.vendaNota(venda).then(function (response) {
           dadosEmitente(remote.getGlobal('dados').configs.empresa, response).then(dadosNota).then(criaNf).then(itensNota).then(pagamentosNota).then(totalizadorNfe).then(function (res) {
             $scope.nota = res;
@@ -383,7 +388,7 @@
                 IEST: '',
                 IM: '',
                 CNAE: '',
-                CRT: res.getEmitente().getCrt(),
+                CRT: res.getEmitente().getCodigoRegimeTributario(),
                 xLgr: res.getEmitente().getEndereco().getLogradouro(),
                 nro: res.getEmitente().getEndereco().getNumero(),
                 xCpl: res.getEmitente().getEndereco().getComplemento(),
@@ -522,16 +527,11 @@
               }
 
             }
-
             console.log(res);
             let textoini = ini.stringify(Geraini);
             fs.writeFile("arquivoini.txt", 'NFe.CriarEnviarNFe("\n' + textoini + '\n",1)', (err) => {
               if (err) throw err;
               console.log("arquivo salvo com sucesso");
-
-
-
-              console.log($scope.nota);
             })
           })
 
@@ -604,7 +604,7 @@
               IEST: '',
               IM: '',
               CNAE: '',
-              CRT: res.getEmitente().getCrt(),
+              CRT: res.getEmitente().getCodigoRegimeTributario(),
               xLgr: res.getEmitente().getEndereco().getLogradouro(),
               nro: res.getEmitente().getEndereco().getNumero(),
               xCpl: res.getEmitente().getEndereco().getComplemento(),

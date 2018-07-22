@@ -322,6 +322,11 @@ function totalizadorNfe() {
 
 
 
+
+
+
+
+
 //cadeia de execução
 // carregaVenda(1359424).then(function(response){console.log(response)})
 dadosEmitente(1, 1359424).then(carregaVenda).then(dadosNota).then(criaNf).then(itensNota).then(pagamentosNota).then(totalizadorNfe).then(function (res) {

@@ -299,7 +299,7 @@
           impostos.comBaseDeCalculoDoIssqn(0);
           impostos.comValorTotalDoIssqn(0);
           danfe.comImpostos(impostos);
-          danfe.comInformacoesComplementares('');
+          danfe.comInformacoesComplementares('Documento emitido por ME ou EPP optante pelo simples nacional.\nEstabelecimento impedido de recolher o ICMS pelo simples nacional no inciso 1 do art. 2 da LC 123/2006.\nIMPOSTO RECOLHIDO POR SUBSTITUICAO ART 313-Y DO RICMS.\nValor dos produtos Substituicao Tributaria R$' +danfe.getImpostos().getBaseDeCalculoDoIcmsSt()+ '.\nValor dos produtos Tributado pelo Simples Nacional R$'+danfe.getImpostos().getBaseDeCalculoDoIcms() );
           danfe.comValorTotalDaNota(danfe.getItens().reduce(function (a, item) {
             return a.soma(item.getValorDoFrete()).soma(item.getValorTotal());
           }, new dinheiro(0)));

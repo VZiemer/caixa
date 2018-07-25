@@ -563,7 +563,6 @@
             res.comChaveDeAcesso('52131000132781000178551000000153401000153408');
 
             //grava no banco de dados e retorna o numero
-
             let valores = [
               remote.getGlobal('dados').configs.empresa, //EMPRESA
               res.getNumero(), // NOTA
@@ -604,6 +603,28 @@
                 
                 console.log(result)
                 res.comNumero(result.NOTA)
+
+                let sql = "execute block as begin ";
+                for (let item of res.getItens()) {
+                  sql += "insert into PRODSAIDA (LCTOSAIDA,QTD,VALOR,PRODUTO,VBCICMS,PICMSST,VBCICMSST,VICMSST,FRETENOTA,PICMS,VPROD,CFOP,NCM,ORIG,CEST,SITTRIB) VALUES (";
+                  sql+= res.getNumero() + "," //LCTOSAIDA
+                  sql+= item.getQuantidade() + "," //QTD
+                  sql+= item.getValor() + "," //VALOR
+                  sql+= item.getCodigo() + "," //PRODUTO
+                  sql+= item.getIcms().getBaseDeCalculoDoIcms() + "," //VBCICMS
+                  sql+= item.getIcms().getAliquotaDoIcmsSt() + "," //PICMSST
+                  sql+= item.getIcms().getBaseDeCalculoDoIcmsSt() + "," //VBCICMSST
+                  sql+= item.getIcms().getValorDoIcmsSt() + "," //VICMSST
+                  sql+= item.getValorDoFrete() + "," //FRETENOTA
+                  sql+= item.getIcms().getAliquotaDoIcms() + "," //PICMS
+                  sql+= item.getValorUnitario() + "," //VPROD
+                  sql+= item.getIcms().getCfop() + "," //CFOP
+                  sql+= item.getNcmSh() + "," //NCM
+                  sql+= item.getIcms().getOrigem() + "," //ORIG
+                  sql+= item.getCest() + "," //CEST
+                  sql+= item.getIcms().getcodigo //SITTRIB
+                }
+
               })
             })
 
@@ -619,8 +640,8 @@
             //gera o pdf
             new Gerador(res).gerarPDF({
               ambiente: 'homologacao',
-              ajusteYDoLogotipo: -4,
-              ajusteYDaIdentificacaoDoEmitente: 4,
+              ajusteYDoLogotipo: 0,
+              ajusteYDaIdentificacaoDoEmitente: 0,
               creditos: 'Gammasoft Desenvolvimento de Software Ltda - http://opensource.gammasoft.com.br'
             }, function (err, pdf) {
               if (err) {
@@ -628,18 +649,6 @@
               }
               pdf.pipe(fs.createWriteStream(pathDoArquivoPdf));
             });
-
-
-
-
-
-
-
-
-
-
-
-
 
           }, function (motivo) { //se alguma funcção foi rejeitada (erros)
             alert = $mdDialog.alert({

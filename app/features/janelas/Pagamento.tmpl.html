@@ -13,7 +13,7 @@
         <md-button ng-if="acao=='V'" class="md-raised" ng-disabled="venda.PAGAR.valor" ng-click="concluirCupom($event)">
           CONCLUIR/CUPOM
         </md-button>
-        <md-button ng-disabled="venda.PAGAR.valor || !venda.CODCIDADE" class="md-raised" ng-click="nfFech($event,fPagto)">
+        <md-button ng-disabled="venda.PAGAR.valor || !venda.CODCIDADE" class="md-raised" ng-click="NFe($event,venda)">
           NFE
         </md-button>
         <md-button ng-if="acao=='F'" ng-disabled="venda.PAGAR.valor" class="md-raised" ng-click="concluirFech($event)">

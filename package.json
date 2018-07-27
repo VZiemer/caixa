@@ -53,6 +53,7 @@
   "dependencies": {
     "calendario": "^1.1.4",
     "electron-config": "^1.0.0",
+    "electron-pdf-window": "^1.0.12",
     "electron-updater": "^2.21.8",
     "ffi": "^2.2.0",
     "html-pdf": "^2.2.0",

@@ -5,14 +5,20 @@
 </style>
 <md-dialog class="fullscreen-dialog" aria-label="" layout='column'>
   <md-toolbar>
-    <div class="md-toolbar-tools">
-      <md-button aria-label="Go Back" ng-click="carregaVenda('1363658')">
+    <div class="md-toolbar-tools" >
+        <div layout-gt-xs="column">
+        <md-input-container class="md-block" flex-gt-xs="5">
+            <label>venda</label>
+            <input name="codcli" ng-model="carregar.pedido">
+          </md-input-container>
+        </div>
+      <md-button aria-label="carregar" ng-click="carregaVenda(carregar.pedido)">
         Carrega Venda
       </md-button>
-      <md-button aria-label="Go Back" ng-click="">
+      <md-button aria-label="gerarNF" ng-click="geraNFe(venda)">
         Gera Nota
       </md-button>
-      <md-button aria-label="Go Back" ng-click="">
+      <md-button aria-label="Go Back" ng-click="enviaNfe(nota)">
         Envia Nota
       </md-button>
       <!-- <md-button class="md-fab md-mini md-hue-3" aria-label="Favorite"> -->
@@ -24,6 +30,114 @@
     <md-dialog-content>
       <div class="md-dialog-content">
         <md-tabs md-dynamic-height md-border-bottom>
+            <md-tab label="Vendas">
+                <md-content>
+                  <div>
+                    <form name="cabecalhoForm">
+
+                      <fieldset>
+                        <legend>Destinatário</legend>
+                        <div layout-gt-xs="row">
+                          <md-input-container class="md-block" flex-gt-xs="5">
+                            <label>Código</label>
+                            <input name="codcli" ng-value="venda.CODCLI">
+                          </md-input-container>
+                          <md-input-container class="md-block" flex-gt-xs>
+                            <label>Razão Social</label>
+                            <input name="nome" ng-model="venda.RAZAO" type="text">
+                          </md-input-container>
+                        </div>
+                        <div layout-gt-xs="row">
+                          <md-input-container class="md-block" flex-gt-xs="15">
+                            <label>CNPJ / CPF</label>
+                            <input name="cgc" type="text" ng-model="venda.CGC" ui-br-cpfcnpj-mask></input>
+                          </md-input-container>
+                          <md-input-container class="md-block" flex-gt-xs="15">
+                            <label>I. E.</label>
+                            <input name="inscest" type="text" ng-model="nota.getDestinatario().getInscricaoEstadual()" ui-br-ie-mask>
+                          </md-input-container>
+                          <md-input-container class="md-block" flex-gt-xs="10">
+                            <label>Contribuinte</label>
+                            <md-select ng-model="nota.Cabecalho.INDIEDEST">
+                              <md-option value="C">Contribuinte</md-option>
+                              <md-option value="I">Isento</md-option>
+                              <md-option value="N">Não Contrib.</md-option>
+                            </md-select>
+                          </md-input-container>
+                          <md-input-container class="md-block" flex-gt-xs>
+                            <label>e-mail</label>
+                            <input name="inscest" type="email" ng-model="nota.getDestinatario().getEmail()">
+                          </md-input-container>
+                        </div>
+                        <div layout-gt-xs="row">
+                          <md-input-container class="md-block" flex-gt-xs="10">
+                            <label>CEP</label>
+                            <input md-no-asterisk name="cep" ng-model="nota.getDestinatario().getEndereco().getCep()" ui-br-cep-mask>
+                          </md-input-container>
+                          <md-input-container class="md-block" flex-gt-xs>
+                            <label>Endereço</label>
+                            <input name="endereco" ng-model="nota.getDestinatario().getEndereco().getLogradouro()">
+                          </md-input-container>
+                          <md-input-container class="md-block" flex-gt-xs="5">
+                            <label>Número</label>
+                            <input name="numero" ng-model="nota.getDestinatario().getEndereco().getNumero()">
+                          </md-input-container>
+                          <md-input-container class="md-block" flex-gt-xs="25">
+                            <label>Bairro</label>
+                            <input name="bairro" ng-model="nota.getDestinatario().getEndereco().getBairro()">
+                          </md-input-container>
+                        </div>
+                        <div layout-gt-xs="row">
+                          <md-input-container class="md-block" flex-gt-xs>
+                            <label>Complemento</label>
+                            <input name="complemento" ng-model="nota.getDestinatario().getEndereco().getComplemento()">
+                          </md-input-container>
+                          <md-input-container class="md-block" flex-gt-xs="20">
+                            <label>Cidade</label>
+                            <input name="cidade" ng-model="nota.getDestinatario().getEndereco().getMunicipio()">
+                          </md-input-container>
+                          <md-input-container class="md-block" flex-gt-xs="8">
+                            <label>Estado</label>
+                            <input name="estado" ng-model="nota.getDestinatario().getEndereco().getUf()">
+                          </md-input-container>
+                        </div>
+                      </fieldset>
+                      <md-table-container style="overflow: auto;" ng-style="{'height':'200px'}">
+                          <table md-table>
+                            <thead fix-head md-head>
+                              <tr md-row>
+                                <th md-column>
+                                  <span>Codigo</span>
+                                </th>
+                                <th md-column>
+                                  <span>Descricao</span>
+                                </th>
+                                <th md-column>
+                                  <span>Qtd</span>
+                                </th>
+                                <th md-column>
+                                  <span>V. Unit</span>
+                                </th>
+                                <th md-column>
+                                  <span>V. Unit</span>
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody md-body>
+                              <tr md-row ng-repeat="item in venda.PRODUTOS" ng-style="{'height':'23px'}">
+                                <td md-cell>{{item.CODPRO}}</td>
+                                <td md-cell>{{item.DESCRICAO}}</td>
+                                <td md-cell>{{item.QTD}} {{item.UNIDADE}}</td>
+                                <td md-cell>{{item.VALOR}}</td>
+                                <td md-cell>{{item.TOTAL}}</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </md-table-container>
+                    </form>
+                  </div>
+                </md-content>
+              </md-tab>          
           <md-tab label="Dados Gerais">
             <md-content>
               <div>
@@ -124,7 +238,7 @@
           </md-tab>
           <md-tab label="PRODUTOS">
             <md-content class="">
-              <md-table-container style="overflow: auto;" ng-style="{'height':'200px'}">
+              <md-table-container style="overflow: auto;" ng-style="{'height':'350px'}">
                 <table md-table>
                   <thead fix-head md-head>
                     <tr md-row>
@@ -184,6 +298,9 @@
                         <span>Forma Pagto</span>
                       </th>
                       <th md-column>
+                        <span>Meio Pagto</span>
+                      </th>
+                      <th md-column>
                         <span>Valor</span>
                       </th>
                     </tr>
@@ -191,6 +308,7 @@
                   <tbody md-body>
                     <tr md-row ng-repeat="item in nota._pagamentos" ng-style="{'height':'23px'}">
                       <td md-cell>{{item.getFormaDePagamento()}}</td>
+                      <td md-cell>{{item.getMeioDePagamento()}} {{item.getBandeiraDoCartao()}}</td>
                       <td md-cell>{{item.getValor()}}</td>
                     </tr>
                   </tbody>
@@ -224,7 +342,7 @@
             <div layout-gt-xs="row">
               <md-input-container md-detect-hidden="true" flex-gt-xs>
                 <label>Informações</label> 
-                <textarea rows="5" >{{nota.getInformacoesComplementares()}} </textarea>
+                <textarea ng-model="nota._informacoesComplementares" rows="5"></textarea>
                 <!-- <input name="codcli" ng-value=""> -->
               </md-input-container>
             </div>

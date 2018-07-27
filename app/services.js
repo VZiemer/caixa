@@ -15,10 +15,17 @@ const remote = require('electron').remote;
                     var token = remote.getGlobal('dados').param.token;
                     var empresa = remote.getGlobal('dados').configs.empresa;
                     var deferred = $q.defer();
-                    $http.post("http://sistema.florestalferragens.com.br/api/listavendas", { 'token': token, 'busca': status, 'empresa': empresa, 'vendaaberta': venda.LCTO })
+                    $http.post("http://sistema.florestalferragens.com.br/api/listavendas", {
+                            'token': token,
+                            'busca': status,
+                            'empresa': empresa,
+                            'vendaaberta': venda.LCTO
+                        })
                         .then(function (response) {
                             deferred.resolve(response);
-                        }, function (response) { console.log(response) });
+                        }, function (response) {
+                            console.log(response)
+                        });
                     return deferred.promise;
                 }
                 var CarregaFechamento = function (cliente) {
@@ -116,7 +123,9 @@ const remote = require('electron').remote;
                                     if (err) throw err;
                                     console.log(result)
                                     db.detach(function () {
-                                        result.forEach(function (item) { venda.insereProduto(item) });
+                                        result.forEach(function (item) {
+                                            venda.insereProduto(item)
+                                        });
                                         deferred.resolve(venda);
                                     });
                                 });
@@ -131,12 +140,17 @@ const remote = require('electron').remote;
                     var empresa = remote.getGlobal('dados').configs.empresa;
                     var deferred = $q.defer();
                     console.log(venda);
-                    $http.post("http://sistema.florestalferragens.com.br/api/puxalocal", { 'token': token, 'pedido': pedido })
+                    $http.post("http://sistema.florestalferragens.com.br/api/puxalocal", {
+                            'token': token,
+                            'pedido': pedido
+                        })
                         .then(function (response) {
                             console.log(response);
                             venda = response.data;
                             deferred.resolve(response.data);
-                        }, function (response) { console.log(response) });
+                        }, function (response) {
+                            console.log(response)
+                        });
                     return deferred.promise;
                 }
                 var atualizaProdVenda = function (prodvenda) {
@@ -163,7 +177,7 @@ const remote = require('electron').remote;
                 var descontoTotalVenda = function (lcto, descpercentual) {
                     var deferred = $q.defer();
                     let sql = ""
-                    if (lcto.length === 1) {  // desconto aplicado em venda única, antes do pagamento
+                    if (lcto.length === 1) { // desconto aplicado em venda única, antes do pagamento
                         console.log("desc fechamento")
                         sql = "select * from  desconto(?,?)";
                     }
@@ -179,7 +193,9 @@ const remote = require('electron').remote;
                             // console.log(venda)
                             db.detach(function () {
                                 venda.PRODUTOS = []
-                                result.forEach(function (item) { venda.insereProduto(item) });
+                                result.forEach(function (item) {
+                                    venda.insereProduto(item)
+                                });
                                 deferred.resolve(venda);
                             });
                         });
@@ -190,26 +206,38 @@ const remote = require('electron').remote;
                     var token = remote.getGlobal('dados').param.token;
                     var empresa = remote.getGlobal('dados').configs.empresa;
                     var deferred = $q.defer();
-                    $http.post("http://sistema.florestalferragens.com.br/api/pesquisacliente", { 'token': token, 'busca': cliente, 'empresa': empresa })
+                    $http.post("http://sistema.florestalferragens.com.br/api/pesquisacliente", {
+                            'token': token,
+                            'busca': cliente,
+                            'empresa': empresa
+                        })
                         .then(function (response) {
                             if (response) {
                                 // prodVenda = '';
                                 deferred.resolve(response);
                             }
-                        }, function (response) { console.log(response) });
+                        }, function (response) {
+                            console.log(response)
+                        });
                     return deferred.promise;
                 }
                 var formasPagamento = function (cliente) {
                     var token = remote.getGlobal('dados').param.token;
                     var empresa = remote.getGlobal('dados').configs.empresa;
                     var deferred = $q.defer();
-                    $http.post("http://sistema.florestalferragens.com.br/api/pagamentos", { 'token': token, 'busca': cliente, 'empresa': empresa })
+                    $http.post("http://sistema.florestalferragens.com.br/api/pagamentos", {
+                            'token': token,
+                            'busca': cliente,
+                            'empresa': empresa
+                        })
                         .then(function (response) {
                             if (response) {
                                 // prodVenda = '';
                                 deferred.resolve(response);
                             }
-                        }, function (response) { console.log(response) });
+                        }, function (response) {
+                            console.log(response)
+                        });
                     return deferred.promise;
                 }
                 var valeCliente = function (cliente) {
@@ -265,7 +293,9 @@ const remote = require('electron').remote;
                         sql += "values (107,current_date,current_date,'S',current_time," + venda.TOTALDESC.valueStr() + ",'',80,'VANIUS',current_date," + null + "," + venda.CODCLI + ",'NP','N',null,'','','','','Transf. para a Conta BOLETO');";
                         let numfat = 0
                         let totFaturas = venda.PAGAMENTO.reduce(function (acumulador, item) {
-                            if (item.tipo === 'BL') { return acumulador + 1 };
+                            if (item.tipo === 'BL') {
+                                return acumulador + 1
+                            };
                             return acumulador;
                         }, 0)
                         for (let item of venda.PAGAMENTO) {
@@ -338,54 +368,52 @@ const remote = require('electron').remote;
                     return deferred.promise;
                 }
                 var vendaNota = function (pedido) {
-                    var token = remote.getGlobal('dados').param.token;
-                    var empresa = remote.getGlobal('dados').configs.empresa;
-                    var deferred = $q.defer();
-                    Firebird.attach(options, function (err, db) {
-                        if (err)
-                            throw err;
-                        db.query("select v.lcto,v.codcli,v.empresa,v.total,tr.peso,tr.volumes,tr.frete,tr.outra_desp,tr.desconto,tr.total_nota,tr.tipofrete,c.cgc,c.razao,c.insc,c.endereco,c.numero,c.bairro,c.complemento,c.cidade,c.cep,c.fone,c.email,ci.codibge,c.codcidade,ci.estado,ci.cod_estado,mb.valor,  mb.vcto as vencimento,mb.codban,mb.tipopag,transp.codigo as codtransp, transp.transportador from venda v join transito tr on v.lcto = tr.documento join cliente c on c.codigo=v.codcli join cidade ci on c.codcidade = ci.cod_cidade join movban mb on mb.lctosaida = v.lcto left join transp on tr.codtransp = transp.codigo where lcto = ? order by mb.codigo", pedido, function (err, res) {
-                            venda = new Venda(res[0].LCTO, res[0].DATA, res[0].ID_TRANSITO, res[0].CGC, res[0].INSC, res[0].CODCLI, res[0].NOMECLI, res[0].CODVEND, res[0].NOMEVEND, res[0].EMAIL, res[0].FONE, res[0].RAZAO, res[0].ENDERECO, res[0].NUMERO, res[0].BAIRRO, res[0].CEP, res[0].CODIBGE, res[0].CODCIDADE, res[0].CIDADE, res[0].ESTADO, res[0].COMPLEMENTO, res[0].DESCONTO, res[0].FRETE, res[0].SEGURO, res[0].TOTAL);
-                            venda.insereTransporte(res[0].VOLUMES, res[0].PESO, res[0].TIPOFRETE, res[0].TRANSPORTADOR)
-                            res.forEach(function (item) {
-                                venda.inserePagamento({
-                                    'valor': new dinheiro(item.VALOR),
-                                    'tipo': item.TIPOPAG,
-                                    'vencimento': item.VENCIMENTO,
-                                    'pagto': '',
-                                    'codban': item.CODBAN,
-                                    'banco': null,
-                                    'agencia': '',
-                                    'conta': '',
-                                    'nrcheque': '',
-                                    'emnome': ''
-                                })
-                                console.log("inseriu item")
-                            });
-                            db.query("select * from LISTAPRODVENDAS(?)", pedido, function (err, result) {
-                                if (err) throw err;
-                                console.log(result)
-                                db.detach(function () {
-                                    result.forEach(function (item) {
-                                        if (item.QTDPEDIDO > 0 && item.CODIGO !== 20031) {
-                                            venda.insereProduto(item)
-                                            console.log("inseriu item")
-                                        }
-                                        else if (item.CODIGO === 20031) {
-                                            venda.insereFrete(item.VALOR * item.QTDPEDIDO)
-                                        }
+                    return new Promise((resolve, reject) => {
+                        var token = remote.getGlobal('dados').param.token;
+                        var empresa = remote.getGlobal('dados').configs.empresa;
+                        // var deferred = $q.defer();
+                        Firebird.attach(options, function (err, db) {
+                            if (err)
+                                reject(new Error(err)) ;
+                            db.query("select v.lcto,v.codcli,v.empresa,v.total,tr.peso,tr.volumes,tr.frete,tr.outra_desp,tr.desconto,tr.total_nota,tr.tipofrete,c.cgc,c.razao,c.insc,c.endereco,c.numero,c.bairro,c.complemento,c.cidade,c.cep,c.fone,c.email,ci.codibge,c.codcidade,ci.estado,ci.cod_estado,mb.valor,  mb.vcto as vencimento,mb.codban,mb.tipopag,transp.codigo as codtransp, transp.transportador from venda v join transito tr on v.lcto = tr.documento join cliente c on c.codigo=v.codcli join cidade ci on c.codcidade = ci.cod_cidade join movban mb on mb.lctosaida = v.lcto left join transp on tr.codtransp = transp.codigo where lcto = ? order by mb.codigo", pedido, function (err, res) {
+                                if (err) reject(new Error(err)) ;
+                                if (!res.length) reject(new Error('Venda não existe ou não está fechada')) ;
+                                venda = new Venda(res[0].LCTO, res[0].DATA, res[0].ID_TRANSITO, res[0].CGC, res[0].INSC, res[0].CODCLI, res[0].NOMECLI, res[0].CODVEND, res[0].NOMEVEND, res[0].EMAIL, res[0].FONE, res[0].RAZAO, res[0].ENDERECO, res[0].NUMERO, res[0].BAIRRO, res[0].CEP, res[0].CODIBGE, res[0].CODCIDADE, res[0].CIDADE, res[0].ESTADO, res[0].COMPLEMENTO, res[0].DESCONTO, res[0].FRETE, res[0].SEGURO, res[0].TOTAL);
+                                venda.insereTransporte(res[0].VOLUMES, res[0].PESO, res[0].TIPOFRETE, res[0].TRANSPORTADOR)
+                                res.forEach(function (item) {
+                                    venda.inserePagamento({
+                                        'valor': new dinheiro(item.VALOR),
+                                        'tipo': item.TIPOPAG,
+                                        'vencimento': item.VENCIMENTO,
+                                        'pagto': '',
+                                        'codban': item.CODBAN,
+                                        'banco': null,
+                                        'agencia': '',
+                                        'conta': '',
+                                        'nrcheque': '',
+                                        'emnome': ''
+                                    })
+                                    console.log("inseriu item")
+                                });
+                                db.query("select * from LISTAPRODVENDAS(?)", pedido, function (err, result) {
+                                    if (err) throw err;
+                                    console.log(result)
+                                    db.detach(function () {
+                                        result.forEach(function (item) {
+                                            if (item.QTDPEDIDO > 0 && item.CODIGO !== 20031) {
+                                                venda.insereProduto(item)
+                                                console.log("inseriu item")
+                                            } else if (item.CODIGO === 20031) {
+                                                venda.insereFrete(item.VALOR * item.QTDPEDIDO)
+                                            }
+                                        });
+                                        resolve(venda);
                                     });
-                                    deferred.resolve(venda);
                                 });
                             });
-                        });
+                        })
+
                     })
-
-
-
-
-
-                    return deferred.promise;
                 }
                 return {
                     listaVendas: listaVendas,
@@ -418,7 +446,10 @@ const remote = require('electron').remote;
                     $http({
                         method: 'POST',
                         url: 'http://sistema.florestalferragens.com.br/api/authenticate',
-                        data: { name: dados.usuario.toUpperCase(), password: dados.senha },
+                        data: {
+                            name: dados.usuario.toUpperCase(),
+                            password: dados.senha
+                        },
                         headers: {
                             'Content-Type': 'application/json',
                             'Authorization': dados.computador
@@ -426,8 +457,7 @@ const remote = require('electron').remote;
                     }).then(function (response) {
                         remote.getGlobal('dados').param = response.data;
                         deferred.resolve(response);
-                    }, function (response) {
-                    });
+                    }, function (response) {});
                     return deferred.promise;
                 }
                 var cadastra = function (dados) {
@@ -435,7 +465,9 @@ const remote = require('electron').remote;
                     $http({
                         method: 'POST',
                         url: 'http://sistema.florestalferragens.com.br/app/cadastracomputador',
-                        data: { busca: 'aplicativo' },
+                        data: {
+                            busca: 'aplicativo'
+                        },
                         headers: {
                             'Content-Type': 'application/json',
                             'Authorization': dados.computador

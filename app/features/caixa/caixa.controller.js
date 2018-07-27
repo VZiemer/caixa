@@ -23,12 +23,7 @@
     GravaBanco = nfe.Gravabanco,
     Pagamento = nfe.Pagamento;
 
-  //cria as variáveis necessárias
-  var emitente = new Emitente();
-  var destinatario = new Destinatario();
-  var transportador = new Transportador();
-  var volumes = new Volumes();
-  var danfe = new NFe();
+
 
   var pathDoArquivoPdf = path.join(__dirname, 'danfe.pdf');
 
@@ -44,292 +39,368 @@
   const dinheiro = require('./dinheiro');
   const venda = require('./venda');
   const nodemailer = require('nodemailer');
-
-
   const remote = require('electron').remote;
   angular.module('ventronElectron').controller('VendasCtrl', VendasCtrl);
   VendasCtrl.$inject = ['$scope', '$q', 'VendaSrvc', '$mdDialog', '$mdToast', '$location'];
 
-  function VendasCtrl($scope, $q, VendaSrvc, $mdDialog, $mdToast, $location) {
-    $scope.param = remote.getGlobal('dados').param;
+  // # gera nfe
 
-    const screenElectron = electron.screen;
-    $scope.mainScreen = screenElectron.getPrimaryDisplay().workAreaSize.height;
-    $scope.venda = new venda()
-    console.log($scope.venda)
-    $scope.alteraValor = function (ev, produto, index) {
-      console.log(produto);
-      $mdDialog.show({
-          controller: alteraValorCtrl,
-          templateUrl: './app/features/janelas/alteraValor.tmpl.html',
-          parent: angular.element(document.body),
-          targetEvent: ev,
-          focusOnOpen: true,
-          clickOutsideToClose: true,
-          multiple: true,
-          fullscreen: false, // Only for -xs, -sm breakpoints.,
-          locals: {
-            produto: produto,
-            index: index
-          }
-        })
-        .then(function (response, index) {
-          var valor = response.VALOR;
-          console.log(response)
-          console.log(valor)
-          response.VALOR = response.VALOR.valor;
-          VendaSrvc.atualizaProdVenda(response).then(function (response) {
-            console.log(response)
-            $scope.venda = response
-          });
-          console.log(valor);
-        }, function () {
-          console.log('You cancelled the dialog.');
-        });
-    };
-
-    // # gera nfe
-
-    function geraNFCtrl($scope, $mdDialog, $mdToast, locals) {
-
-      // funções de criação da nota
-      function dadosEmitente(empresa, venda) {
-        return new Promise((resolve, reject) => {
-          firebird.attach(conexao, function (err, db) {
+  function geraNFCtrl($scope, VendaSrvc, $mdDialog, $mdToast, locals) {
+    var danfe = new NFe();
+    $scope.venda = locals.venda ? locals.venda : new venda()
+    $scope.nota = new NFe();
+    //cria as variáveis necessárias
+    var emitente = new Emitente();
+    var destinatario = new Destinatario();
+    var transportador = new Transportador();
+    var volumes = new Volumes();
+    // funções de criação da nota
+    function dadosEmitente(empresa, venda) {
+      return new Promise((resolve, reject) => {
+        firebird.attach(conexao, function (err, db) {
+          if (err) throw err;
+          db.query('select p.crt,c.razao,c.cgc,c.insc,c.endereco,c.bairro,c.cep,c.fone,c.email,ci.nom_cidade as cidade,ci.codibge,ci.estado from param p  join cliente c on p.codparc = c.codigo  join cidade ci on c.codcidade = ci.cod_cidade where p.codigo=?', empresa, function (err, result) {
             if (err) throw err;
-            db.query('select p.crt,c.razao,c.cgc,c.insc,c.endereco,c.bairro,c.cep,c.fone,c.email,ci.nom_cidade as cidade,ci.codibge,ci.estado from param p  join cliente c on p.codparc = c.codigo  join cidade ci on c.codcidade = ci.cod_cidade where p.codigo=?', empresa, function (err, result) {
-              if (err) throw err;
-              db.detach(function () {
-                emitente.comNome(result[0].RAZAO)
-                  .comRegistroNacional(result[0].CGC)
-                  .comInscricaoEstadual(result[0].INSC)
-                  .comTelefone(result[0].FONE)
-                  .comEmail(result[0].EMAIL)
-                  .comCrt(result[0].CRT)
-                  .comEndereco(new Endereco()
-                    .comLogradouro(result[0].ENDERECO)
-                    .comNumero(result[0].NUMERO)
-                    .comComplemento('')
-                    .comCep(result[0].CEP)
-                    .comBairro(result[0].BAIRRO)
-                    .comMunicipio(result[0].CIDADE)
-                    .comCidade(result[0].CIDADE)
-                    .comCodMunicipio(result[0].CODIBGE)
-                    .comUf(result[0].ESTADO));
-                console.log(emitente);
-                resolve(venda, emitente);
-              })
+            db.detach(function () {
+              emitente.comNome(result[0].RAZAO)
+                .comRegistroNacional(result[0].CGC)
+                .comInscricaoEstadual(result[0].INSC)
+                .comTelefone(result[0].FONE)
+                .comEmail(result[0].EMAIL)
+                .comCrt(result[0].CRT)
+                .comEndereco(new Endereco()
+                  .comLogradouro(result[0].ENDERECO)
+                  .comNumero(result[0].NUMERO)
+                  .comComplemento('')
+                  .comCep(result[0].CEP)
+                  .comBairro(result[0].BAIRRO)
+                  .comMunicipio(result[0].CIDADE)
+                  .comCidade(result[0].CIDADE)
+                  .comCodMunicipio(result[0].CODIBGE)
+                  .comUf(result[0].ESTADO));
+              console.log(emitente);
+              resolve(venda, emitente);
             })
           })
+        })
+      });
+    }
+
+    function dadosNota(venda) {
+      return new Promise((resolve, reject) => {
+        destinatario.comNome(venda.RAZAO)
+          .comCodigo(venda.CODCLI)
+          .comRegistroNacional(venda.CGC)
+          .comInscricaoEstadual(venda.INSC)
+          .comTelefone(venda.FONE)
+          .comEmail(venda.EMAIL)
+          .comEndereco(new Endereco()
+            .comLogradouro(venda.ENDERECO)
+            .comNumero(venda.NUMERO)
+            .comComplemento(venda.COMPLEMENTO)
+            .comCep(venda.CEP)
+            .comBairro(venda.BAIRRO)
+            .comMunicipio(venda.CIDADE)
+            .comCidade(venda.CIDADE)
+            .comUf(venda.ESTADO)
+            .comCodMunicipio(venda.CODIBGE));
+        transportador.comNome(venda.TRANSPORTE.TRANSPORTADOR)
+          .comCodigo(venda.TRANSPORTE.TRANSPORTADOR)
+          .comEndereco(new Endereco());
+        volumes.comQuantidade(venda.TRANSPORTE.VOLUMES);
+        volumes.comEspecie('CX');
+        volumes.comMarca('');
+        volumes.comNumeracao('');
+        volumes.comPesoBruto(venda.TRANSPORTE.PESO);
+        console.log(destinatario);
+        resolve(venda);
+
+      })
+    }
+
+    function criaNf(venda) {
+      return new Promise((resolve, reject) => {
+        danfe = new NFe();
+        //TODO : retorno do envio inserir chave e protocolo.
+        // danfe.comChaveDeAcesso(chave);
+        // danfe.comProtocolo(protocolo);
+        danfe.comEmitente(emitente);
+        danfe.comDestinatario(destinatario);
+        danfe.comTransportador(transportador);
+        danfe.comVolumes(volumes);
+        danfe.comTipo('saida');
+        danfe.comFinalidade('normal');
+        danfe.comNaturezaDaOperacao('VENDA');
+        danfe.comSerie('001');
+        danfe.comDataDaEmissao(new Date());
+        danfe.comDataDaEntradaOuSaida(new Date());
+        danfe.comModalidadeDoFrete('semFrete');
+        // danfe.comInscricaoEstadualDoSubstitutoTributario('102959579');
+        resolve(venda);
+      })
+    }
+
+    function pagamentosNota(venda) {
+      console.log('com pagamento')
+      var _numDuplicata = 0;
+      return new Promise((resolve, reject) => {
+        for (let item of venda.PAGAMENTO) {
+          let _formaPagto = "",
+            _meioPagto = "",
+            _integracaoPagto = "",
+            _bandeiraCartao = "",
+            _valorTroco = 0;
+          if (item.tipo === "BL") {
+            _formaPagto = "Á Prazo",
+              _meioPagto = "Boleto Bancário",
+              _integracaoPagto = "Não Integrado",
+              _numDuplicata++;
+            let duplicata = new Duplicata();
+            duplicata.comNumero(zeroEsq(_numDuplicata + 1, 3, 0))
+              .comValor(item.valor.valor)
+              .comVencimento(item.vencimento)
+            danfe._duplicatas.push(duplicata)
+          } else if (item.tipo === "CC") {
+            _formaPagto = "Á Prazo",
+              _meioPagto = "Cartão de Crédito",
+              _integracaoPagto = "Não Integrado",
+              _bandeiraCartao = "Visa";
+          } else if (item.tipo === "CM") {
+            _formaPagto = "Á Prazo",
+              _meioPagto = "Cartão de Crédito",
+              _integracaoPagto = "Não Integrado",
+              _bandeiraCartao = "Mastercard";
+          } else if (item.tipo === "DA") {
+            _formaPagto = "Á Vista",
+              _meioPagto = "Cartão de Débito",
+              _integracaoPagto = "Não Integrado",
+              _bandeiraCartao = "Visa";
+          } else if (item.tipo === "DM") {
+            _formaPagto = "Á Vista",
+              _meioPagto = "Cartão de Débito",
+              _integracaoPagto = "Não Integrado",
+              _bandeiraCartao = "Mastercard";
+          } else if (item.tipo === "CH") {
+            _formaPagto = "Á Vista",
+              _meioPagto = "Cheque",
+              _integracaoPagto = "Não Integrado";
+          } else { //se nenhum atender considerar Dinheiro
+            _formaPagto = "Á Vista",
+              _meioPagto = "Dinheiro",
+              _integracaoPagto = "Não Integrado";
+          }
+          let pagamento = new Pagamento();
+          pagamento.comFormaDePagamento(_formaPagto)
+            .comValor(item.valor)
+            .comMeioDePagamento(_meioPagto)
+            .comIntegracaoDePagamento(_integracaoPagto)
+            .comBandeiraDoCartao(_bandeiraCartao ? _bandeiraCartao : '')
+            .comValorDoTroco(_valorTroco);
+          danfe._pagamentos.push(pagamento)
+
+        }
+        resolve(venda);
+      })
+    }
+
+    function itensNota(venda) {
+      return new Promise((resolve, reject) => {
+        for (let item of venda.PRODUTOS) {
+          var prodst = (item.SITTRIB === "060") ? true : false;
+          var icms = new Icms().CalculaIcms(
+            prodst,
+            danfe.getEmitente().getCodigoRegimeTributario(),
+            danfe.getEmitente().getEndereco().getUf(),
+            danfe.getDestinatario().getEndereco().getUf(),
+            danfe.getDestinatario().getIdenfificaContribuinteIcms(),
+            1,
+            item.BASECALC,
+            item.ALIQ,
+            item.ORIG
+          )
+          danfe.adicionarItem(new Item()
+            .comCodigo(item.CODPRO)
+            .comDescricao(item.DESCRICAO)
+            .comNcmSh(item.NCM)
+            .comIcms(icms)
+            // .comOCst('020')
+            // .comCfop('6101')
+            .comUnidade(item.UNIDADE)
+            .comQuantidade(item.QTD)
+            .comValorUnitario(item.VALOR)
+            .comValorDoFrete(item.FRETEPROD)
+          );
+        }
+        resolve(venda);
+      })
+    }
+
+    function totalizadorNfe() {
+      console.log('totalizador')
+      return new Promise((resolve, reject) => {
+        var impostos = new Impostos();
+        impostos.comBaseDeCalculoDoIcms(danfe.getItens().reduce(function (a, item) {
+          return a.soma(item.getIcms().getBaseDeCalculoDoIcms());
+        }, new dinheiro(0)));
+        impostos.comValorDoIcms(danfe.getItens().reduce(function (a, item) {
+          return a.soma(item.getIcms().getValorDoIcms());
+        }, new dinheiro(0)));
+        impostos.comBaseDeCalculoDoIcmsSt(danfe.getItens().reduce(function (a, item) {
+          return a.soma(item.getIcms().getBaseDeCalculoDoIcmsSt());
+        }, new dinheiro(0)));
+        impostos.comValorDoIcmsSt(danfe.getItens().reduce(function (a, item) {
+          return a.soma(item.getIcms().getValorDoIcmsSt());
+        }, new dinheiro(0)));
+        impostos.comValorDoImpostoDeImportacao(0);
+        impostos.comValorDoPis(0);
+        impostos.comValorTotalDoIpi(0);
+        impostos.comValorDaCofins(0);
+        impostos.comBaseDeCalculoDoIssqn(0);
+        impostos.comValorTotalDoIssqn(0);
+        danfe.comImpostos(impostos);
+        var infoComplementar = 'Documento emitido por ME ou EPP optante pelo simples nacional.';
+        console.log('codregime', danfe.getEmitente().getCodigoRegimeTributario())
+        if (danfe.getEmitente().getCodigoRegimeTributario() === '1') {
+          infoComplementar += '\nValor dos produtos Tributado pelo Simples Nacional R$' + danfe.getImpostos().getBaseDeCalculoDoIcmsFormatada();
+        } else if (danfe.getEmitente().getCodigoRegimeTributario() === '2') {
+          infoComplementar += '\nEstabelecimento impedido de recolher o ICMS pelo simples nacional no inciso 1 do art. 2 da LC 123/2006.'
+          infoComplementar += '\nImposto recolhido por substituição ART 313-Y DO RICMS.'
+          infoComplementar += '\nValor dos produtos Tributado pelo Simples Nacional ' + danfe.getImpostos().getBaseDeCalculoDoIcmsFormatada();
+          infoComplementar += '\nValor dos produtos Substituicao Tributaria ' + danfe.getImpostos().getBaseDeCalculoDoIcmsStFormatada();
+        }
+        danfe.comInformacoesComplementares(infoComplementar);
+
+        danfe.comValorTotalDaNota(danfe.getItens().reduce(function (a, item) {
+          return a.soma(item.getValorDoFrete()).soma(item.getValorTotal());
+        }, new dinheiro(0)));
+        danfe.comValorTotalDosProdutos(danfe.getItens().reduce(function (a, item) {
+          return a.soma(item.getValorTotal());
+        }, new dinheiro(0)));
+        danfe.comValorTotalDosServicos(0);
+        danfe.comValorDoFrete(danfe.getItens().reduce(function (a, item) {
+          return a.soma(item.getValorDoFrete());
+        }, new dinheiro(0)));
+        danfe.comValorDoSeguro(0);
+        danfe.comDesconto(0);
+        danfe.comOutrasDespesas(0);
+        resolve(danfe);
+      })
+    };
+
+    $scope.nota = new NFe()
+    $scope.carregaVenda = function (venda) {
+      VendaSrvc.vendaNota(venda).then(function (response) {
+        console.log(response)
+        $scope.venda = response;
+        $scope.$apply();
+      }, function (reject) {
+        alert = $mdDialog.alert({
+          title: "Atenção",
+          multiple: true,
+          textContent: reject,
+          ok: 'Fechar'
         });
-      }
+        $mdDialog
+          .show(alert)
+          .finally(function () {
+            alert = undefined;
+          });
+      })
+    }
+    $scope.geraNFe = function (venda) {
+      console.log("Carrega Venda")
+      dadosEmitente(remote.getGlobal('dados').configs.empresa, venda).then(dadosNota).then(criaNf).then(itensNota).then(pagamentosNota).then(totalizadorNfe).then(function (res) {
+        // depos gerar o objeto salva no scope do angular para verificação
+        $scope.nota = res;
+        $scope.$apply();
 
-      function dadosNota(venda) {
-        return new Promise((resolve, reject) => {
-          destinatario.comNome(venda.RAZAO)
-            .comCodigo(venda.CODCLI)
-            .comRegistroNacional(venda.CGC)
-            .comInscricaoEstadual(venda.INSC)
-            .comTelefone(venda.FONE)
-            .comEmail(venda.EMAIL)
-            .comEndereco(new Endereco()
-              .comLogradouro(venda.ENDERECO)
-              .comNumero(venda.NUMERO)
-              .comComplemento(venda.COMPLEMENTO)
-              .comCep(venda.CEP)
-              .comBairro(venda.BAIRRO)
-              .comMunicipio(venda.CIDADE)
-              .comCidade(venda.CIDADE)
-              .comUf(venda.ESTADO)
-              .comCodMunicipio(venda.CODIBGE));
-          transportador.comNome(venda.TRANSPORTE.TRANSPORTADOR)
-            .comCodigo(venda.TRANSPORTE.TRANSPORTADOR)
-            .comEndereco(new Endereco());
-          volumes.comQuantidade(venda.TRANSPORTE.VOLUMES);
-          volumes.comEspecie('CX');
-          volumes.comMarca('');
-          volumes.comNumeracao('');
-          volumes.comPesoBruto(venda.TRANSPORTE.PESO);
-          console.log(destinatario);
-          resolve(venda);
+      }, function (motivo) { //se alguma função foi rejeitada (erros)
+        alert = $mdDialog.alert({
+          title: 'Atenção',
+          multiple: true,
+          textContent: motivo,
+          ok: 'Fechar'
+        });
 
-        })
-      }
+        $mdDialog
+          .show(alert)
+          .finally(function () {
+            alert = undefined;
+          });
+      })
+    }
 
-      function criaNf(venda) {
-        return new Promise((resolve, reject) => {
-          //TODO : retorno do envio inserir chave e protocolo.
-          // danfe.comChaveDeAcesso(chave);
-          // danfe.comProtocolo(protocolo);
-          danfe.comEmitente(emitente);
-          danfe.comDestinatario(destinatario);
-          danfe.comTransportador(transportador);
-          danfe.comVolumes(volumes);
-          danfe.comTipo('saida');
-          danfe.comFinalidade('normal');
-          danfe.comNaturezaDaOperacao('VENDA');
-          // danfe.comNumero(3266);
-          danfe.comSerie(100);
-          danfe.comDataDaEmissao(new Date());
-          danfe.comDataDaEntradaOuSaida(new Date());
-          danfe.comModalidadeDoFrete('semFrete');
-          // danfe.comInscricaoEstadualDoSubstitutoTributario('102959579');
-          resolve(venda);
-        })
-      }
+    $scope.enviaNfe = function (res) {
+      var empresaIniciada = remote.getGlobal('dados').configs.empresa;
+      console.log(res);
 
-      function pagamentosNota(venda) {
-        console.log('com pagamento')
-        let _numDuplicata = 0;
-        return new Promise((resolve, reject) => {
-          for (let item of venda.PAGAMENTO) {
-            let _formaPagto = "",
-              _meioPagto = "",
-              _integracaoPagto = "",
-              _bandeiraCartao = "",
-              _valorTroco = 0;
-            if (item.tipo === "BL") {
-              _formaPagto = "Á Prazo",
-                _meioPagto = "Boleto Bancário",
-                _integracaoPagto = "Não Integrado",
-                _numDuplicata++;
-              let duplicata = new Duplicata();
-              duplicata.comNumero(_numDuplicata)
-                .comValor(item.valor)
-                .comVencimento(item.vencimento)
-              danfe._duplicatas.push(duplicata)
-            } else if (item.tipo === "CC") {
-              _formaPagto = "Á Prazo",
-                _meioPagto = "Cartão de Crédito",
-                _integracaoPagto = "Não Integrado",
-                _bandeiraCartao = "Visa";
-            } else if (item.tipo === "CM") {
-              _formaPagto = "Á Prazo",
-                _meioPagto = "Cartão de Crédito",
-                _integracaoPagto = "Não Integrado",
-                _bandeiraCartao = "Mastercard";
-            } else if (item.tipo === "DA") {
-              _formaPagto = "Á Vista",
-                _meioPagto = "Cartão de Débito",
-                _integracaoPagto = "Não Integrado",
-                _bandeiraCartao = "Visa";
-            } else if (item.tipo === "DM") {
-              _formaPagto = "Á Vista",
-                _meioPagto = "Cartão de Débito",
-                _integracaoPagto = "Não Integrado",
-                _bandeiraCartao = "Mastercard";
-            } else if (item.tipo === "CH") {
-              _formaPagto = "Á Vista",
-                _meioPagto = "Cheque",
-                _integracaoPagto = "Não Integrado";
-            } else { //se nenhum atender considerar Dinheiro
-              _formaPagto = "Á Vista",
-                _meioPagto = "Dinheiro",
-                _integracaoPagto = "Não Integrado";
-            }
-            let pagamento = new Pagamento();
-            pagamento.comFormaDePagamento(_formaPagto)
-              .comValor(item.valor)
-              .comMeioDePagamento(_meioPagto)
-              .comIntegracaoDePagamento(_integracaoPagto)
-              .comBandeiraDoCartao(_bandeiraCartao ? _bandeiraCartao : '')
-              .comValorDoTroco(_valorTroco);
-            danfe._pagamentos.push(pagamento)
+      //grava no banco de dados e retorna o numero
+      let valores = [
+        empresaIniciada, //EMPRESA
+        res.getNumero(), // NOTA
+        'CURRENT_DATE', //DATA
+        res.getDestinatario().getCodigo(), //CODCLI
+        'CURRENT_DATE', //DT_EMISSAO
+        'CURRENT_DATE', //DT_FISCAL
+        1, //ESPECIE
+        res.getOutrasDespesas(), //DESPACES
+        res.getDesconto(), //DESCONTO
+        "", //CODIGODEBARRAS  -  TODO
+        res.getValorDoFrete(), //FRETENOTA
+        0, // FRETEFOB
+        res.getValorTotalDosProdutos(), //VPROD
+        res.getImpostos().getBaseDeCalculoDoIcms(), //BCICMS
+        res.getImpostos().getValorDoIcms(), //VICMS
+        res.getImpostos().getValorDoIcmsSt(), //VICMSST
+        res.getImpostos().getBaseDeCalculoDoIcmsSt(), //BCICMSST
+        res.getValorTotalDaNota(), //VNF
+        res.getDestinatario().getEndereco().getUf(), //UF
+        res.getChaveDeAcesso(), //CHAVE
+        res.getCodigoModalidadeDoFrete(), //TOMADORFRETE
+        '55', //MODELO
+        res.getSerie(), //SERIE
+        res.getDestinatario().getCodigo(), //CODPARC
+        res.getProtocolo().getCodigo(), //PROTOCOLO
+        "", //PROTOCOLOCANCELA
+      ]
+      let sql = 'update or insert into SAIDA (EMPRESA,NOTA,DATA,CODCLI,DT_EMISSAO,DT_FISCAL,ESPECIE,DESPACES,DESCONTO,CODIGOBARRAS,FRETENOTA,FRETEFOB,VPROD,BCICMS,VICMS,VICMSST,BCICMSST,VNF,UF,CHAVE,TOMADORFRETE,MODELO,SERIE,CODPARC,PROTOCOLO,PROTOCOLOCANCELA) ';
+      sql += 'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ';
+      sql += 'MATCHING (EMPRESA,NOTA)';
+      sql += 'RETURNING (NOTA)'
+      console.log(sql, valores.toString())
+      firebird.attach(conexao, function (err, db) {
+        if (err) throw err;
+        db.query(sql, valores, function (err, result) {
+          if (err) throw err;
 
+          console.log(result)
+          res.comNumero(result.NOTA)
+          let sql = "execute block as begin ";
+          for (let item of res.getItens()) {
+            sql += "insert into PRODSAIDA (EMPRESA,LCTOSAIDA,QTD,VALOR,PRODUTO,VBCICMS,PICMSST,VBCICMSST,VICMSST,FRETENOTA,PICMS,VPROD,CFOP,NCM,ORIG,CEST,SITTRIB) VALUES (";
+            sql += empresaIniciada + "," //EMPRESA
+            sql += res.getNumero() + "," //LCTOSAIDA
+            sql += item.getQuantidade() + "," //QTD
+            sql += item.getValorTotal() + "," //VALOR
+            sql += item.getCodigo() + "," //PRODUTO
+            sql += (item.getIcms().getBaseDeCalculoDoIcms() || 'null') + "," //VBCICMS
+            sql += (item.getIcms().getAliquotaDoIcmsSt() || 'null') + "," //PICMSST
+            sql += (item.getIcms().getBaseDeCalculoDoIcmsSt() || 'null') + "," //VBCICMSST
+            sql += (item.getIcms().getValorDoIcmsSt() || 'null') + "," //VICMSST
+            sql += (item.getValorDoFrete() || 'null') + "," //FRETENOTA
+            sql += (item.getIcms().getAliquotaDoIcms() || 'null') + "," //PICMS
+            sql += item.getValorUnitario() + "," //VPROD
+            sql += item.getIcms().getCfop() + "," //CFOP
+            sql += item.getNcmSh() + "," //NCM
+            sql += item.getIcms().getOrigem() + "," //ORIG
+            sql += (item.getCodigoCest() || 'null') + "," //CEST
+            sql += item.getIcms().getSituacaoTributaria() //SITTRIB
+            sql += '); '
           }
-          resolve(venda);
-        })
-      }
-
-      function itensNota(venda) {
-        return new Promise((resolve, reject) => {
-          for (let item of venda.PRODUTOS) {
-            var prodst = (item.SITTRIB === "060") ? true : false;
-            var icms = new Icms().CalculaIcms(
-              prodst,
-              danfe.getEmitente().getCodigoRegimeTributario(),
-              danfe.getEmitente().getEndereco().getUf(),
-              danfe.getDestinatario().getEndereco().getUf(),
-              danfe.getDestinatario().getIdenfificaContribuinteIcms(),
-              1,
-              item.BASECALC,
-              item.ALIQ,
-              item.ORIG
-            )
-            danfe.adicionarItem(new Item()
-              .comCodigo(item.CODPRO)
-              .comDescricao(item.DESCRICAO)
-              .comNcmSh(item.NCM)
-              .comIcms(icms)
-              // .comOCst('020')
-              // .comCfop('6101')
-              .comUnidade(item.UNIDADE)
-              .comQuantidade(item.QTD)
-              .comValorUnitario(item.VALOR)
-              .comValorDoFrete(item.FRETEPROD)
-            );
-          }
-          resolve(venda);
-
-        })
-      }
-
-      function totalizadorNfe() {
-        console.log('totalizador')
-        return new Promise((resolve, reject) => {
-          var impostos = new Impostos();
-          impostos.comBaseDeCalculoDoIcms(danfe.getItens().reduce(function (a, item) {
-            return a.soma(item.getIcms().getBaseDeCalculoDoIcms());
-          }, new dinheiro(0)));
-          impostos.comValorDoIcms(danfe.getItens().reduce(function (a, item) {
-            return a.soma(item.getIcms().getValorDoIcms());
-          }, new dinheiro(0)));
-          impostos.comBaseDeCalculoDoIcmsSt(danfe.getItens().reduce(function (a, item) {
-            return a.soma(item.getIcms().getBaseDeCalculoDoIcmsSt());
-          }, new dinheiro(0)));
-          impostos.comValorDoIcmsSt(danfe.getItens().reduce(function (a, item) {
-            return a.soma(item.getIcms().getValorDoIcmsSt());
-          }, new dinheiro(0)));
-          impostos.comValorDoImpostoDeImportacao(0);
-          impostos.comValorDoPis(0);
-          impostos.comValorTotalDoIpi(0);
-          impostos.comValorDaCofins(0);
-          impostos.comBaseDeCalculoDoIssqn(0);
-          impostos.comValorTotalDoIssqn(0);
-          danfe.comImpostos(impostos);
-          if (danfe.getEmitente().getCodigoRegimeTributario() === 1) {
-            var infoComplementar = 'Documento emitido por ME ou EPP optante pelo simples nacional.';
-            infoComplementar += '\nValor dos produtos Tributado pelo Simples Nacional R$' + danfe.getImpostos().getBaseDeCalculoDoIcms();
-          } else if (danfe.getEmitente().getCodigoRegimeTributario() === 2) {
-            var infoComplementar = 'Documento emitido por ME ou EPP optante pelo simples nacional.';
-            infoComplementar += '\nValor dos produtos Tributado pelo Simples Nacional R$' + danfe.getImpostos().getBaseDeCalculoDoIcms();
-            infoComplementar += '\nEstabelecimento impedido de recolher o ICMS pelo simples nacional no inciso 1 do art. 2 da LC 123/2006.\nIMPOSTO RECOLHIDO POR SUBSTITUICAO ART 313-Y DO RICMS.\nValor dos produtos Substituicao Tributaria R$' + danfe.getImpostos().getBaseDeCalculoDoIcmsSt;
-          }
-          danfe.comInformacoesComplementares(infoComplementar);
-          danfe.comValorTotalDaNota(danfe.getItens().reduce(function (a, item) {
-            return a.soma(item.getValorDoFrete()).soma(item.getValorTotal());
-          }, new dinheiro(0)));
-          danfe.comValorTotalDosProdutos(danfe.getItens().reduce(function (a, item) {
-            return a.soma(item.getValorTotal());
-          }, new dinheiro(0)));
-          danfe.comValorTotalDosServicos(0);
-          danfe.comValorDoFrete(danfe.getItens().reduce(function (a, item) {
-            return a.soma(item.getValorDoFrete());
-          }, new dinheiro(0)));
-          danfe.comValorDoSeguro(0);
-          danfe.comDesconto(0);
-          danfe.comOutrasDespesas(0);
-          resolve(danfe);
-        })
-      };
-
-      $scope.nota = new NFe()
-      $scope.carregaVenda = function (venda) {
-        console.log("Carrega Venda")
-        VendaSrvc.vendaNota(venda).then(function (response) {
-          dadosEmitente(remote.getGlobal('dados').configs.empresa, response).then(dadosNota).then(criaNf).then(itensNota).then(pagamentosNota).then(totalizadorNfe).then(function (res) {
-            $scope.nota = res;
-            $scope.$apply();
+          sql += 'end';
+          console.log(sql)
+          db.execute(sql, function (err, result) {
+            if (err) throw err;
             var Geraini = {
               infNFe: {
                 versao: '4.0'
@@ -447,13 +518,15 @@
                 infCpl: res.getInformacoesComplementares()
                 // pgtoavista +';'+ infoAdic+ '
               },
-              // ['Duplicata' + 'xxx'] : {
-              //     nDup: '',
-              //     dVenc: '',
-              //     vDup': ''
-              //   },
-
             }
+            var duplic = res.getDuplicatas();
+            // for (let i = 0; i < duplic.length; i++) {
+            //   Geraini['Duplicata' + zeroEsq(i + 1, 3, 0)] = {
+            //     nDup: duplic[i].getNumero(),
+            //     dVenc: duplic[i].getVencimentoFormatado(),
+            //     vDup: duplic[i].getValor()
+            //   }
+            // }
             var pagtos = res.getPagamento();
             for (let i = 0; i < pagtos.length; i++) {
               Geraini['PAG' + zeroEsq(i + 1, 3, 0)] = {
@@ -552,155 +625,179 @@
                 vIPI: ''
               }
             }
-            console.log(res);
 
-            //testes
+            // grava o arquivo ini
 
-            var protocolo = new Protocolo();
-            protocolo.comCodigo('123451234512345');
-            protocolo.comData(new Date(2014, 10, 19, 13, 24, 35));
-            res.comProtocolo(protocolo);
-            res.comChaveDeAcesso('52131000132781000178551000000153401000153408');
-
-            //grava no banco de dados e retorna o numero
-            let valores = [
-              remote.getGlobal('dados').configs.empresa, //EMPRESA
-              res.getNumero(), // NOTA
-              'CURRENT_DATE', //DATA
-              res.getDestinatario().getCodigo(), //CODCLI
-              'CURRENT_DATE', //DT_EMISSAO
-              'CURRENT_DATE', //DT_FISCAL
-              1, //ESPECIE
-              res.getOutrasDespesas(), //DESPACES
-              res.getDesconto(), //DESCONTO
-              "", //CODIGODEBARRAS  -  TODO
-              res.getValorDoFrete(), //FRETENOTA
-              0, // FRETEFOB
-              res.getValorTotalDosProdutos(), //VPROD
-              res.getImpostos().getBaseDeCalculoDoIcms(), //BCICMS
-              res.getImpostos().getValorDoIcms(), //VICMS
-              res.getImpostos().getValorDoIcmsSt(), //VICMSST
-              res.getImpostos().getBaseDeCalculoDoIcmsSt(), //BCICMSST
-              res.getValorTotalDaNota(), //VNF
-              res.getDestinatario().getEndereco().getUf(), //UF
-              res.getChaveDeAcesso(), //CHAVE
-              res.getCodigoModalidadeDoFrete(), //TOMADORFRETE
-              '55', //MODELO
-              res.getSerie(), //SERIE
-              res.getDestinatario().getCodigo(), //CODPARC
-              res.getProtocolo().getCodigo(), //PROTOCOLO
-              "", //PROTOCOLOCANCELA
-            ]
-            let sql = 'update or insert into SAIDA (EMPRESA,NOTA,DATA,CODCLI,DT_EMISSAO,DT_FISCAL,ESPECIE,DESPACES,DESCONTO,CODIGOBARRAS,FRETENOTA,FRETEFOB,VPROD,BCICMS,VICMS,VICMSST,BCICMSST,VNF,UF,CHAVE,TOMADORFRETE,MODELO,SERIE,CODPARC,PROTOCOLO,PROTOCOLOCANCELA) ';
-            sql += 'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ';
-            sql += 'MATCHING (EMPRESA,NOTA)';
-            sql += 'RETURNING (NOTA)'
-            console.log(sql,valores.toString())
-            firebird.attach(conexao, function (err, db) {
+            let textoini = ini.stringify(Geraini);
+            fs.writeFile("C:\\ACBrMonitorPLUS\\monitor\\ent.tmp", 'NFe.CriarEnviarNFe("\n' + textoini + '\n",1)', (err) => {
               if (err) throw err;
-              db.query(sql, valores, function (err, result) {
+              console.log("arquivo salvo com sucesso");
+              fs.rename("C:\\ACBrMonitorPLUS\\monitor\\ent.tmp", "C:\\ACBrMonitorPLUS\\monitor\\ent.txt", (err) => {
                 if (err) throw err;
-                
-                console.log(result)
-                res.comNumero(result.NOTA)
-
-                let sql = "execute block as begin ";
-                for (let item of res.getItens()) {
-                  sql += "insert into PRODSAIDA (LCTOSAIDA,QTD,VALOR,PRODUTO,VBCICMS,PICMSST,VBCICMSST,VICMSST,FRETENOTA,PICMS,VPROD,CFOP,NCM,ORIG,CEST,SITTRIB) VALUES (";
-                  sql+= res.getNumero() + "," //LCTOSAIDA
-                  sql+= item.getQuantidade() + "," //QTD
-                  sql+= item.getValor() + "," //VALOR
-                  sql+= item.getCodigo() + "," //PRODUTO
-                  sql+= item.getIcms().getBaseDeCalculoDoIcms() + "," //VBCICMS
-                  sql+= item.getIcms().getAliquotaDoIcmsSt() + "," //PICMSST
-                  sql+= item.getIcms().getBaseDeCalculoDoIcmsSt() + "," //VBCICMSST
-                  sql+= item.getIcms().getValorDoIcmsSt() + "," //VICMSST
-                  sql+= item.getValorDoFrete() + "," //FRETENOTA
-                  sql+= item.getIcms().getAliquotaDoIcms() + "," //PICMS
-                  sql+= item.getValorUnitario() + "," //VPROD
-                  sql+= item.getIcms().getCfop() + "," //CFOP
-                  sql+= item.getNcmSh() + "," //NCM
-                  sql+= item.getIcms().getOrigem() + "," //ORIG
-                  sql+= item.getCest() + "," //CEST
-                  sql+= item.getIcms().getcodigo //SITTRIB
-                }
-
+                console.log("arquivo renomeado");
               })
             })
 
+            var watcher = fs.watch("C:\\ACBrMonitorPLUS\\monitor", {
+              persistent: true
+            }, (eventType, filename) => {
+              console.log(filename);
+              console.log(eventType);
+              if (filename == "sai.txt" && eventType == 'change') {
+                watcher.close(function () {
+                  console.log('fechado watcher')
+                })
+                fs.readFile("C:\\ACBrMonitorPLUS\\monitor\\sai.txt", 'utf-8', (error, resposta) => {
+                  if (error) {
+                    throw error
+                  }
+                  let nota = res.getNumero();
+                  var retorno = ini.parse(resposta)
+                  let mensagem = retorno.RETORNO.XMotivo;
+                  if (mensagem === "Autorizado o uso da NF-e") {
+                    let protocoloretorno = retorno['NFE' + nota].NProt;
+                    let chave = retorno['NFE' + nota].ChNFe;
+                    var protocolo = new Protocolo();
+                    protocolo.comCodigo(protocoloretorno);
+                    protocolo.comData(new Date());
+                    res.comProtocolo(protocolo);
+                    res.comChaveDeAcesso(chave);
 
-            // grava o arquivo ini
-            let textoini = ini.stringify(Geraini);
-            fs.writeFile("arquivoini.txt", 'NFe.CriarEnviarNFe("\n' + textoini + '\n",1)', (err) => {
-              if (err) throw err;
-              console.log("arquivo salvo com sucesso");
-            })
+                    //gera o pdf
+                    new Gerador(res).gerarPDF({
+                      ambiente: 'homologacao',
+                      ajusteYDoLogotipo: 0,
+                      ajusteYDaIdentificacaoDoEmitente: 0,
+                      creditos: 'Gammasoft Desenvolvimento de Software Ltda - http://opensource.gammasoft.com.br'
+                    }, function (err, pdf) {
+                      if (err) {
+                        throw err;
+                      }
+                      pdf.pipe(fs.createWriteStream(pathDoArquivoPdf));
+                      console.log('PDF gerado', pathDoArquivoPdf)
+                    });
 
+                    db.query('update SAIDA set protocolo = ?, chave = ? where empresa = ? and nota = ?', [protocoloretorno, chave, remote.getGlobal('dados').configs.empresa, nota], function (err, result) {
+                      if (err) throw err;
+                      console.log(result)
+                      db.detach(function () {
+                        alert = $mdDialog.alert({
+                          title: 'Atenção',
+                          multiple: true,
+                          textContent: mensagem,
+                          ok: 'Fechar'
+                        });
 
-            //gera o pdf
-            new Gerador(res).gerarPDF({
-              ambiente: 'homologacao',
-              ajusteYDoLogotipo: 0,
-              ajusteYDaIdentificacaoDoEmitente: 0,
-              creditos: 'Gammasoft Desenvolvimento de Software Ltda - http://opensource.gammasoft.com.br'
-            }, function (err, pdf) {
-              if (err) {
-                throw err;
-              }
-              pdf.pipe(fs.createWriteStream(pathDoArquivoPdf));
+                        $mdDialog
+                          .show(alert)
+                          .finally(function () {
+                            alert = undefined;
+                            let modal = window.open('', 'Danfe')
+                          });
+                      })
+                    })
+                  } else {
+                    db.detach(function () {
+                      alert = $mdDialog.alert({
+                        title: mensagem.split(':')[0],
+                        multiple: true,
+                        textContent: mensagem.split(':')[1],
+                        ok: 'Fechar'
+                      });
+
+                      $mdDialog
+                        .show(alert)
+                        .finally(function () {
+                          alert = undefined;
+                        });
+                    })
+                  }
+                  console.log(retorno)
+                });
+              };
             });
 
-          }, function (motivo) { //se alguma funcção foi rejeitada (erros)
-            alert = $mdDialog.alert({
-              title: 'Atenção',
-              multiple: true,
-              textContent: motivo,
-              ok: 'Fechar'
-            });
-
-            $mdDialog
-              .show(alert)
-              .finally(function () {
-                alert = undefined;
-              });
-
+            console.log('deu certo')
           })
-
         })
-      }
-      $scope.cancel = function () {
-        $mdDialog.cancel();
-      };
-      $scope.ok = function () {
-        console.log('aa')
-        $mdDialog.hide($scope.Venda);
-      };
-      // $scope.InserePgto = function (ev, pagto) {
-      //   // console.log(pagto)
-      //   $mdDialog.show({
-      //     controller: inserePgtoCtrl,
-      //     templateUrl: './app/features/janelas/inserePgto.tmpl.html',
-      //     parent: angular.element(document.body),
-      //     targetEvent: ev,
-      //     focusOnOpen: true,
-      //     clickOutsideToClose: true,
-      //     multiple: true,
-      //     fullscreen: false, // Only for -xs, -sm breakpoints.,
-      //     locals: {
-      //       venda: $scope.venda,
-      //       fpagto: pagto
-      //     }
-      //   })
-      //     .then(function (pgto) {
-      //       console.log(pgto);
-      //       Array.prototype.push.apply($scope.Faturas, Pagto.Pagamentos(pgto.VALORAPAGAR, pgto.VALORPARCELA, pgto.PARCELAS, pgto.TIPO, pgto.PERIODO, pgto.CODBAN, pagto.BANCO, pagto.AGENCIA, pagto.CONTA, pagto.NRCHEQUE, pagto.VENCTO, pagto.EMNOME));
-      //       console.log("entrou pagamento");
-      //       console.log($scope.Faturas)
-      //     }, function () {
-      //       console.log('You cancelled the dialog.');
-      //     });
-      // };
+      })
+
     }
+
+    $scope.cancel = function () {
+      $mdDialog.cancel();
+    };
+    $scope.ok = function () {
+      console.log('aa')
+      $mdDialog.hide($scope.Venda);
+    };
+    // $scope.InserePgto = function (ev, pagto) {
+    //   // console.log(pagto)
+    //   $mdDialog.show({
+    //     controller: inserePgtoCtrl,
+    //     templateUrl: './app/features/janelas/inserePgto.tmpl.html',
+    //     parent: angular.element(document.body),
+    //     targetEvent: ev,
+    //     focusOnOpen: true,
+    //     clickOutsideToClose: true,
+    //     multiple: true,
+    //     fullscreen: false, // Only for -xs, -sm breakpoints.,
+    //     locals: {
+    //       venda: $scope.venda,
+    //       fpagto: pagto
+    //     }
+    //   })
+    //     .then(function (pgto) {
+    //       console.log(pgto);
+    //       Array.prototype.push.apply($scope.Faturas, Pagto.Pagamentos(pgto.VALORAPAGAR, pgto.VALORPARCELA, pgto.PARCELAS, pgto.TIPO, pgto.PERIODO, pgto.CODBAN, pagto.BANCO, pagto.AGENCIA, pagto.CONTA, pagto.NRCHEQUE, pagto.VENCTO, pagto.EMNOME));
+    //       console.log("entrou pagamento");
+    //       console.log($scope.Faturas)
+    //     }, function () {
+    //       console.log('You cancelled the dialog.');
+    //     });
+    // };
+  }
+
+
+
+  function VendasCtrl($scope, $q, VendaSrvc, $mdDialog, $mdToast, $location) {
+    $scope.param = remote.getGlobal('dados').param;
+
+    const screenElectron = electron.screen;
+    $scope.mainScreen = screenElectron.getPrimaryDisplay().workAreaSize.height;
+    $scope.venda = new venda()
+    console.log($scope.venda)
+    $scope.alteraValor = function (ev, produto, index) {
+      console.log(produto);
+      $mdDialog.show({
+          controller: alteraValorCtrl,
+          templateUrl: './app/features/janelas/alteraValor.tmpl.html',
+          parent: angular.element(document.body),
+          targetEvent: ev,
+          focusOnOpen: true,
+          clickOutsideToClose: true,
+          multiple: true,
+          fullscreen: false, // Only for -xs, -sm breakpoints.,
+          locals: {
+            produto: produto,
+            index: index
+          }
+        })
+        .then(function (response, index) {
+          var valor = response.VALOR;
+          console.log(response)
+          console.log(valor)
+          response.VALOR = response.VALOR.valor;
+          VendaSrvc.atualizaProdVenda(response).then(function (response) {
+            console.log(response)
+            $scope.venda = response
+          });
+          console.log(valor);
+        }, function () {
+          console.log('You cancelled the dialog.');
+        });
+    };
+
 
     function alteraValorCtrl($scope, $mdDialog, $mdToast, locals) {
       $scope.produto = locals.produto;
@@ -1024,6 +1121,10 @@
     }
 
     function PagamentoCtrl($scope, $mdDialog, locals, $timeout, $mdToast) { //controla o modal que faz o pagamento       
+
+
+
+
       $scope.hoje = new Date();
       $scope.acao = locals.acao
       $scope.param = remote.getGlobal('dados').param;
@@ -1045,6 +1146,30 @@
       })
       $scope.venda = locals.dados;
       console.log($scope.venda);
+
+      $scope.NFe = function (ev, venda) {
+        $mdDialog.show({
+            controller: geraNFCtrl,
+            templateUrl: './app/features/janelas/selecionaNF.tmpl.html',
+            parent: angular.element(document.body),
+            targetEvent: ev,
+            focusOnOpen: true,
+            clickOutsideToClose: false,
+            multiple: true,
+            fullscreen: true, // Only for -xs, -sm breakpoints.,
+            locals: {
+              'venda': venda
+            }
+          })
+          .then(function (response) {
+            console.log(response)
+          }, function () {
+            console.log('You cancelled the dialog.');
+          });
+      };
+
+
+
       $scope.hide = function () {
         $mdDialog.hide();
       };
@@ -1104,23 +1229,23 @@
           $mdToast.hide();
         });
       }
-      $scope.nfFech = function () {
-        let faturas = $scope.venda.PAGAMENTO.filter(function (item, index) {
-          if (item.tipo == 'BL') {
-            return item
-          }
-        })
-        let pgtoAvista = $scope.venda.PAGAMENTO.filter(function (item, index) {
-          if (item.tipo == 'NP') {
-            return item.valor
-          }
-        })
-        VendaSrvc.NumNota().then(function (nota) {
-          $scope.venda.NFE = nota;
-          console.log($scope.venda);
-          NFe.iniciaNota($scope.venda, $scope.venda.PRODUTOS, faturas, pgtoAvista, nota)
-        })
-      }
+      // $scope.nfFech = function () {
+      //   let faturas = $scope.venda.PAGAMENTO.filter(function (item, index) {
+      //     if (item.tipo == 'BL') {
+      //       return item
+      //     }
+      //   })
+      //   let pgtoAvista = $scope.venda.PAGAMENTO.filter(function (item, index) {
+      //     if (item.tipo == 'NP') {
+      //       return item.valor
+      //     }
+      //   })
+      //   VendaSrvc.NumNota().then(function (nota) {
+      //     $scope.venda.NFE = nota;
+      //     console.log($scope.venda);
+      //     NFe.iniciaNota($scope.venda, $scope.venda.PRODUTOS, faturas, pgtoAvista, nota)
+      //   })
+      // }
       $scope.concluirFech = function () {
         console.log(venda)
         VendaSrvc.confirmaVenda($scope.venda, 'F').then(function (response) {
@@ -1293,7 +1418,7 @@
           console.log('You cancelled the dialog.');
         });
     };
-    cx.NFe = function (ev) {
+    cx.NFe = function (ev, venda) {
       $mdDialog.show({
           controller: geraNFCtrl,
           templateUrl: './app/features/janelas/selecionaNF.tmpl.html',
@@ -1304,16 +1429,11 @@
           multiple: true,
           fullscreen: true, // Only for -xs, -sm breakpoints.,
           locals: {
-            'venda': $scope.venda
+            'venda': venda
           }
         })
         .then(function (response) {
           console.log(response)
-          VendaSrvc.NumNota().then(function (nota) {
-            // $scope.venda.NFE = nota;
-            // NFe.iniciaNota(response[1], response[0], response[2],"",nota);
-            NFe.iniciaNota(response, response.PRODUTOS, response.PAGAMENTO, "", nota)
-          })
         }, function () {
           console.log('You cancelled the dialog.');
         });

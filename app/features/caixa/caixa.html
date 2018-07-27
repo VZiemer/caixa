@@ -16,6 +16,10 @@
   md-card:first-child {
     padding: 8px 8px 8px 24px;
   }
+
+ md-toolbar md-input-container .md-errors-spacer{
+  min-height: 0px !important;
+}
   .checkboxes > md-checkbox {
     margin: 0;
     padding: 16px;
@@ -65,7 +69,7 @@
             <md-icon class="material-icons" style="color: green;">forward</md-icon>
             Puxa Local
           </md-button> -->
-          <md-button class="md-accent md-raised" ng-click="cx.NFe()">
+          <md-button class="md-accent md-raised" ng-click="cx.NFe($event)">
             <md-icon class="material-icons" style="color: green;">menu</md-icon>
             NF-e
           </md-button>                                       

@@ -1,5 +1,6 @@
 const {app, BrowserWindow, ipcMain, dialog, globalShortcut} = require('electron');
 const autoUpdater = require("electron-updater").autoUpdater
+const PDFWindow = require('electron-pdf-window')
 const homedir = require('os').homedir();
 global.dados={ 
   'configs' : {
@@ -98,30 +99,15 @@ function createWindow () {
   // Open the DevTools.
   //  mainWindow.webContents.openDevTools()
   mainWindow.webContents.on('new-window', (event, url, frameName, disposition, options, additionalFeatures) => {
-    if (frameName === 'NFe') {
+    if (frameName === 'Danfe') {
       //abre a janela de impressão
       // open window as modal
       event.preventDefault()
-      event.newGuest = new BrowserWindow({ 
-        minimizable :false,
-        movable:true,
-        width: 300, 
-        height: 500,
-        fullscreen :false,
-        enableLargerThanScreen  :false,
-        skipTaskbar:false,
-        autoHideMenuBar:true,
-        defaultFontFamily : 'monospace',
-        experimentalFeatures:false,
-        webPreferences: {
-          nativeWindowOpen: true
-        }
+      event.newGuest = new PDFWindow({
+        width: 800,
+        height: 600
       })
-      event.newGuest.loadURL(`file://${__dirname}/app/features/janelas/selecionaNF.tmpl.html`)
-      event.newGuest.webContents.on('did-finish-load', () => {
-
-      })
-
+      event.newGuest.loadURL(`file://${__dirname}/danfe.pdf`)
     }
     
     

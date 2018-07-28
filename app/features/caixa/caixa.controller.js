@@ -1,7 +1,7 @@
 (function () {
   'use strict';
   const bemafi = require('./Bemafi32.js');
-  const nfe = require('nfejs'),
+  const nfe = require('node-nfe'),
     fs = require('fs'),
     path = require('path'),
     ini = require('ini'),
@@ -156,7 +156,7 @@
               _integracaoPagto = "Não Integrado",
               _numDuplicata++;
             let duplicata = new Duplicata();
-            duplicata.comNumero(zeroEsq(_numDuplicata + 1, 3, 0))
+            duplicata.comNumero(zeroEsq(_numDuplicata, 3, 0))
               .comValor(item.valor.valor)
               .comVencimento(item.vencimento)
             danfe._duplicatas.push(duplicata)
@@ -520,13 +520,14 @@
               },
             }
             var duplic = res.getDuplicatas();
-            // for (let i = 0; i < duplic.length; i++) {
-            //   Geraini['Duplicata' + zeroEsq(i + 1, 3, 0)] = {
-            //     nDup: duplic[i].getNumero(),
-            //     dVenc: duplic[i].getVencimentoFormatado(),
-            //     vDup: duplic[i].getValor()
-            //   }
-            // }
+            for (let i = 0; i < duplic.length; i++) {
+              Geraini['Duplicata' + zeroEsq(i + 1, 3, 0)] = {
+                nDup: duplic[i].getNumero(),
+                dVenc: duplic[i].getVencimentoFormatado(),
+                vDup: duplic[i].getValor()
+              }
+            }
+
             var pagtos = res.getPagamento();
             for (let i = 0; i < pagtos.length; i++) {
               Geraini['PAG' + zeroEsq(i + 1, 3, 0)] = {

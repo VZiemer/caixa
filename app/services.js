@@ -367,6 +367,31 @@ const remote = require('electron').remote;
                     });
                     return deferred.promise;
                 }
+
+
+                var enviaNFe = function (nota) {
+                    console.log(JSON.stringify(nota))
+                    return new Promise((resolve, reject) => {
+                        $http({
+                            method: 'POST',
+                            url: 'http://sistema.florestalferragens.com.br/enviaNota',
+                            data: {
+                                token: remote.getGlobal('dados').param.token,
+                                empresa: remote.getGlobal('dados').configs.empresa,
+                                nfe: nota
+                            }
+                        }).then(function (response) {
+                            console.log(response)
+                            console.log('mensagem', response[0])
+                            console.log('nfe', response[1])
+                            resolve(response[0], response[1]);
+                        }, function (response) {
+                            console.log('erros', response)
+                            reject(response[0]);
+                        });
+                    });
+                }
+
                 var vendaNota = function (pedido) {
                     return new Promise((resolve, reject) => {
                         var token = remote.getGlobal('dados').param.token;
@@ -374,10 +399,10 @@ const remote = require('electron').remote;
                         // var deferred = $q.defer();
                         Firebird.attach(options, function (err, db) {
                             if (err)
-                                reject(new Error(err)) ;
+                                reject(new Error(err));
                             db.query("select v.lcto,v.codcli,v.empresa,v.total,tr.peso,tr.volumes,tr.frete,tr.outra_desp,tr.desconto,tr.total_nota,tr.tipofrete,c.cgc,c.razao,c.insc,c.endereco,c.numero,c.bairro,c.complemento,c.cidade,c.cep,c.fone,c.email,ci.codibge,c.codcidade,ci.estado,ci.cod_estado,mb.valor,  mb.vcto as vencimento,mb.codban,mb.tipopag,transp.codigo as codtransp, transp.transportador from venda v join transito tr on v.lcto = tr.documento join cliente c on c.codigo=v.codcli join cidade ci on c.codcidade = ci.cod_cidade join movban mb on mb.lctosaida = v.lcto left join transp on tr.codtransp = transp.codigo where lcto = ? order by mb.codigo", pedido, function (err, res) {
-                                if (err) reject(new Error(err)) ;
-                                if (!res.length) reject(new Error('Venda não existe ou não está fechada')) ;
+                                if (err) reject(new Error(err));
+                                if (!res.length) reject(new Error('Venda não existe ou não está fechada'));
                                 venda = new Venda(res[0].LCTO, res[0].DATA, res[0].ID_TRANSITO, res[0].CGC, res[0].INSC, res[0].CODCLI, res[0].NOMECLI, res[0].CODVEND, res[0].NOMEVEND, res[0].EMAIL, res[0].FONE, res[0].RAZAO, res[0].ENDERECO, res[0].NUMERO, res[0].BAIRRO, res[0].CEP, res[0].CODIBGE, res[0].CODCIDADE, res[0].CIDADE, res[0].ESTADO, res[0].COMPLEMENTO, res[0].DESCONTO, res[0].FRETE, res[0].SEGURO, res[0].TOTAL);
                                 venda.insereTransporte(res[0].VOLUMES, res[0].PESO, res[0].TIPOFRETE, res[0].TRANSPORTADOR)
                                 res.forEach(function (item) {
@@ -432,7 +457,8 @@ const remote = require('electron').remote;
                     NumNota: NumNota,
                     CarregaFechamento: CarregaFechamento,
                     carregaNPcli: carregaNPcli,
-                    cancelaCupom: cancelaCupom
+                    cancelaCupom: cancelaCupom,
+                    enviaNFe: enviaNFe
                 }
             }]);
 })();
@@ -456,6 +482,7 @@ const remote = require('electron').remote;
                         }
                     }).then(function (response) {
                         remote.getGlobal('dados').param = response.data;
+                        console.log(response)
                         deferred.resolve(response);
                     }, function (response) {});
                     return deferred.promise;

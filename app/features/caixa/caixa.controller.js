@@ -18,6 +18,7 @@
     Impostos = nfe.Impostos,
     Volumes = nfe.Volumes,
     Duplicata = nfe.Duplicata,
+    Fatura = nfe.Fatura,
     Item = nfe.Item,
     Icms = nfe.Icms,
     GravaBanco = nfe.Gravabanco,
@@ -42,6 +43,12 @@
   const remote = require('electron').remote;
   angular.module('ventronElectron').controller('VendasCtrl', VendasCtrl);
   VendasCtrl.$inject = ['$scope', '$q', 'VendaSrvc', '$mdDialog', '$mdToast', '$location'];
+
+
+
+  const config = ini.parse(fs.readFileSync('config/config.ini', 'utf-8'))
+
+
 
   // # gera nfe
 
@@ -143,6 +150,7 @@
     function pagamentosNota(venda) {
       console.log('com pagamento')
       var _numDuplicata = 0;
+      var _vlFat = new dinheiro(0);
       return new Promise((resolve, reject) => {
         for (let item of venda.PAGAMENTO) {
           let _formaPagto = "",
@@ -151,6 +159,7 @@
             _bandeiraCartao = "",
             _valorTroco = 0;
           if (item.tipo === "BL") {
+            _vlFat.soma(item.valor);
             _formaPagto = "Á Prazo",
               _meioPagto = "Boleto Bancário",
               _integracaoPagto = "Não Integrado",
@@ -198,6 +207,14 @@
             .comValorDoTroco(_valorTroco);
           danfe._pagamentos.push(pagamento)
 
+        }
+        if (_vlFat.valor) {
+          var fatura = new Fatura();
+          fatura.comNumero('0001')
+            .comValorOriginal(_vlFat.valor)
+            .comValorDoDesconto('0.00')
+            .comValorLiquido(_vlFat.valor)
+          danfe.comFatura(fatura)
         }
         resolve(venda);
       })
@@ -331,6 +348,7 @@
     }
 
     $scope.enviaNfe = function (res) {
+
       var empresaIniciada = remote.getGlobal('dados').configs.empresa;
       console.log(res);
 
@@ -527,7 +545,14 @@
                 vDup: duplic[i].getValor()
               }
             }
-
+            if (res.getFatura().getValorOriginal()) {
+              Geraini.Fatura = {
+                nFat: res.getFatura().getNumero(),
+                vOrig: res.getFatura().getValorOriginal(),
+                vDesc: res.getFatura().getValorDoDesconto(),
+                vLiq: res.getFatura().getValorLiquido()
+              }
+            }
             var pagtos = res.getPagamento();
             for (let i = 0; i < pagtos.length; i++) {
               Geraini['PAG' + zeroEsq(i + 1, 3, 0)] = {
@@ -630,16 +655,25 @@
             // grava o arquivo ini
 
             let textoini = ini.stringify(Geraini);
-            fs.writeFile("C:\\ACBrMonitorPLUS\\monitor\\ent.tmp", 'NFe.CriarEnviarNFe("\n' + textoini + '\n",1)', (err) => {
+
+            if (empresaIniciada == 1) {
+              var caminhopasta = config.PASTAFLORESTAL
+              console.log(caminhopasta)
+            } else if (empresaIniciada == 2) {
+              var caminhopasta = config.PASTALOCAL
+              console.log(caminhopasta)
+            }
+
+            fs.writeFile(caminhopasta + "ent.tmp", 'NFe.CriarEnviarNFe("\n' + textoini + '\n",1)', (err) => {
               if (err) throw err;
               console.log("arquivo salvo com sucesso");
-              fs.rename("C:\\ACBrMonitorPLUS\\monitor\\ent.tmp", "C:\\ACBrMonitorPLUS\\monitor\\ent.txt", (err) => {
+              fs.rename(caminhopasta + "ent.tmp", caminhopasta + "ent.txt", (err) => {
                 if (err) throw err;
                 console.log("arquivo renomeado");
               })
             })
 
-            var watcher = fs.watch("C:\\ACBrMonitorPLUS\\monitor", {
+            var watcher = fs.watch(caminhopasta, {
               persistent: true
             }, (eventType, filename) => {
               console.log(filename);
@@ -648,7 +682,7 @@
                 watcher.close(function () {
                   console.log('fechado watcher')
                 })
-                fs.readFile("C:\\ACBrMonitorPLUS\\monitor\\sai.txt", 'utf-8', (error, resposta) => {
+                fs.readFile(caminhopasta + "sai.txt", 'utf-8', (error, resposta) => {
                   if (error) {
                     throw error
                   }

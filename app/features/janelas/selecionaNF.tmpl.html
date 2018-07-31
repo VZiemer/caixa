@@ -15,10 +15,10 @@
       <md-button aria-label="carregar" ng-click="carregaVenda(carregar.pedido)">
         Carrega Venda
       </md-button>
-      <md-button aria-label="gerarNF" ng-click="geraNFe(venda)">
+      <md-button aria-label="gerarNF" ng-click="geraNFe(venda)" ng-disabled="!venda.CODCLI">
         Gera Nota
       </md-button>
-      <md-button aria-label="Go Back" ng-click="enviaNfe(nota)">
+      <md-button aria-label="Go Back" ng-click="enviaNfe(nota)" ng-disabled="!nota.getFinalidade()">
         Envia Nota
       </md-button>
       <!-- <md-button class="md-fab md-mini md-hue-3" aria-label="Favorite"> -->
@@ -54,51 +54,13 @@
                           </md-input-container>
                           <md-input-container class="md-block" flex-gt-xs="15">
                             <label>I. E.</label>
-                            <input name="inscest" type="text" ng-model="nota.getDestinatario().getInscricaoEstadual()" ui-br-ie-mask>
+                            <input name="inscest" type="text" ng-model="venda.INSC" ui-br-ie-mask>
                           </md-input-container>
-                          <md-input-container class="md-block" flex-gt-xs="10">
-                            <label>Contribuinte</label>
-                            <md-select ng-model="nota.Cabecalho.INDIEDEST">
-                              <md-option value="C">Contribuinte</md-option>
-                              <md-option value="I">Isento</md-option>
-                              <md-option value="N">Não Contrib.</md-option>
-                            </md-select>
+
                           </md-input-container>
                           <md-input-container class="md-block" flex-gt-xs>
                             <label>e-mail</label>
-                            <input name="inscest" type="email" ng-model="nota.getDestinatario().getEmail()">
-                          </md-input-container>
-                        </div>
-                        <div layout-gt-xs="row">
-                          <md-input-container class="md-block" flex-gt-xs="10">
-                            <label>CEP</label>
-                            <input md-no-asterisk name="cep" ng-model="nota.getDestinatario().getEndereco().getCep()" ui-br-cep-mask>
-                          </md-input-container>
-                          <md-input-container class="md-block" flex-gt-xs>
-                            <label>Endereço</label>
-                            <input name="endereco" ng-model="nota.getDestinatario().getEndereco().getLogradouro()">
-                          </md-input-container>
-                          <md-input-container class="md-block" flex-gt-xs="5">
-                            <label>Número</label>
-                            <input name="numero" ng-model="nota.getDestinatario().getEndereco().getNumero()">
-                          </md-input-container>
-                          <md-input-container class="md-block" flex-gt-xs="25">
-                            <label>Bairro</label>
-                            <input name="bairro" ng-model="nota.getDestinatario().getEndereco().getBairro()">
-                          </md-input-container>
-                        </div>
-                        <div layout-gt-xs="row">
-                          <md-input-container class="md-block" flex-gt-xs>
-                            <label>Complemento</label>
-                            <input name="complemento" ng-model="nota.getDestinatario().getEndereco().getComplemento()">
-                          </md-input-container>
-                          <md-input-container class="md-block" flex-gt-xs="20">
-                            <label>Cidade</label>
-                            <input name="cidade" ng-model="nota.getDestinatario().getEndereco().getMunicipio()">
-                          </md-input-container>
-                          <md-input-container class="md-block" flex-gt-xs="8">
-                            <label>Estado</label>
-                            <input name="estado" ng-model="nota.getDestinatario().getEndereco().getUf()">
+                            <input name="inscest" type="email" ng-model="venda.EMAIL">
                           </md-input-container>
                         </div>
                       </fieldset>
@@ -323,6 +285,10 @@
           <fieldset>
             <legend>Transporte</legend>
             <div layout-gt-xs="row">
+                <md-input-container class="md-block" flex-gt-xs>
+                    <label>Tipo</label>
+                    <input disabled name="volumes" ng-model="nota.getModalidadeDoFreteFormatada()">
+                  </md-input-container>
               <md-input-container class="md-block" flex-gt-xs>
                 <label>Volumes</label>
                 <input disabled name="volumes" ng-model="nota.getVolumes().getQuantidade()">

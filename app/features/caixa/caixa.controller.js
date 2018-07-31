@@ -128,20 +128,38 @@
     function criaNf(venda) {
       return new Promise((resolve, reject) => {
         danfe = new NFe();
-        //TODO : retorno do envio inserir chave e protocolo.
-        // danfe.comChaveDeAcesso(chave);
-        // danfe.comProtocolo(protocolo);
+        var tipoFrete = '';
+        switch(venda.TRANSPORTE.TIPOFRETE) {
+          case 0:
+              tipoFrete = 'porContaDoEmitente';
+              break;
+          case 1:
+              tipoFrete = 'porContaDoDestinatarioRemetente';
+              break;
+              case 1:
+              tipoFrete = 'porContaDeTerceiros';
+              break;
+              case 2:
+              tipoFrete = 'porContaProprioRemetente';
+              break;
+              case 1:
+              tipoFrete = 'porContaProprioDestinatario';
+              break;
+          default:
+              tipoFrete = 'semFrete'
+      }
+
         danfe.comEmitente(emitente);
         danfe.comDestinatario(destinatario);
         danfe.comTransportador(transportador);
         danfe.comVolumes(volumes);
         danfe.comTipo('saida');
         danfe.comFinalidade('normal');
-        danfe.comNaturezaDaOperacao('VENDA');
+        danfe.comNaturezaDaOperacao('VENDA DE MERCADORIA NO ESTADO');
         danfe.comSerie('001');
         danfe.comDataDaEmissao(new Date());
         danfe.comDataDaEntradaOuSaida(new Date());
-        danfe.comModalidadeDoFrete('semFrete');
+        danfe.comModalidadeDoFrete(tipoFrete);
         // danfe.comInscricaoEstadualDoSubstitutoTributario('102959579');
         resolve(venda);
       })

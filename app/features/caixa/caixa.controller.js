@@ -129,25 +129,25 @@
       return new Promise((resolve, reject) => {
         danfe = new NFe();
         var tipoFrete = '';
-        switch(venda.TRANSPORTE.TIPOFRETE) {
-          case 0:
-              tipoFrete = 'porContaDoEmitente';
-              break;
-          case 1:
-              tipoFrete = 'porContaDoDestinatarioRemetente';
-              break;
-              case 1:
-              tipoFrete = 'porContaDeTerceiros';
-              break;
-              case 2:
-              tipoFrete = 'porContaProprioRemetente';
-              break;
-              case 1:
-              tipoFrete = 'porContaProprioDestinatario';
-              break;
+        switch (venda.TRANSPORTE.TIPOFRETE) {
+          case "0":
+            tipoFrete = 'porContaDoEmitente';
+            break;
+          case "1":
+            tipoFrete = 'porContaDoDestinatarioRemetente';
+            break;
+          case "2":
+            tipoFrete = 'porContaDeTerceiros';
+            break;
+          case "3":
+            tipoFrete = 'porContaProprioRemetente';
+            break;
+          case "4":
+            tipoFrete = 'porContaProprioDestinatario';
+            break;
           default:
-              tipoFrete = 'semFrete'
-      }
+            tipoFrete = 'semFrete'
+        }
 
         danfe.comEmitente(emitente);
         danfe.comDestinatario(destinatario);

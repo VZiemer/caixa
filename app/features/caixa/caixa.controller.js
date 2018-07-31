@@ -545,7 +545,7 @@
                 vDup: duplic[i].getValor()
               }
             }
-            if (res.getFatura().getValorOriginal()) {
+            if (res.getFatura()) {
               Geraini.Fatura = {
                 nFat: res.getFatura().getNumero(),
                 vOrig: res.getFatura().getValorOriginal(),

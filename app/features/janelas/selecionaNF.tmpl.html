@@ -5,13 +5,13 @@
 </style>
 <md-dialog class="fullscreen-dialog" aria-label="" layout='column'>
   <md-toolbar>
-    <div class="md-toolbar-tools" >
-        <div layout-gt-xs="column">
+    <div class="md-toolbar-tools">
+      <div layout-gt-xs="column">
         <md-input-container class="md-block" flex-gt-xs="5">
-            <label>venda</label>
-            <input name="codcli" ng-model="carregar.pedido">
-          </md-input-container>
-        </div>
+          <label>venda</label>
+          <input name="codcli" ng-model="carregar.pedido">
+        </md-input-container>
+      </div>
       <md-button aria-label="carregar" ng-click="carregaVenda(carregar.pedido)">
         Carrega Venda
       </md-button>
@@ -22,7 +22,7 @@
         Envia Nota
       </md-button>
       <!-- <md-button class="md-fab md-mini md-hue-3" aria-label="Favorite"> -->
-      <md-icon class="material-icons" style="color: white;" ng-click="cancel()">close</md-icon>
+      <md-icon class="material-icons" style="color: white;" ng-click="cancel($event)">close</md-icon>
       </md-button>
     </div>
   </md-toolbar>
@@ -30,76 +30,76 @@
     <md-dialog-content>
       <div class="md-dialog-content">
         <md-tabs md-dynamic-height md-border-bottom>
-            <md-tab label="Vendas">
-                <md-content>
-                  <div>
-                    <form name="cabecalhoForm">
+          <md-tab label="Vendas">
+            <md-content>
+              <div>
+                <form name="cabecalhoForm">
 
-                      <fieldset>
-                        <legend>Destinatário</legend>
-                        <div layout-gt-xs="row">
-                          <md-input-container class="md-block" flex-gt-xs="5">
-                            <label>Código</label>
-                            <input name="codcli" ng-value="venda.CODCLI">
-                          </md-input-container>
-                          <md-input-container class="md-block" flex-gt-xs>
-                            <label>Razão Social</label>
-                            <input name="nome" ng-model="venda.RAZAO" type="text">
-                          </md-input-container>
-                        </div>
-                        <div layout-gt-xs="row">
-                          <md-input-container class="md-block" flex-gt-xs="15">
-                            <label>CNPJ / CPF</label>
-                            <input name="cgc" type="text" ng-model="venda.CGC" ui-br-cpfcnpj-mask></input>
-                          </md-input-container>
-                          <md-input-container class="md-block" flex-gt-xs="15">
-                            <label>I. E.</label>
-                            <input name="inscest" type="text" ng-model="venda.INSC" ui-br-ie-mask>
-                          </md-input-container>
+                  <fieldset>
+                    <legend>Destinatário</legend>
+                    <div layout-gt-xs="row">
+                      <md-input-container class="md-block" flex-gt-xs="5">
+                        <label>Código</label>
+                        <input name="codcli" ng-value="venda.CODCLI">
+                      </md-input-container>
+                      <md-input-container class="md-block" flex-gt-xs>
+                        <label>Razão Social</label>
+                        <input name="nome" ng-model="venda.RAZAO" type="text">
+                      </md-input-container>
+                    </div>
+                    <div layout-gt-xs="row">
+                      <md-input-container class="md-block" flex-gt-xs="15">
+                        <label>CNPJ / CPF</label>
+                        <input name="cgc" type="text" ng-model="venda.CGC" ui-br-cpfcnpj-mask></input>
+                      </md-input-container>
+                      <md-input-container class="md-block" flex-gt-xs="15">
+                        <label>I. E.</label>
+                        <input name="inscest" type="text" ng-model="venda.INSC" ui-br-ie-mask>
+                      </md-input-container>
 
-                          </md-input-container>
-                          <md-input-container class="md-block" flex-gt-xs>
-                            <label>e-mail</label>
-                            <input name="inscest" type="email" ng-model="venda.EMAIL">
-                          </md-input-container>
-                        </div>
-                      </fieldset>
-                      <md-table-container style="overflow: auto;" ng-style="{'height':'200px'}">
-                          <table md-table>
-                            <thead fix-head md-head>
-                              <tr md-row>
-                                <th md-column>
-                                  <span>Codigo</span>
-                                </th>
-                                <th md-column>
-                                  <span>Descricao</span>
-                                </th>
-                                <th md-column>
-                                  <span>Qtd</span>
-                                </th>
-                                <th md-column>
-                                  <span>V. Unit</span>
-                                </th>
-                                <th md-column>
-                                  <span>V. Unit</span>
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody md-body>
-                              <tr md-row ng-repeat="item in venda.PRODUTOS" ng-style="{'height':'23px'}">
-                                <td md-cell>{{item.CODPRO}}</td>
-                                <td md-cell>{{item.DESCRICAO}}</td>
-                                <td md-cell>{{item.QTD}} {{item.UNIDADE}}</td>
-                                <td md-cell>{{item.VALOR}}</td>
-                                <td md-cell>{{item.TOTAL}}</td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </md-table-container>
-                    </form>
-                  </div>
-                </md-content>
-              </md-tab>          
+                      </md-input-container>
+                      <md-input-container class="md-block" flex-gt-xs>
+                        <label>e-mail</label>
+                        <input name="inscest" type="email" ng-model="venda.EMAIL">
+                      </md-input-container>
+                    </div>
+                  </fieldset>
+                  <md-table-container style="overflow: auto;" ng-style="{'height':'200px'}">
+                    <table md-table>
+                      <thead fix-head md-head>
+                        <tr md-row>
+                          <th md-column>
+                            <span>Codigo</span>
+                          </th>
+                          <th md-column>
+                            <span>Descricao</span>
+                          </th>
+                          <th md-column>
+                            <span>Qtd</span>
+                          </th>
+                          <th md-column>
+                            <span>V. Unit</span>
+                          </th>
+                          <th md-column>
+                            <span>V. Unit</span>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody md-body>
+                        <tr md-row ng-repeat="item in venda.PRODUTOS" ng-style="{'height':'23px'}">
+                          <td md-cell>{{item.CODPRO}}</td>
+                          <td md-cell>{{item.DESCRICAO}}</td>
+                          <td md-cell>{{item.QTD}} {{item.UNIDADE}}</td>
+                          <td md-cell>{{item.VALOR}}</td>
+                          <td md-cell>{{item.TOTAL}}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </md-table-container>
+                </form>
+              </div>
+            </md-content>
+          </md-tab>
           <md-tab label="Dados Gerais">
             <md-content>
               <div>
@@ -278,52 +278,54 @@
               </md-table-container>
             </md-content>
           </md-tab>
->          <md-tab label="Transporte / Outros">
-    <md-content>
-      <div>
-        <form name="cabecalhoForm">
-          <fieldset>
-            <legend>Transporte</legend>
-            <div layout-gt-xs="row">
-                <md-input-container class="md-block" flex-gt-xs>
-                    <label>Tipo</label>
-                    <input disabled name="volumes" ng-model="nota.getModalidadeDoFreteFormatada()">
-                  </md-input-container>
-                  <label>Transpostador</label>
-                  <input disabled name="volumes" ng-model="nota.getTransportador().getNome()">
-                </md-input-container>
-                  <md-input-container class="md-block" flex-gt-xs>
-                      <label>Valor</label>
-                      <input disabled name="volumes" ng-model="nota.getValorDoFrete()">
-                    </md-input-container>
-              <md-input-container class="md-block" flex-gt-xs>
-                <label>Volumes</label>
-                <input disabled name="volumes" ng-model="nota.getVolumes().getQuantidade()">
-              </md-input-container>
-              <md-input-container class="md-block" flex-gt-xs>
-                  <label>Espécie</label>
-                  <input disabled name="especie" ng-model="nota.getVolumes().getEspecie()">
-                </md-input-container>
-                <md-input-container class="md-block" flex-gt-xs>
-                    <label>Peso Bruto</label>
-                    <input disabled name="pesob" ng-model="nota.getVolumes().getPesoBruto()">
-                  </md-input-container>
-            </div>
-          </fieldset>
-          <fieldset>
-            <legend>Informações Adicionais</legend>
-            <div layout-gt-xs="row">
-              <md-input-container md-detect-hidden="true" flex-gt-xs>
-                <label>Informações</label> 
-                <textarea ng-model="nota._informacoesComplementares" rows="5"></textarea>
-                <!-- <input name="codcli" ng-value=""> -->
-              </md-input-container>
-            </div>
-          </fieldset>
-        </form>
-      </div>
-    </md-content>
-  </md-tab>          
+          >
+          <md-tab label="Transporte / Outros">
+            <md-content>
+              <div>
+                <form name="cabecalhoForm">
+                  <fieldset>
+                    <legend>Transporte</legend>
+                    <div layout-gt-xs="row">
+                      <md-input-container class="md-block" flex-gt-xs>
+                        <label>Tipo</label>
+                        <input disabled name="" ng-model="nota.getModalidadeDoFreteFormatada()">
+                      </md-input-container>
+                      <md-input-container class="md-block" flex-gt-xs>
+                        <label>Transpostador</label>
+                        <input disabled name="" ng-model="nota.getTransportador().getNome()">
+                      </md-input-container>
+                      <md-input-container class="md-block" flex-gt-xs>
+                        <label>Valor</label>
+                        <input disabled name="" ng-model="nota.getValorDoFrete()">
+                      </md-input-container>
+                      <md-input-container class="md-block" flex-gt-xs>
+                        <label>Volumes</label>
+                        <input disabled name="volumes" ng-model="nota.getVolumes().getQuantidade()">
+                      </md-input-container>
+                      <md-input-container class="md-block" flex-gt-xs>
+                        <label>Espécie</label>
+                        <input disabled name="especie" ng-model="nota.getVolumes().getEspecie()">
+                      </md-input-container>
+                      <md-input-container class="md-block" flex-gt-xs>
+                        <label>Peso Bruto</label>
+                        <input disabled name="pesob" ng-model="nota.getVolumes().getPesoBruto()">
+                      </md-input-container>
+                    </div>
+                  </fieldset>
+                  <fieldset>
+                    <legend>Informações Adicionais</legend>
+                    <div layout-gt-xs="row">
+                      <md-input-container md-detect-hidden="true" flex-gt-xs>
+                        <label>Informações</label>
+                        <textarea ng-model="nota._informacoesComplementares" rows="5"></textarea>
+                        <!-- <input name="codcli" ng-value=""> -->
+                      </md-input-container>
+                    </div>
+                  </fieldset>
+                </form>
+              </div>
+            </md-content>
+          </md-tab>
         </md-tabs>
     </md-dialog-content>
     <md-dialog-actions layout="row" layout-align="end">

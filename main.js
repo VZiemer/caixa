@@ -107,7 +107,7 @@ function createWindow () {
         width: 800,
         height: 600
       })
-      event.newGuest.loadURL(`file://${__dirname}/danfe.pdf`)
+      event.newGuest.loadURL(`file://c:/temp/danfe.pdf`)
     }
     
     

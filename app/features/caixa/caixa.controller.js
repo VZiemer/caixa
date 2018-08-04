@@ -26,7 +26,7 @@
 
 
 
-  var pathDoArquivoPdf = path.join(__dirname, 'danfe.pdf');
+  var pathDoArquivoPdf = path.join('c:/temp/', 'danfe.pdf');
 
   function zeroEsq(valor, comprimento, digito) {
     var length = comprimento - valor.toString().length + 1;
@@ -53,6 +53,15 @@
   // # gera nfe
 
   function geraNFCtrl($scope, VendaSrvc, $mdDialog, $mdToast, locals) {
+    var empresaIniciada = remote.getGlobal('dados').configs.empresa;
+
+    if (empresaIniciada == 1) {
+      var caminhopasta = config.PASTAFLORESTAL
+      console.log(caminhopasta)
+    } else if (empresaIniciada == 2) {
+      var caminhopasta = config.PASTALOCAL
+      console.log(caminhopasta)
+    }
     var danfe = new NFe();
     $scope.venda = locals.venda ? locals.venda : new venda()
     $scope.nota = new NFe();
@@ -155,7 +164,9 @@
         danfe.comVolumes(volumes);
         danfe.comTipo('saida');
         danfe.comFinalidade('normal');
-        danfe.comNaturezaDaOperacao('VENDA DE MERCADORIA NO ESTADO');
+        var naturezaOperacao = 'VENDA DE MERCADORIA NO ESTADO';
+        if (danfe.getDestinatario().getEndereco().getUf() !== danfe.getEmitente().getEndereco().getUf()) { naturezaOperacao = 'VENDA DE MERCADORIA FORA DO ESTADO' }
+        danfe.comNaturezaDaOperacao(naturezaOperacao);
         danfe.comSerie('001');
         danfe.comDataDaEmissao(new Date());
         danfe.comDataDaEntradaOuSaida(new Date());
@@ -293,15 +304,15 @@
         impostos.comBaseDeCalculoDoIssqn(0);
         impostos.comValorTotalDoIssqn(0);
         danfe.comImpostos(impostos);
-        var infoComplementar = 'Documento emitido por ME ou EPP optante pelo simples nacional.';
+        var infoComplementar = 'Documento emitido por ME ou EPP optante pelo simples nacional;';
         console.log('codregime', danfe.getEmitente().getCodigoRegimeTributario())
         if (danfe.getEmitente().getCodigoRegimeTributario() === '1') {
-          infoComplementar += '\nValor dos produtos Tributado pelo Simples Nacional R$' + danfe.getImpostos().getBaseDeCalculoDoIcmsFormatada();
+          infoComplementar += '\nValor dos produtos Tributado pelo Simples Nacional R$' + danfe.getImpostos().getBaseDeCalculoDoIcmsFormatada() + ';';
         } else if (danfe.getEmitente().getCodigoRegimeTributario() === '2') {
-          infoComplementar += '\nEstabelecimento impedido de recolher o ICMS pelo simples nacional no inciso 1 do art. 2 da LC 123/2006.'
-          infoComplementar += '\nImposto recolhido por substituição ART 313-Y DO RICMS.'
-          infoComplementar += '\nValor dos produtos Tributado pelo Simples Nacional ' + danfe.getImpostos().getBaseDeCalculoDoIcmsFormatada();
-          infoComplementar += '\nValor dos produtos Substituicao Tributaria ' + danfe.getImpostos().getBaseDeCalculoDoIcmsStFormatada();
+          infoComplementar += '\nEstabelecimento impedido de recolher o ICMS pelo simples nacional no inciso 1 do art. 2 da LC 123/2006;'
+          infoComplementar += '\nImposto recolhido por substituição ART 313-Y DO RICMS;'
+          infoComplementar += '\nValor dos produtos Tributado pelo Simples Nacional ' + danfe.getImpostos().getBaseDeCalculoDoIcmsFormatada() + ';';
+          infoComplementar += '\nValor dos produtos Substituicao Tributaria ' + danfe.getImpostos().getBaseDeCalculoDoIcmsStFormatada() + ';';
         }
         danfe.comInformacoesComplementares(infoComplementar);
 
@@ -348,6 +359,18 @@
         // depos gerar o objeto salva no scope do angular para verificação
         $scope.nota = res;
         $scope.$apply();
+        alert = $mdDialog.alert({
+          title: 'Atenção',
+          multiple: true,
+          textContent: 'Gerado com sucesso',
+          ok: 'Ok'
+        });
+
+        $mdDialog
+          .show(alert)
+          .finally(function () {
+            alert = undefined;
+          });
 
       }, function (motivo) { //se alguma função foi rejeitada (erros)
         alert = $mdDialog.alert({
@@ -367,7 +390,7 @@
 
     $scope.enviaNfe = function (res) {
 
-      var empresaIniciada = remote.getGlobal('dados').configs.empresa;
+
       console.log(res);
 
       //grava no banco de dados e retorna o numero
@@ -402,26 +425,26 @@
       let sql = 'update or insert into SAIDA (EMPRESA,NOTA,DATA,CODCLI,DT_EMISSAO,DT_FISCAL,ESPECIE,DESPACES,DESCONTO,CODIGOBARRAS,FRETENOTA,FRETEFOB,VPROD,BCICMS,VICMS,VICMSST,BCICMSST,VNF,UF,CHAVE,TOMADORFRETE,MODELO,SERIE,CODPARC,PROTOCOLO,PROTOCOLOCANCELA) ';
       sql += 'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ';
       sql += 'MATCHING (EMPRESA,NOTA)';
-      sql += 'RETURNING (NOTA)'
+      sql += 'RETURNING (NOTA,LCTO)'
       console.log(sql, valores.toString())
       firebird.attach(conexao, function (err, db) {
         if (err) throw err;
         db.query(sql, valores, function (err, result) {
           if (err) throw err;
-
           console.log(result)
           res.comNumero(result.NOTA)
           let sql = "execute block as begin ";
           for (let item of res.getItens()) {
-            sql += "insert into PRODSAIDA (EMPRESA,LCTOSAIDA,QTD,VALOR,PRODUTO,VBCICMS,PICMSST,VBCICMSST,VICMSST,FRETENOTA,PICMS,VPROD,CFOP,NCM,ORIG,CEST,SITTRIB) VALUES (";
+            sql += "insert into PRODSAIDA (EMPRESA,LCTOSAIDA,QTD,VALOR,PRODUTO,VBCICMS,PICMSST,VBCICMSST,VICMS,VICMSST,FRETENOTA,PICMS,VPROD,CFOP,NCM,ORIG,CEST,SITTRIB) VALUES (";
             sql += empresaIniciada + "," //EMPRESA
-            sql += res.getNumero() + "," //LCTOSAIDA
+            sql += result.LCTO + "," //LCTOSAIDA
             sql += item.getQuantidade() + "," //QTD
             sql += item.getValorTotal() + "," //VALOR
             sql += item.getCodigo() + "," //PRODUTO
             sql += (item.getIcms().getBaseDeCalculoDoIcms() || 'null') + "," //VBCICMS
             sql += (item.getIcms().getAliquotaDoIcmsSt() || 'null') + "," //PICMSST
             sql += (item.getIcms().getBaseDeCalculoDoIcmsSt() || 'null') + "," //VBCICMSST
+            sql += (item.getIcms().getValorDoIcms() || 'null') + "," //VICMS
             sql += (item.getIcms().getValorDoIcmsSt() || 'null') + "," //VICMSST
             sql += (item.getValorDoFrete() || 'null') + "," //FRETENOTA
             sql += (item.getIcms().getAliquotaDoIcms() || 'null') + "," //PICMS
@@ -673,15 +696,6 @@
             // grava o arquivo ini
 
             let textoini = ini.stringify(Geraini);
-
-            if (empresaIniciada == 1) {
-              var caminhopasta = config.PASTAFLORESTAL
-              console.log(caminhopasta)
-            } else if (empresaIniciada == 2) {
-              var caminhopasta = config.PASTALOCAL
-              console.log(caminhopasta)
-            }
-
             fs.writeFile(caminhopasta + "ent.tmp", 'NFe.CriarEnviarNFe("\n' + textoini + '\n",1)', (err) => {
               if (err) throw err;
               console.log("arquivo salvo com sucesso");
@@ -715,10 +729,13 @@
                     protocolo.comData(new Date());
                     res.comProtocolo(protocolo);
                     res.comChaveDeAcesso(chave);
-
+                    fs.writeFile(caminhopasta + "sai.txt", '', (err) => {
+                      if (err) throw err;
+                      console.log("arquivo limpo");
+                    })
                     //gera o pdf
                     new Gerador(res).gerarPDF({
-                      ambiente: 'homologacao',
+                      ambiente: 'producao',
                       ajusteYDoLogotipo: 0,
                       ajusteYDaIdentificacaoDoEmitente: 0,
                       creditos: 'Gammasoft Desenvolvimento de Software Ltda - http://opensource.gammasoft.com.br'
@@ -734,6 +751,7 @@
                       if (err) throw err;
                       console.log(result)
                       db.detach(function () {
+
                         alert = $mdDialog.alert({
                           title: 'Atenção',
                           multiple: true,
@@ -745,7 +763,30 @@
                           .show(alert)
                           .finally(function () {
                             alert = undefined;
-                            let modal = window.open('', 'Danfe')
+                            var confirm = $mdDialog.prompt()
+                              .title('Deseja enviar por e-mail?')
+                              .textContent('digite o e-mail ou deixa em branco para usar o e-mail da nota')
+                              .placeholder('e-mail')
+                              .ariaLabel('e-mail')
+                              .initialValue('')
+                              .required(false)
+                              .multiple(true)
+                              .ok('Enviar')
+                              .cancel('Não');
+
+                            $mdDialog.show(confirm).then(function (email) {
+                              $scope.enviarPorEmail(email);
+                              $scope.venda = new venda();
+                              $scope.nota = new NFe();
+                              $scope.carregar = {};
+                              let modal = window.open('', 'Danfe')
+                            }, function () {
+                              $scope.venda = new venda();
+                              $scope.nota = new NFe();
+                              $scope.carregar = {};
+                              let modal = window.open('', 'Danfe')
+                            });
+
                           });
                       })
                     })
@@ -769,7 +810,6 @@
                 });
               };
             });
-
             console.log('deu certo')
           })
         })
@@ -777,8 +817,155 @@
 
     }
 
-    $scope.cancel = function () {
-      $mdDialog.cancel();
+    $scope.enviarPorEmail = function (email) {
+      if (!email) {
+        email = $scope.nota.getDestinatario().getEmail();
+      }
+
+      fs.writeFile(caminhopasta + "ent.tmp", 'NFe.EnviarEmail(' + email + ',' + $scope.nota.getChaveDeAcesso() + '-nfe.xml,1)', (err) => {
+        if (err) throw err;
+        console.log("arquivo salvo com sucesso");
+        fs.rename(caminhopasta + "ent.tmp", caminhopasta + "ent.txt", (err) => {
+          if (err) throw err;
+          console.log("arquivo renomeado");
+        })
+      })
+
+      var watcher = fs.watch(caminhopasta, {
+        persistent: true
+      }, (eventType, filename) => {
+        console.log(filename);
+        console.log(eventType);
+        if (filename == "sai.txt" && eventType == 'change') {
+          watcher.close(function () {
+            console.log('fechado watcher')
+          })
+          fs.readFile(caminhopasta + "sai.txt", 'utf-8', (error, resposta) => {
+            if (error) {
+              throw error
+            }
+            fs.writeFile(caminhopasta + "sai.txt", '', (err) => {
+              if (err) throw err;
+              console.log("arquivo limpo");
+            })
+            let mensagem = resposta;
+            alert = $mdDialog.alert({
+              title: 'OK',
+              multiple: true,
+              textContent: mensagem.split(":")[1],
+              ok: 'Fechar'
+            });
+
+            $mdDialog
+              .show(alert)
+              .finally(function () {
+                alert = undefined;
+              });
+
+
+          });
+        };
+      });
+
+
+    }
+
+    $scope.inutilizaNumero = function (nota) {
+      fs.writeFile(caminhopasta + "ent.tmp", 'NFe.InutilizarNFe(' + nota.getEmitente().getRegistroNacional() + ',numeração não utilizada devido a problemas técnicos,2018,55,1,' + nota.getNumero() + ',' + nota.getNumero() + ',1)', (err) => {
+        if (err) throw err;
+        console.log("arquivo salvo com sucesso");
+        fs.rename(caminhopasta + "ent.tmp", caminhopasta + "ent.txt", (err) => {
+          if (err) throw err;
+          console.log("arquivo renomeado");
+        })
+      })
+
+      var watcher = fs.watch(caminhopasta, {
+        persistent: true
+      }, (eventType, filename) => {
+        console.log(filename);
+        console.log(eventType);
+        if (filename == "sai.txt" && eventType == 'change') {
+          watcher.close(function () {
+            console.log('fechado watcher')
+          })
+          fs.readFile(caminhopasta + "sai.txt", 'utf-8', (error, resposta) => {
+            if (error) {
+              throw error
+            }
+            fs.writeFile(caminhopasta + "sai.txt", '', (err) => {
+              if (err) throw err;
+              console.log("arquivo limpo");
+            })
+            let nnf = nota.getNumero();
+            var retorno = ini.parse(resposta)
+            let mensagem = retorno.INUTILIZACAO.XMotivo;
+            if (mensagem === "Inutilização de número homologado") {
+              let protocoloretorno = retorno.INUTILIZACAO.NProt;
+              db.query('update SAIDA set protocoloinutiliza = ?  where empresa = ? and nota = ?', [protocoloretorno, remote.getGlobal('dados').configs.empresa, nnf], function (err, result) {
+                if (err) throw err;
+                console.log(result)
+                db.detach(function () {
+                  $scope.carregar.pedido = '';
+                  $scope.venda = new venda();
+                  $scope.nota = new NFe();
+                  alert = $mdDialog.alert({
+                    title: 'Atenção',
+                    multiple: true,
+                    textContent: mensagem,
+                    ok: 'Fechar'
+                  });
+
+                  $mdDialog
+                    .show(alert)
+                    .finally(function () {
+                      alert = undefined;
+                      let modal = window.open('', 'Danfe')
+                    });
+                })
+              })
+            } else {
+              db.detach(function () {
+                alert = $mdDialog.alert({
+                  title: mensagem.split(':')[0],
+                  multiple: true,
+                  textContent: mensagem.split(':')[1],
+                  ok: 'Fechar'
+                });
+
+                $mdDialog
+                  .show(alert)
+                  .finally(function () {
+                    alert = undefined;
+                  });
+              })
+            }
+            console.log(retorno)
+          });
+        };
+      });
+
+
+    }
+
+
+    $scope.cancel = function (ev) {
+      var confirm = $mdDialog.confirm(ev)
+        .title('Tem certeza que deseja cancelar?')
+        .textContent('isso inutilizará a nota fiscal atual')
+        .targetEvent(ev)
+        .multiple(true)
+        .ok('Confirmar cancelamento')
+        .cancel('Voltar');
+
+      $mdDialog.show(confirm).then(function () {
+        if ($scope.nota.getNumero())
+          $scope.inutilizaNumero($scope.nota)
+        $mdDialog.cancel()
+      }, function () {
+
+      });
+
     };
     $scope.ok = function () {
       console.log('aa')
@@ -844,6 +1031,7 @@
           VendaSrvc.atualizaProdVenda(response).then(function (response) {
             console.log(response)
             $scope.venda = response
+            $scope.nota = new NFe();
           });
           console.log(valor);
         }, function () {
@@ -938,7 +1126,7 @@
           console.log(venda.descontoPrev())
           console.log(venda)
           var html = "<html><head><style>@media print{@page {size:A4}}page {background: white;display: block;margin: 0 auto; margin-bottom: 0.5cm;}page[size='A4'] { width: 21cm; height: 29.7cm; }table,td,tr,span{font-size:11pt;font-family:Arial;}table{width: 100%;}td {min-width:4mm;}hr{border-top:1pt dashed #000;} </style></head><body>"
-          html += "<h2>FLORESTAL</h2><span>Relatório de Movimento de Contas</span></br><span>Período 01/05/2018 a 31/05/2018</span><hr><span>Cliente: " + venda.CODCLI + "  -  " + venda.RAZAO + "</span><hr>"
+          html += "<h2>FLORESTAL</h2><span>Relatório de Movimento de Contas</span></br><span>Período 01/07/2018 a 31/07/2018</span><hr><span>Cliente: " + venda.CODCLI + "  -  " + venda.RAZAO + "</span><hr>"
           html += "<table><thead>"
           html += "<tr><td>Documento</td><td>Data</td><td>Vencimento</td><td>Valor Entrada</td><td>Valor Saida</td><td></td></tr>"
           html += "</thead><tbody>"
@@ -952,7 +1140,7 @@
           }
           html += "</tbody><tfoot><tr><td colspan='6'><hr></td></tr>"
           html += "<tr><td>TOTAIS</td><td colspan='2'><td>" + venda.TOTALDESC.soma(venda.DESCONTOITEM).valor + "</td><td>" + saida.valor + "</td><th>= " + venda.TOTALDESC.subtrai(saida).toString() + "</th></tr>"
-          html += "<tr><td colspan='5'>Desconto para pagamento até 15/06/2018</td><th>= " + venda.descontoPrev().soma(venda.DESCONTOITEM.desconto(4)).subtrai(saida).toString() + "</th></tr>"
+          html += "<tr><td colspan='5'>Desconto para pagamento até 15/08/2018</td><th>= " + venda.descontoPrev().soma(venda.DESCONTOITEM.desconto(4)).subtrai(saida).toString() + "</th></tr>"
           html += "</tfoot></table></body></html>"
           var pdf = require('html-pdf');
 

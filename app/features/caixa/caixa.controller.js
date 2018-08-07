@@ -165,7 +165,9 @@
         danfe.comTipo('saida');
         danfe.comFinalidade('normal');
         var naturezaOperacao = 'VENDA DE MERCADORIA NO ESTADO';
-        if (danfe.getDestinatario().getEndereco().getUf() !== danfe.getEmitente().getEndereco().getUf()) { naturezaOperacao = 'VENDA DE MERCADORIA FORA DO ESTADO' }
+        if (danfe.getDestinatario().getEndereco().getUf() !== danfe.getEmitente().getEndereco().getUf()) {
+          naturezaOperacao = 'VENDA DE MERCADORIA FORA DO ESTADO'
+        }
         danfe.comNaturezaDaOperacao(naturezaOperacao);
         danfe.comSerie('001');
         danfe.comDataDaEmissao(new Date());
@@ -307,12 +309,12 @@
         var infoComplementar = 'Documento emitido por ME ou EPP optante pelo simples nacional;';
         console.log('codregime', danfe.getEmitente().getCodigoRegimeTributario())
         if (danfe.getEmitente().getCodigoRegimeTributario() === '1') {
-          infoComplementar += '\nValor dos produtos Tributado pelo Simples Nacional R$' + danfe.getImpostos().getBaseDeCalculoDoIcmsFormatada() + ';';
+          infoComplementar += 'Valor dos produtos Tributado pelo Simples Nacional R$' + danfe.getImpostos().getBaseDeCalculoDoIcmsFormatada() + ';';
         } else if (danfe.getEmitente().getCodigoRegimeTributario() === '2') {
-          infoComplementar += '\nEstabelecimento impedido de recolher o ICMS pelo simples nacional no inciso 1 do art. 2 da LC 123/2006;'
-          infoComplementar += '\nImposto recolhido por substituição ART 313-Y DO RICMS;'
-          infoComplementar += '\nValor dos produtos Tributado pelo Simples Nacional ' + danfe.getImpostos().getBaseDeCalculoDoIcmsFormatada() + ';';
-          infoComplementar += '\nValor dos produtos Substituicao Tributaria ' + danfe.getImpostos().getBaseDeCalculoDoIcmsStFormatada() + ';';
+          infoComplementar += 'Estabelecimento impedido de recolher o ICMS pelo simples nacional no inciso 1 do art. 2 da LC 123/2006;'
+          infoComplementar += 'Imposto recolhido por substituição ART 313-Y DO RICMS;'
+          infoComplementar += 'Valor dos produtos Tributado pelo Simples Nacional ' + danfe.getImpostos().getBaseDeCalculoDoIcmsFormatada() + ';';
+          infoComplementar += 'Valor dos produtos Substituicao Tributaria ' + danfe.getImpostos().getBaseDeCalculoDoIcmsStFormatada() + ';';
         }
         danfe.comInformacoesComplementares(infoComplementar);
 
@@ -389,18 +391,15 @@
     }
 
     $scope.enviaNfe = function (res) {
-
-
       console.log(res);
-
       //grava no banco de dados e retorna o numero
       let valores = [
         empresaIniciada, //EMPRESA
         res.getNumero(), // NOTA
-        'CURRENT_DATE', //DATA
+        res.getDataDaEmissao().dataFirebird(), //DATA
         res.getDestinatario().getCodigo(), //CODCLI
-        'CURRENT_DATE', //DT_EMISSAO
-        'CURRENT_DATE', //DT_FISCAL
+        res.getDataDaEmissao().dataFirebird(), //DT_EMISSAO
+        res.getDataDaEmissao().dataFirebird(), //DT_FISCAL
         1, //ESPECIE
         res.getOutrasDespesas(), //DESPACES
         res.getDesconto(), //DESCONTO
@@ -424,8 +423,8 @@
       ]
       let sql = 'update or insert into SAIDA (EMPRESA,NOTA,DATA,CODCLI,DT_EMISSAO,DT_FISCAL,ESPECIE,DESPACES,DESCONTO,CODIGOBARRAS,FRETENOTA,FRETEFOB,VPROD,BCICMS,VICMS,VICMSST,BCICMSST,VNF,UF,CHAVE,TOMADORFRETE,MODELO,SERIE,CODPARC,PROTOCOLO,PROTOCOLOCANCELA) ';
       sql += 'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ';
-      sql += 'MATCHING (EMPRESA,NOTA)';
-      sql += 'RETURNING (NOTA,LCTO)'
+      sql += 'MATCHING (EMPRESA,NOTA) ';
+      sql += 'RETURNING NOTA,LCTO';
       console.log(sql, valores.toString())
       firebird.attach(conexao, function (err, db) {
         if (err) throw err;
@@ -694,9 +693,8 @@
             }
 
             // grava o arquivo ini
-
             let textoini = ini.stringify(Geraini);
-            fs.writeFile(caminhopasta + "ent.tmp", 'NFe.CriarEnviarNFe("\n' + textoini + '\n",1)', (err) => {
+            fs.writeFile(caminhopasta + "ent.tmp", 'NFe.CriarEnviarNFe("\n' + textoini + '\n",1,1)', (err) => {
               if (err) throw err;
               console.log("arquivo salvo com sucesso");
               fs.rename(caminhopasta + "ent.tmp", caminhopasta + "ent.txt", (err) => {
@@ -724,6 +722,7 @@
                   if (mensagem === "Autorizado o uso da NF-e") {
                     let protocoloretorno = retorno['NFE' + nota].NProt;
                     let chave = retorno['NFE' + nota].ChNFe;
+                    let arquivo = ['NFE' + nota].Arquivo;
                     var protocolo = new Protocolo();
                     protocolo.comCodigo(protocoloretorno);
                     protocolo.comData(new Date());
@@ -751,40 +750,35 @@
                       if (err) throw err;
                       console.log(result)
                       db.detach(function () {
-
+                        $scope.venda.NFE = nota;
                         alert = $mdDialog.alert({
                           title: 'Atenção',
                           multiple: true,
                           textContent: mensagem,
                           ok: 'Fechar'
                         });
-
                         $mdDialog
                           .show(alert)
                           .finally(function () {
                             alert = undefined;
                             var confirm = $mdDialog.prompt()
-                              .title('Deseja enviar por e-mail?')
-                              .textContent('digite o e-mail ou deixa em branco para usar o e-mail da nota')
+                              .title('Deseja enviar para outro e-mail?')
+                              .textContent('a nota já foi enviada para o e-mail de cadastro')
                               .placeholder('e-mail')
                               .ariaLabel('e-mail')
                               .initialValue('')
                               .required(false)
                               .multiple(true)
-                              .ok('Enviar')
-                              .cancel('Não');
+                              .ok('Enviar');
 
                             $mdDialog.show(confirm).then(function (email) {
                               $scope.enviarPorEmail(email);
-                              $scope.venda = new venda();
-                              $scope.nota = new NFe();
-                              $scope.carregar = {};
                               let modal = window.open('', 'Danfe')
+                              $mdDialog.cancel();
                             }, function () {
-                              $scope.venda = new venda();
-                              $scope.nota = new NFe();
-                              $scope.carregar = {};
+                              $scope.enviarPorEmail(email);
                               let modal = window.open('', 'Danfe')
+                              $mdDialog.cancel();
                             });
 
                           });
@@ -819,10 +813,12 @@
 
     $scope.enviarPorEmail = function (email) {
       if (!email) {
-        email = $scope.nota.getDestinatario().getEmail();
-      }
+        email = ''
+      };
+      let emailnota = $scope.nota.getDestinatario().getEmail();
 
-      fs.writeFile(caminhopasta + "ent.tmp", 'NFe.EnviarEmail(' + email + ',' + $scope.nota.getChaveDeAcesso() + '-nfe.xml,1)', (err) => {
+
+      fs.writeFile(caminhopasta + "ent.tmp", 'NFe.EnviarEmail(' + emailnota + ',' + $scope.nota.getChaveDeAcesso() + '-nfe.xml,1,,' + email + ')', (err) => {
         if (err) throw err;
         console.log("arquivo salvo com sucesso");
         fs.rename(caminhopasta + "ent.tmp", caminhopasta + "ent.txt", (err) => {
@@ -902,43 +898,46 @@
             let mensagem = retorno.INUTILIZACAO.XMotivo;
             if (mensagem === "Inutilização de número homologado") {
               let protocoloretorno = retorno.INUTILIZACAO.NProt;
-              db.query('update SAIDA set protocoloinutiliza = ?  where empresa = ? and nota = ?', [protocoloretorno, remote.getGlobal('dados').configs.empresa, nnf], function (err, result) {
+              firebird.attach(conexao, function (err, db) {
                 if (err) throw err;
-                console.log(result)
-                db.detach(function () {
-                  $scope.carregar.pedido = '';
-                  $scope.venda = new venda();
-                  $scope.nota = new NFe();
-                  alert = $mdDialog.alert({
-                    title: 'Atenção',
-                    multiple: true,
-                    textContent: mensagem,
-                    ok: 'Fechar'
-                  });
-
-                  $mdDialog
-                    .show(alert)
-                    .finally(function () {
-                      alert = undefined;
-                      let modal = window.open('', 'Danfe')
+                db.query('update SAIDA set protocoloinutiliza = ?  where empresa = ? and nota = ?', [protocoloretorno, remote.getGlobal('dados').configs.empresa, nnf], function (err, result) {
+                  if (err) throw err;
+                  console.log(result)
+                  db.detach(function () {
+                    $scope.carregar.pedido = '';
+                    $scope.venda = new venda();
+                    $scope.nota = new NFe();
+                    alert = $mdDialog.alert({
+                      title: 'Atenção',
+                      multiple: true,
+                      textContent: mensagem,
+                      ok: 'Fechar'
                     });
+
+                    $mdDialog
+                      .show(alert)
+                      .finally(function () {
+                        alert = undefined;
+                        let modal = window.open('', 'Danfe')
+                      });
+                  })
                 })
               })
             } else {
-              db.detach(function () {
-                alert = $mdDialog.alert({
-                  title: mensagem.split(':')[0],
-                  multiple: true,
-                  textContent: mensagem.split(':')[1],
-                  ok: 'Fechar'
+
+              alert = $mdDialog.alert({
+                title: mensagem.split(':')[0],
+                multiple: true,
+                textContent: mensagem.split(':')[1],
+                ok: 'Fechar'
+              });
+
+              $mdDialog
+                .show(alert)
+                .finally(function () {
+                  alert = undefined;
                 });
 
-                $mdDialog
-                  .show(alert)
-                  .finally(function () {
-                    alert = undefined;
-                  });
-              })
             }
             console.log(retorno)
           });
@@ -1490,7 +1489,17 @@
       $scope.concluirFech = function () {
         console.log(venda)
         VendaSrvc.confirmaVenda($scope.venda, 'F').then(function (response) {
-          alert('pedido confirmado');
+          alert = $mdDialog.alert({
+            title: "Atenção",
+            multiple: true,
+            textContent: 'Fechamento Confirmado',
+            ok: 'Fechar'
+          });
+          $mdDialog
+            .show(alert)
+            .finally(function () {
+              alert = undefined;
+            });
           $mdDialog.hide();
           // $scope.imprime($scope.venda); $mdDialog.hide(); console.log(response)
           console.log(response)
@@ -1499,6 +1508,17 @@
       $scope.concluir = function () {
         VendaSrvc.confirmaVenda($scope.venda, 'V').then(function (response) {
           $scope.imprime($scope.venda);
+          alert = $mdDialog.alert({
+            title: "Atenção",
+            multiple: true,
+            textContent: reject,
+            ok: 'Fechar'
+          });
+          $mdDialog
+            .show(alert)
+            .finally(function () {
+              alert = undefined;
+            });
           $mdDialog.hide();
           console.log(response)
         });

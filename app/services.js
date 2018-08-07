@@ -126,6 +126,7 @@ const remote = require('electron').remote;
                                         result.forEach(function (item) {
                                             venda.insereProduto(item)
                                         });
+                                        console.log(venda)
                                         deferred.resolve(venda);
                                     });
                                 });

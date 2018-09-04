@@ -14,7 +14,7 @@
           <!-- <md-card flex> -->
             <md-input-container>
               <label>Á Pagar</label>
-              <input type="text" ui-money-mask="R$" ng-model="pagamento.VALORAPAGAR.valor" md-autofocus ng-max="max">
+              <input type="text" ui-money-mask="R$" style="font-weight: bold" ng-model="pagamento.VALORAPAGAR.valor" md-autofocus ng-max="max">
             </md-input-container>           
             <md-input-container ng-if="pagamento.QTD_PARCELAS-1">
                 <label>Parcelas</label>
@@ -24,7 +24,7 @@
               </md-input-container>            
             <md-input-container ng-if="pagamento.TIPO == 'DI'">
               <label>Troco</label>
-              <input type="text" ng-value="pagamento.VALORAPAGAR - venda.PAGAR" disabled>
+              <input type="text" style="font-weight: bold" ng-value="(pagamento.VALORAPAGAR - venda.PAGAR).toFixed(2)">
             </md-input-container>              
               <fieldset ng-if="pagamento.TIPO == 'CH'">
                   <legend>Dados Cheque</legend>

@@ -48,10 +48,7 @@
 
   const config = ini.parse(fs.readFileSync('config/config.ini', 'utf-8'))
 
-
-
   // # gera nfe
-
   function geraNFCtrl($scope, VendaSrvc, $mdDialog, $mdToast, locals) {
     var empresaIniciada = remote.getGlobal('dados').configs.empresa;
 
@@ -95,7 +92,7 @@
                   .comCodMunicipio(result[0].CODIBGE)
                   .comUf(result[0].ESTADO));
               console.log(emitente);
-              resolve(venda, emitente);
+              resolve(venda);
             })
           })
         })
@@ -130,7 +127,6 @@
         volumes.comPesoBruto(venda.TRANSPORTE.PESO);
         console.log(destinatario);
         resolve(venda);
-
       })
     }
 
@@ -165,7 +161,10 @@
         danfe.comTipo('saida');
         danfe.comFinalidade('normal');
         var naturezaOperacao = 'VENDA DE MERCADORIA NO ESTADO';
-        if (danfe.getDestinatario().getEndereco().getUf() !== danfe.getEmitente().getEndereco().getUf()) {
+        if (venda.operacao == 2) {
+          naturezaOperacao = 'VENDA DE ATIVO'
+        }
+        if (venda.operacao == 1 && danfe.getDestinatario().getEndereco().getUf() !== danfe.getEmitente().getEndereco().getUf()) {
           naturezaOperacao = 'VENDA DE MERCADORIA FORA DO ESTADO'
         }
         danfe.comNaturezaDaOperacao(naturezaOperacao);
@@ -242,8 +241,8 @@
         if (_vlFat.valor) {
           var fatura = new Fatura();
           fatura.comNumero('0001')
-            .comValorOriginal(_vlFat.valor)
-            .comValorDoDesconto('0.00')
+            .comValorOriginal(_vlFat.valor+0.01)
+            .comValorDoDesconto(0.01)
             .comValorLiquido(_vlFat.valor)
           danfe.comFatura(fatura)
         }
@@ -264,7 +263,8 @@
             1,
             item.BASECALC,
             item.ALIQ,
-            item.ORIG
+            item.ORIG,
+            venda.operacao
           )
           danfe.adicionarItem(new Item()
             .comCodigo(item.CODPRO)
@@ -340,6 +340,7 @@
       VendaSrvc.vendaNota(venda).then(function (response) {
         console.log(response)
         $scope.venda = response;
+        $scope.venda.operacao='1';
         $scope.$apply();
       }, function (reject) {
         alert = $mdDialog.alert({
@@ -356,7 +357,7 @@
       })
     }
     $scope.geraNFe = function (venda) {
-      console.log("Carrega Venda")
+      //dados do Emitente
       dadosEmitente(remote.getGlobal('dados').configs.empresa, venda).then(dadosNota).then(criaNf).then(itensNota).then(pagamentosNota).then(totalizadorNfe).then(function (res) {
         // depos gerar o objeto salva no scope do angular para verificação
         $scope.nota = res;
@@ -367,7 +368,6 @@
           textContent: 'Gerado com sucesso',
           ok: 'Ok'
         });
-
         $mdDialog
           .show(alert)
           .finally(function () {
@@ -702,7 +702,6 @@
                 console.log("arquivo renomeado");
               })
             })
-
             var watcher = fs.watch(caminhopasta, {
               persistent: true
             }, (eventType, filename) => {

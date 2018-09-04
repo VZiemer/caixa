@@ -1,149 +1,160 @@
 <style>
   md-dialog.fullscreen-dialog {
-      max-width: 100%;
-      max-height: 100%;
-      width: 100%;
-      height: 100%;
-      border-radius: 0;
-  }  
+    max-width: 100%;
+    max-height: 100%;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+
   md-toolbar.md-table-toolbar.alternate {
     color: #1e88e5;
     background-color: #e3f2fd;
   }
+
   md-toolbar.md-table-toolbar.alternate .md-toolbar-tools {
     font-size: 13px;
   }
+
   md-card:first-child {
     padding: 8px 8px 8px 24px;
   }
 
- md-toolbar md-input-container .md-errors-spacer{
-  min-height: 0px !important;
-}
-  .checkboxes > md-checkbox {
+  md-toolbar md-input-container .md-errors-spacer {
+    min-height: 0px !important;
+  }
+
+  .checkboxes>md-checkbox {
     margin: 0;
     padding: 16px;
     min-width: 300px;
     flex: 0 0 auto;
-  } 
+  }
+
   md-dialog-actions {
     bottom: 0;
   }
-
 </style>
 <section layout='column' flex layout-align="center center" class="login" keyboard="cx.keys">
   <!-- <form class="form-modal" ng-submit="buscar(busca)">
   </form> -->
   <md-toolbar class="md-table-toolbar md-default">
-      <div class="md-toolbar-tools">
-          <span flex></span>
-          <!-- <md-button class="md-accent md-raised" ng-click="cx.cancelaCupom($event)" >
+    <div class="md-toolbar-tools">
+      <span flex></span>
+      <!-- <md-button class="md-accent md-raised" ng-click="cx.cancelaCupom($event)" >
             <md-icon class="material-icons" style="color: red;">clear</md-icon>
             Cancela Ultimo
           </md-button>            -->
-          <!-- <md-button class="md-accent md-raised" ng-click="cx.reducaoZ($event)" >
+      <!-- <md-button class="md-accent md-raised" ng-click="cx.reducaoZ($event)" >
               <md-icon class="material-icons" style="color: green;">add</md-icon>
               ReduçãoZ
             </md-button>                                      -->
-          <!-- <md-button class="md-accent md-raised" ng-click="cx.novaVenda($event)" >
+      <!-- <md-button class="md-accent md-raised" ng-click="cx.novaVenda($event)" >
             <md-icon class="material-icons" style="color: green;">add</md-icon>
             Novo (F2)
           </md-button>             -->
-          <md-button class="md-accent md-raised" ng-click="cx.Pagar($event)" ng-disabled="!venda.LCTO">
-            <md-icon class="material-icons" style="color: green;">add_shopping_cart</md-icon>
-            Pagamento (F5)
-          </md-button>
-          <md-button class="md-accent md-raised" ng-click="cx.abreVendas($event,'C','V')">
-              <md-icon class="material-icons" style="color: green;">menu</md-icon>
-              Pedidos (F3)
-          </md-button> 
-          <md-button class="md-accent md-raised" ng-click="cx.abreVendas($event,'R','V')">
-              <md-icon class="material-icons" style="color: green;">menu</md-icon>
-              Reservas (F4)
-          </md-button>
-          <md-button class="md-accent md-raised" ng-click="cx.abreVendasFechamento($event,'F')">
-              <md-icon class="material-icons" style="color: green;">menu</md-icon>
-              Fechamento (F6)
-          </md-button>           
-          <!-- <md-button class="md-accent md-raised" ng-click="cx.puxaLocal()">
+      <md-button class="md-accent md-raised" ng-click="cx.Pagar($event)" ng-disabled="!venda.LCTO">
+        <md-icon class="material-icons" style="color: green;">add_shopping_cart</md-icon>
+        Pagamento (F5)
+      </md-button>
+      <md-button class="md-accent md-raised" ng-click="cx.abreVendas($event,'C','V')">
+        <md-icon class="material-icons" style="color: green;">menu</md-icon>
+        Pedidos (F3)
+      </md-button>
+      <md-button class="md-accent md-raised" ng-click="cx.abreVendas($event,'R','V')">
+        <md-icon class="material-icons" style="color: green;">menu</md-icon>
+        Reservas (F4)
+      </md-button>
+      <md-button class="md-accent md-raised" ng-click="cx.abreVendasFechamento($event,'F')">
+        <md-icon class="material-icons" style="color: green;">menu</md-icon>
+        Fechamento (F6)
+      </md-button>
+      <!-- <md-button class="md-accent md-raised" ng-click="cx.puxaLocal()">
             <md-icon class="material-icons" style="color: green;">forward</md-icon>
             Puxa Local
           </md-button> -->
-          <md-button class="md-accent md-raised" ng-click="cx.NFe($event)">
-            <md-icon class="material-icons" style="color: green;">menu</md-icon>
-            NF-e
-          </md-button>                                       
-          <md-button class="md-raised md-icon-button md-accent" ng-click="cx.Logout()">
-              <md-icon class="material-icons" style="color: blue;">help</md-icon>
-          </md-button>
-          <!-- <md-button class="md-raised md-icon-button md-accent" ng-click="cx.numerocupom()">
+      <md-button class="md-accent md-raised" ng-click="cx.NFe($event)">
+        <md-icon class="material-icons" style="color: green;">menu</md-icon>
+        NF-e
+      </md-button>
+      <md-button class="md-raised md-icon-button md-accent" ng-click="cx.Logout()">
+        <md-icon class="material-icons" style="color: blue;">help</md-icon>
+      </md-button>
+      <!-- <md-button class="md-raised md-icon-button md-accent" ng-click="cx.numerocupom()">
               Nucupom
           </md-button>
           <md-button class="md-raised md-icon-button md-accent" ng-click="cx.leiturax()">
               leitura
           </md-button>                                        -->
-      </div>      
-    </md-toolbar>
-    <md-content layout="row" layout-fill>
-      <md-card layout="column" flex="30">
-          <div layout="column" >
-              <div layout="row" flex layout-align="start center">
-                <md-button class="md-icon-button md-raised small" ng-click="alteraValorVenda()" ng-if="param.admin">
-                    <md-icon class="material-icons" style="color: red;">create</md-icon>
+    </div>
+  </md-toolbar>
+  <md-content layout="row" layout-fill>
+    <md-card layout="column" flex="30">
+      <div layout="column">
+        <div layout="row" flex layout-align="start center">
+          <span flex="5"></span>
+          <div layout="column" layout-align="center left">
+            <span class="md-subhead" style="color:red;font-weight: bolder" ng-if="venda.FATURAMENTO">FATURAR EM: {{venda.FATURAMENTO}} dias</span>
+            <span class="md-subhead">Produtos: {{venda.TOTALPRODUTOS}}</span>
+            <span class="md-subhead" ng-if="venda.FRETE.valueOf()">Frete: {{venda.FRETE}}</span>
+            <span class="md-title">
+              TOTAL: {{venda.TOTAL}}
+            </span>
+            <span class="md-subhead" ng-if="venda.VLDESC().valueOf()">desconto de: {{venda.VLDESC()}} ({{venda.PERCENTDESC()
+              | number:0}}%)</span>
+            <span class="md-subhead" ng-if="venda.VLDESC().valueOf()">Total com desconto: {{venda.TOTALDESC}}</span>
+          </div>
+          <span flex></span>
+          <div layout="column" layout-align="center left">
+            <md-button class="md-icon-button md-raised small" ng-click="alteraValorVenda()" ng-if="param.admin">
+              <md-icon class="material-icons" style="color: red;">create</md-icon>
+            </md-button>
+          </div>
+        </div>
+      </div>
+      <span flex="5"></span>
+      <md-divider></md-divider>
+      <div layout="column">
+        <div flex layout-padding class="md-subhead"><span class="md-title">Data: {{venda.DATA | date:'dd/MM/yyyy'}}</span></div>
+        <md-divider></md-divider>
+        <div flex layout-padding class="md-subhead"><span class="md-title">Pedido: </span>{{venda.LCTO.toString()}}</div>
+        <md-divider></md-divider>
+        <div flex layout-padding class="md-subhead"><span class="md-title">Vendedor: </span>{{venda.NOMEVEND}}</div>
+        <md-divider></md-divider>
+        <div flex layout-padding class="md-subhead"><span class="md-title">Código: </span>{{venda.CODCLI}}</div>
+        <md-divider></md-divider>
+        <div flex layout-padding layout-wrap class="md-subhead"><span class="md-title">Cliente: </span>{{venda.NOMECLI}}</div>
+      </div>
+    </md-card>
+    <md-card layout="column" flex>
+      <md-table-container style="overflow-y: scroll;overflow-x: auto;" ng-style="{'height':mainScreen-300+'px'}">
+        <table md-table>
+          <thead fix-head md-head>
+            <tr md-row>
+              <th md-column><span>CODIGO</span></th>
+              <th md-column><span>QTD</span></th>
+              <th md-column>DESCRICAO</th>
+              <th md-column>VALOR UNIT.</th>
+              <th md-column>VALOR TOTAL</th>
+              <th md-column ng-if="param.admin"></th>
+            </tr>
+          </thead>
+          <tbody md-body>
+            <tr md-row ng-repeat="item in venda.PRODUTOS">
+              <td md-cell>{{item.CODPRO}}</td>
+              <td md-cell>{{item.QTD}} {{item.UNIDADE}}</td>
+              <td md-cell>{{item.DESCRICAO}}</td>
+              <td md-cell>{{item.VALOR}}</td>
+              <td md-cell>{{item.TOTAL}}</td>
+              <td md-cell ng-if="param.admin">
+                <md-button class="md-icon-button md-raised" ng-click="alteraValor($event,item,$index)">
+                  <md-icon class="material-icons" style="color: red;">create</md-icon>
                 </md-button>
-                <span flex="5"></span>
-                <div layout="column" layout-align="center left">
-                  <span class="md-title">
-                    TOTAL: {{venda.TOTAL}}                  
-                  </span>
-                  <span class="md-body-1" ng-if="venda.TOTALSDESC != venda.TOTAL" >desconto de: {{venda.VLDESC()}} ({{venda.PERCENTDESC() | number:0}}%)</span>
-                  <span class="md-body-1" ng-if="venda.TOTALSDESC != venda.TOTAL" >com desconto: {{venda.TOTALDESC}}</span>
-                </div>
-              </div>
-          </div>  
-          <span flex="5"></span>  
-          <md-divider></md-divider>    
-        <div layout="column">
-          <div flex layout-padding class="md-subhead"><span class="md-title" >Data: {{venda.DATA | date:'dd/MM/yyyy'}}</span></div>
-          <md-divider></md-divider>
-          <div flex layout-padding class="md-subhead" ><span class="md-title">Pedido: </span>{{venda.LCTO.toString()}}</div>
-          <md-divider></md-divider>
-          <div flex layout-padding class="md-subhead"><span class="md-title">Vendedor: </span>{{venda.NOMEVEND}}</div>
-          <md-divider></md-divider>
-          <div flex layout-padding class="md-subhead" ><span class="md-title">Código: </span>{{venda.CODCLI}}</div>
-          <md-divider></md-divider>
-          <div flex layout-padding layout-wrap class="md-subhead"><span class="md-title">Cliente: </span>{{venda.NOMECLI}}</div>
-          </div>                    
-      </md-card>
-      <md-card layout="column" flex>
-        <md-table-container style="overflow-y: scroll;overflow-x: auto;" ng-style="{'height':mainScreen-300+'px'}">
-            <table md-table>
-              <thead fix-head md-head>
-                <tr md-row>
-                  <th md-column ><span>CODIGO</span></th>
-                  <th md-column ><span>QTD</span></th>
-                  <th md-column >DESCRICAO</th>
-                  <th md-column >VALOR UNIT.</th>
-                  <th md-column >VALOR TOTAL</th>
-                  <th md-column ng-if="param.admin"></th>
-                </tr>
-              </thead>
-              <tbody md-body>
-                <tr md-row ng-repeat="item in venda.PRODUTOS">
-                  <td md-cell>{{item.CODPRO}}</td>
-                  <td md-cell>{{item.QTD}} {{item.UNIDADE}}</td>
-                  <td md-cell>{{item.DESCRICAO}}</td>
-                  <td md-cell>{{item.VALOR}}</td>
-                  <td md-cell>{{item.TOTAL}}</td>
-                  <td md-cell ng-if="param.admin">
-                      <md-button class="md-icon-button md-raised" ng-click="alteraValor($event,item,$index)">
-                          <md-icon class="material-icons" style="color: red;">create</md-icon>
-                      </md-button>
-                    </td>                  
-                </tr>
-              </tbody>
-            </table>
-          </md-table-container>            
-      </md-card>
-    </md-content>
-  </section>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </md-table-container>
+    </md-card>
+  </md-content>
+</section>

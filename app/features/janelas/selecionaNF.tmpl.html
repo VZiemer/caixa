@@ -4,28 +4,42 @@
   }
 </style>
 <md-dialog class="fullscreen-dialog" aria-label="" layout='column'>
-  <md-toolbar>
-    <div class="md-toolbar-tools">
-      <div layout-gt-xs="column">
-        <md-input-container class="md-block" flex-gt-xs="5">
-          <label>venda</label>
-          <input name="codcli" ng-model="carregar.pedido">
-        </md-input-container>
-      </div>
-      <md-button aria-label="carregar" ng-click="carregaVenda(carregar.pedido)">
+  <!-- <md-toolbar> -->
+  <div  layout='row'>
+    <div layout="row" flex='50'>
+      <md-input-container class="md-block" flex-gt-xs="30">
+        <label>venda</label>
+        <input name="codcli" ng-model="carregar.pedido">
+      </md-input-container>
+      <!-- </div> -->
+      <!-- <div layout-gt-xs="column"> -->
+      <md-input-container class="md-block" flex-gt-xs="70">
+        <label>Natureza</label>
+        <md-select ng-model="venda.operacao">
+          <md-option value="1" selected>Venda de Mercadoria</md-option>
+          <md-option value="2">Venda de Ativo</md-option>
+          <md-option value="3">Devolução de Mercadoria</md-option>
+          <md-option value="4">Remessa Para Conserto</md-option>
+        </md-select>
+      </md-input-container>
+      <!-- </div> -->
+    </div>
+    <div  layout='row' layout-align="end center">
+      <md-button aria-label="carregar" class="md-warn md-raised " ng-click="carregaVenda(carregar.pedido)">
         Carrega Venda
       </md-button>
-      <md-button aria-label="gerarNF" ng-click="geraNFe(venda)" ng-disabled="!venda.CODCLI">
+      <md-button aria-label="gerarNF" class="md-raised md-warn" ng-click="geraNFe(venda)" ng-disabled="!venda.CODCLI">
         Gera Nota
       </md-button>
-      <md-button aria-label="Go Back" ng-click="enviaNfe(nota)" ng-disabled="!nota.getFinalidade()">
+      <md-button aria-label="Go Back" class="md-raised md-warn" ng-click="enviaNfe(nota)" ng-disabled="!nota.getFinalidade()">
         Envia Nota
       </md-button>
       <!-- <md-button class="md-fab md-mini md-hue-3" aria-label="Favorite"> -->
       <md-icon class="material-icons" style="color: white;" ng-click="cancel($event)">close</md-icon>
       </md-button>
     </div>
-  </md-toolbar>
+  </div>
+  <!-- </md-toolbar> -->
   <form ng-cloak>
     <md-dialog-content>
       <div class="md-dialog-content">
@@ -56,7 +70,6 @@
                         <label>I. E.</label>
                         <input name="inscest" type="text" ng-model="venda.INSC" ui-br-ie-mask>
                       </md-input-container>
-
                       </md-input-container>
                       <md-input-container class="md-block" flex-gt-xs>
                         <label>e-mail</label>

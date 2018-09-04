@@ -1,5 +1,5 @@
 const dinheiro = require('./dinheiro');
-function Venda(lcto, data, transito, cgc, insc, codcli, nomecli, codvend, nomevend, email, fone, razao, endereco, numero, bairro, cep, codibge, codcidade, cidade, estado, complemento, desconto, frete, seguro, total) {
+function Venda(lcto, data, transito, cgc, insc, codcli, nomecli, codvend, nomevend, email, fone, razao, endereco, numero, bairro, cep, codibge, codcidade, cidade, estado, complemento, desconto, frete, seguro, total,fatura) {
     //dados da venda
     this.LCTO = []
     this.DATA = new Date(data)
@@ -48,16 +48,13 @@ function Venda(lcto, data, transito, cgc, insc, codcli, nomecli, codvend, nomeve
     //documentos fiscais
     this.NUCUPOM = null
     this.NFE = null  
+    this.FATURAMENTO = fatura || null;
 };
 
 Venda.prototype.insereCPFCupom = function (valor) {
     this.CPFCupom = valor;
 }
 
-Venda.prototype.insereFrete = function (valor) {
-    this.FRETE = new dinheiro(valor);
-    this.calculaTotal()
-}
 Venda.prototype.insereTransporte = function (volumes, peso, tipofrete, transportador) {
 
     /* TIPOS DE FRETE
@@ -161,7 +158,6 @@ function Produto(codpro, valor, qtd, qtdreserva, unidade, codprodvenda, valorini
     this.ALIQ = aliq || 0
     this.BASECALC = new dinheiro(basecalc)
     this.FRETEPROD = new dinheiro(freteprod)
-
 }
 
 

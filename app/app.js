@@ -173,11 +173,11 @@ angular
 .module('ventronElectron')
 .controller('AppCtrl', AppCtrl)
 .directive("keyboard", keyboard);
-// VendasCtrl.$inject = ['$scope', '$q', 'VendaSrvc', '$mdDialog', '$mdToast', '$location'];
-function AppCtrl ($scope, $timeout, $mdSidenav,$location,VendaSrvc) {
+// VendasCtrl.$inject = ['$rootScope','$scope', '$q', 'VendaSrvc', '$mdDialog', '$mdToast', '$location'];
+function AppCtrl ($rootScope,$scope, $timeout, $mdSidenav,$location,VendaSrvc) {
   const bemafi = require('./Bemafi32.js');
+  $rootScope.NOMELOJA=remote.getGlobal('dados').configs.razao;
   $scope.appVersion = window.require('electron').remote.app.getVersion()
-  $scope.empresa = remote.getGlobal('dados').configs.razao;
   console.log ($scope.empresa)
   var vm = this;
   vm.theme = 'localdecor'

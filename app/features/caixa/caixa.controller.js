@@ -158,12 +158,20 @@
         danfe.comDestinatario(destinatario);
         danfe.comTransportador(transportador);
         danfe.comVolumes(volumes);
-        danfe.comTipo('saida');
+
+
+        danfe.comTipo('saida');       
         danfe.comFinalidade('normal');
+
+
         var naturezaOperacao = 'VENDA DE MERCADORIA NO ESTADO';
         if (venda.operacao == 2) {
           naturezaOperacao = 'VENDA DE ATIVO'
         }
+        if (venda.operacao == 3 && danfe.getDestinatario().getEndereco().getUf() !== danfe.getEmitente().getEndereco().getUf()) {
+          naturezaOperacao = ' Devolução de venda de mercadoria fora do estado sujeita ao regime de substituição tributária'
+          danfe.comFinalidade('devolução');
+        }        
         if (venda.operacao == 1 && danfe.getDestinatario().getEndereco().getUf() !== danfe.getEmitente().getEndereco().getUf()) {
           naturezaOperacao = 'VENDA DE MERCADORIA FORA DO ESTADO'
         }
@@ -234,14 +242,15 @@
             .comMeioDePagamento(_meioPagto)
             .comIntegracaoDePagamento(_integracaoPagto)
             .comBandeiraDoCartao(_bandeiraCartao ? _bandeiraCartao : '')
-            .comValorDoTroco(_valorTroco);
+            .comValorDoTroco(_valorTroco)
+            .comVencimento(item.vencimento);
           danfe._pagamentos.push(pagamento)
 
         }
         if (_vlFat.valor) {
           var fatura = new Fatura();
           fatura.comNumero('0001')
-            .comValorOriginal(_vlFat.valor+0.01)
+            .comValorOriginal(_vlFat.valor + 0.01)
             .comValorDoDesconto(0.01)
             .comValorLiquido(_vlFat.valor)
           danfe.comFatura(fatura)
@@ -309,7 +318,9 @@
         var infoComplementar = 'Documento emitido por ME ou EPP optante pelo simples nacional;';
         console.log('codregime', danfe.getEmitente().getCodigoRegimeTributario())
         if (danfe.getEmitente().getCodigoRegimeTributario() === '1') {
-          infoComplementar += 'Valor dos produtos Tributado pelo Simples Nacional R$' + danfe.getImpostos().getBaseDeCalculoDoIcmsFormatada() + ';';
+          infoComplementar += 'Valor dos produtos Tributado pelo Simples Nacional R$' + (danfe.getItens().reduce(function (a, item) {
+            return a.soma(item.getValorTotal());
+          }, new dinheiro(0))) + ';';
         } else if (danfe.getEmitente().getCodigoRegimeTributario() === '2') {
           infoComplementar += 'Estabelecimento impedido de recolher o ICMS pelo simples nacional no inciso 1 do art. 2 da LC 123/2006;'
           infoComplementar += 'Imposto recolhido por substituição ART 313-Y DO RICMS;'
@@ -340,7 +351,7 @@
       VendaSrvc.vendaNota(venda).then(function (response) {
         console.log(response)
         $scope.venda = response;
-        $scope.venda.operacao='1';
+        $scope.venda.operacao = '1';
         $scope.$apply();
       }, function (reject) {
         alert = $mdDialog.alert({
@@ -391,6 +402,9 @@
     }
 
     $scope.enviaNfe = function (res) {
+      $mdToast.show($mdToast.simple({
+        'hideDelay': 0
+      }).textContent('Enviando Nfe...').position('top right left'));
       console.log(res);
       //grava no banco de dados e retorna o numero
       let valores = [
@@ -732,23 +746,24 @@
                       console.log("arquivo limpo");
                     })
                     //gera o pdf
-                    new Gerador(res).gerarPDF({
-                      ambiente: 'producao',
-                      ajusteYDoLogotipo: 0,
-                      ajusteYDaIdentificacaoDoEmitente: 0,
-                      creditos: 'Gammasoft Desenvolvimento de Software Ltda - http://opensource.gammasoft.com.br'
-                    }, function (err, pdf) {
-                      if (err) {
-                        throw err;
-                      }
-                      pdf.pipe(fs.createWriteStream(pathDoArquivoPdf));
-                      console.log('PDF gerado', pathDoArquivoPdf)
-                    });
+                    // new Gerador(res).gerarPDF({
+                    //   ambiente: 'producao',
+                    //   ajusteYDoLogotipo: 0,
+                    //   ajusteYDaIdentificacaoDoEmitente: 0,
+                    //   creditos: 'Gammasoft Desenvolvimento de Software Ltda - http://opensource.gammasoft.com.br'
+                    // }, function (err, pdf) {
+                    //   if (err) {
+                    //     throw err;
+                    //   }
+                    //   pdf.pipe(fs.createWriteStream(pathDoArquivoPdf));
+                    //   console.log('PDF gerado', pathDoArquivoPdf)
+                    // });
 
                     db.query('update SAIDA set protocolo = ?, chave = ? where empresa = ? and nota = ?', [protocoloretorno, chave, remote.getGlobal('dados').configs.empresa, nota], function (err, result) {
                       if (err) throw err;
                       console.log(result)
                       db.detach(function () {
+                        $mdToast.hide();
                         $scope.venda.NFE = nota;
                         alert = $mdDialog.alert({
                           title: 'Atenção',
@@ -769,22 +784,21 @@
                               .required(false)
                               .multiple(true)
                               .ok('Enviar');
-
                             $mdDialog.show(confirm).then(function (email) {
                               $scope.enviarPorEmail(email);
-                              let modal = window.open('', 'Danfe')
+                              // let modal = window.open('', 'Danfe')
                               $mdDialog.cancel();
                             }, function () {
                               $scope.enviarPorEmail(email);
-                              let modal = window.open('', 'Danfe')
+                              // let modal = window.open('', 'Danfe')
                               $mdDialog.cancel();
                             });
-
                           });
                       })
                     })
                   } else {
                     db.detach(function () {
+                      $mdToast.hide();
                       alert = $mdDialog.alert({
                         title: mensagem.split(':')[0],
                         multiple: true,
@@ -1008,19 +1022,19 @@
     $scope.alteraValor = function (ev, produto, index) {
       console.log(produto);
       $mdDialog.show({
-          controller: alteraValorCtrl,
-          templateUrl: './app/features/janelas/alteraValor.tmpl.html',
-          parent: angular.element(document.body),
-          targetEvent: ev,
-          focusOnOpen: true,
-          clickOutsideToClose: true,
-          multiple: true,
-          fullscreen: false, // Only for -xs, -sm breakpoints.,
-          locals: {
-            produto: produto,
-            index: index
-          }
-        })
+        controller: alteraValorCtrl,
+        templateUrl: './app/features/janelas/alteraValor.tmpl.html',
+        parent: angular.element(document.body),
+        targetEvent: ev,
+        focusOnOpen: true,
+        clickOutsideToClose: true,
+        multiple: true,
+        fullscreen: false, // Only for -xs, -sm breakpoints.,
+        locals: {
+          produto: produto,
+          index: index
+        }
+      })
         .then(function (response, index) {
           var valor = response.VALOR;
           console.log(response)
@@ -1052,16 +1066,16 @@
     }
     $scope.alteraValorVenda = function (ev) {
       $mdDialog.show({
-          controller: alteraValorVendaCtrl,
-          templateUrl: './app/features/janelas/alteraValorVenda.tmpl.html',
-          parent: angular.element(document.body),
-          targetEvent: ev,
-          focusOnOpen: true,
-          clickOutsideToClose: false,
-          multiple: true,
-          fullscreen: false, // Only for -xs, -sm breakpoints.,
-          locals: {}
-        })
+        controller: alteraValorVendaCtrl,
+        templateUrl: './app/features/janelas/alteraValorVenda.tmpl.html',
+        parent: angular.element(document.body),
+        targetEvent: ev,
+        focusOnOpen: true,
+        clickOutsideToClose: false,
+        multiple: true,
+        fullscreen: false, // Only for -xs, -sm breakpoints.,
+        locals: {}
+      })
         .then(function (valor) {
           console.log('alteravalorvenda');
           $mdToast.show($mdToast.simple({
@@ -1124,7 +1138,7 @@
           console.log(venda.descontoPrev())
           console.log(venda)
           var html = "<html><head><style>@media print{@page {size:A4}}page {background: white;display: block;margin: 0 auto; margin-bottom: 0.5cm;}page[size='A4'] { width: 21cm; height: 29.7cm; }table,td,tr,span{font-size:11pt;font-family:Arial;}table{width: 100%;}td {min-width:4mm;}hr{border-top:1pt dashed #000;} </style></head><body>"
-          html += "<h2>FLORESTAL</h2><span>Relatório de Movimento de Contas</span></br><span>Período 01/07/2018 a 31/07/2018</span><hr><span>Cliente: " + venda.CODCLI + "  -  " + venda.RAZAO + "</span><hr>"
+          html += "<h2>FLORESTAL</h2><span>Relatório de Movimento de Contas</span></br><span>Período 01/09/2018 a 30/09/2018</span><hr><span>Cliente: " + venda.CODCLI + "  -  " + venda.RAZAO + "</span><hr>"
           html += "<table><thead>"
           html += "<tr><td>Documento</td><td>Data</td><td>Vencimento</td><td>Valor Entrada</td><td>Valor Saida</td><td></td></tr>"
           html += "</thead><tbody>"
@@ -1138,7 +1152,7 @@
           }
           html += "</tbody><tfoot><tr><td colspan='6'><hr></td></tr>"
           html += "<tr><td>TOTAIS</td><td colspan='2'><td>" + venda.TOTALDESC.soma(venda.DESCONTOITEM).valor + "</td><td>" + saida.valor + "</td><th>= " + venda.TOTALDESC.subtrai(saida).toString() + "</th></tr>"
-          html += "<tr><td colspan='5'>Desconto para pagamento até 15/08/2018</td><th>= " + venda.descontoPrev().soma(venda.DESCONTOITEM.desconto(4)).subtrai(saida).toString() + "</th></tr>"
+          html += "<tr><td colspan='5'>Desconto para pagamento até 15/09/2018</td><th>= " + venda.descontoPrev().soma(venda.DESCONTOITEM.desconto(4)).subtrai(saida).toString() + "</th></tr>"
           html += "</tfoot></table></body></html>"
           var pdf = require('html-pdf');
 
@@ -1388,18 +1402,18 @@
 
       $scope.NFe = function (ev, venda) {
         $mdDialog.show({
-            controller: geraNFCtrl,
-            templateUrl: './app/features/janelas/selecionaNF.tmpl.html',
-            parent: angular.element(document.body),
-            targetEvent: ev,
-            focusOnOpen: true,
-            clickOutsideToClose: false,
-            multiple: true,
-            fullscreen: true, // Only for -xs, -sm breakpoints.,
-            locals: {
-              'venda': venda
-            }
-          })
+          controller: geraNFCtrl,
+          templateUrl: './app/features/janelas/selecionaNF.tmpl.html',
+          parent: angular.element(document.body),
+          targetEvent: ev,
+          focusOnOpen: true,
+          clickOutsideToClose: false,
+          multiple: true,
+          fullscreen: true, // Only for -xs, -sm breakpoints.,
+          locals: {
+            'venda': venda
+          }
+        })
           .then(function (response) {
             console.log(response)
           }, function () {
@@ -1510,7 +1524,7 @@
           alert = $mdDialog.alert({
             title: "Atenção",
             multiple: true,
-            textContent: reject,
+            textContent: 'Fechamento Confirmado',
             ok: 'Fechar'
           });
           $mdDialog
@@ -1524,18 +1538,18 @@
       }
       $scope.insereCPF = function (ev) {
         $mdDialog.show({
-            controller: insereCPFCtrl,
-            templateUrl: './app/features/janelas/InsereCPF.tmpl.html',
-            parent: angular.element(document.body),
-            targetEvent: ev,
-            focusOnOpen: true,
-            clickOutsideToClose: true,
-            multiple: true,
-            fullscreen: false, // Only for -xs, -sm breakpoints.,
-            locals: {
-              'venda': $scope.venda
-            }
-          })
+          controller: insereCPFCtrl,
+          templateUrl: './app/features/janelas/InsereCPF.tmpl.html',
+          parent: angular.element(document.body),
+          targetEvent: ev,
+          focusOnOpen: true,
+          clickOutsideToClose: true,
+          multiple: true,
+          fullscreen: false, // Only for -xs, -sm breakpoints.,
+          locals: {
+            'venda': $scope.venda
+          }
+        })
           .then(function (valor) {
             $scope.venda.insereCPFCupom(valor)
             console.log(valor);
@@ -1546,19 +1560,19 @@
       $scope.InserePgto = function (ev, pagto) {
         $scope.periodo = pagto.PERIODO;
         $mdDialog.show({
-            controller: inserePgtoCtrl,
-            templateUrl: './app/features/janelas/inserePgto.tmpl.html',
-            parent: angular.element(document.body),
-            targetEvent: ev,
-            focusOnOpen: true,
-            clickOutsideToClose: true,
-            multiple: true,
-            fullscreen: false, // Only for -xs, -sm breakpoints.,
-            locals: {
-              venda: $scope.venda,
-              fpagto: pagto
-            }
-          })
+          controller: inserePgtoCtrl,
+          templateUrl: './app/features/janelas/inserePgto.tmpl.html',
+          parent: angular.element(document.body),
+          targetEvent: ev,
+          focusOnOpen: true,
+          clickOutsideToClose: true,
+          multiple: true,
+          fullscreen: false, // Only for -xs, -sm breakpoints.,
+          locals: {
+            venda: $scope.venda,
+            fpagto: pagto
+          }
+        })
           .then(function (pgto) {
             console.log(pgto);
             $scope.venda.PAGAR.subtrai(pgto.VALORAPAGAR);
@@ -1660,16 +1674,16 @@
     };
     cx.puxaLocal = function (ev) {
       $mdDialog.show({
-          controller: puxaLocalCtrl,
-          templateUrl: './app/features/janelas/PuxaLocal.tmpl.html',
-          parent: angular.element(document.body),
-          targetEvent: ev,
-          focusOnOpen: true,
-          clickOutsideToClose: true,
-          multiple: true,
-          fullscreen: false, // Only for -xs, -sm breakpoints.,
-          locals: {}
-        })
+        controller: puxaLocalCtrl,
+        templateUrl: './app/features/janelas/PuxaLocal.tmpl.html',
+        parent: angular.element(document.body),
+        targetEvent: ev,
+        focusOnOpen: true,
+        clickOutsideToClose: true,
+        multiple: true,
+        fullscreen: false, // Only for -xs, -sm breakpoints.,
+        locals: {}
+      })
         .then(function (valor) {
           VendaSrvc.puxaLocal(valor).then(function () {
             alert("pedido Puxado")
@@ -1680,18 +1694,18 @@
     };
     cx.NFe = function (ev, venda) {
       $mdDialog.show({
-          controller: geraNFCtrl,
-          templateUrl: './app/features/janelas/selecionaNF.tmpl.html',
-          parent: angular.element(document.body),
-          targetEvent: ev,
-          focusOnOpen: true,
-          clickOutsideToClose: false,
-          multiple: true,
-          fullscreen: true, // Only for -xs, -sm breakpoints.,
-          locals: {
-            'venda': venda
-          }
-        })
+        controller: geraNFCtrl,
+        templateUrl: './app/features/janelas/selecionaNF.tmpl.html',
+        parent: angular.element(document.body),
+        targetEvent: ev,
+        focusOnOpen: true,
+        clickOutsideToClose: false,
+        multiple: true,
+        fullscreen: true, // Only for -xs, -sm breakpoints.,
+        locals: {
+          'venda': venda
+        }
+      })
         .then(function (response) {
           console.log(response)
         }, function () {
@@ -1705,17 +1719,17 @@
       VendaSrvc.listaVendas(status).then(function (response) {
         cx.desserts = response.data;
         $mdDialog.show({
-            controller: PesquisaVendaCtrl,
-            templateUrl: './app/features/janelas/selecionaVenda.tmpl.html',
-            parent: angular.element(document.body),
-            targetEvent: ev,
-            clickOutsideToClose: true,
-            fullscreen: true, // Only for -xs, -sm breakpoints.,
-            locals: {
-              dados: response.data,
-              status: status
-            }
-          })
+          controller: PesquisaVendaCtrl,
+          templateUrl: './app/features/janelas/selecionaVenda.tmpl.html',
+          parent: angular.element(document.body),
+          targetEvent: ev,
+          clickOutsideToClose: true,
+          fullscreen: true, // Only for -xs, -sm breakpoints.,
+          locals: {
+            dados: response.data,
+            status: status
+          }
+        })
           .then(function (pedido) {
             var status = 'C';
             var dados = [pedido.CODCLI, pedido.NOMECLI, pedido.CODVEND, pedido.OBS, status, pedido.LCTO];
@@ -1729,9 +1743,6 @@
 
       });
     };
-
-
-
     cx.abreVendasFechamento = function (ev, acao) {
       $scope.acao = acao;
       $scope.venda = [];
@@ -1739,17 +1750,17 @@
       VendaSrvc.CarregaFechamento().then(function (response) {
         cx.desserts = response.data;
         $mdDialog.show({
-            controller: PesquisaVendaFechamentoCtrl,
-            templateUrl: './app/features/janelas/selecionaVendaFechamento.tmpl.html',
-            parent: angular.element(document.body),
-            targetEvent: ev,
-            clickOutsideToClose: false,
-            fullscreen: true, // Only for -xs, -sm breakpoints.,
-            locals: {
-              dados: response,
-              status: status
-            }
-          })
+          controller: PesquisaVendaFechamentoCtrl,
+          templateUrl: './app/features/janelas/selecionaVendaFechamento.tmpl.html',
+          parent: angular.element(document.body),
+          targetEvent: ev,
+          clickOutsideToClose: false,
+          fullscreen: true, // Only for -xs, -sm breakpoints.,
+          locals: {
+            dados: response,
+            status: status
+          }
+        })
           .then(function (vendas) {
             // var dados = [pedido.CODCLI, pedido.NOMECLI, pedido.CODVEND, pedido.OBS, status, pedido.LCTO];
             VendaSrvc.carregaNPcli(vendas[0]).then(function (res) {
@@ -1794,13 +1805,13 @@
     }
     cx.novaVenda = function (ev) {
       $mdDialog.show({
-          controller: buscaCtrl,
-          templateUrl: './app/features/janelas/busca.tmpl.html',
-          parent: angular.element(document.body),
-          targetEvent: ev,
-          clickOutsideToClose: true,
-          fullscreen: true
-        })
+        controller: buscaCtrl,
+        templateUrl: './app/features/janelas/busca.tmpl.html',
+        parent: angular.element(document.body),
+        targetEvent: ev,
+        clickOutsideToClose: true,
+        fullscreen: true
+      })
         .then(function (cliente) {
           var status = 'C';
           var dados = [cliente.CODIGO, cliente.RAZAO, venda.CODVEND, $scope.venda.OBS, status, $scope.venda.LCTO];
@@ -1813,17 +1824,17 @@
     }
     cx.Pagar = function (ev) {
       $mdDialog.show({
-          controller: PagamentoCtrl,
-          templateUrl: './app/features/janelas/Pagamento.tmpl.html',
-          parent: angular.element(document.body),
-          targetEvent: ev,
-          clickOutsideToClose: true,
-          fullscreen: true, // Only for -xs, -sm breakpoints.,
-          locals: {
-            dados: $scope.venda,
-            acao: $scope.acao
-          }
-        })
+        controller: PagamentoCtrl,
+        templateUrl: './app/features/janelas/Pagamento.tmpl.html',
+        parent: angular.element(document.body),
+        targetEvent: ev,
+        clickOutsideToClose: true,
+        fullscreen: true, // Only for -xs, -sm breakpoints.,
+        locals: {
+          dados: $scope.venda,
+          acao: $scope.acao
+        }
+      })
         .then(function () {
           $scope.venda = {
             'LCTO': null,

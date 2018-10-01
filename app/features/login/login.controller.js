@@ -3,8 +3,8 @@
     angular
         .module('ventronElectron')
         .controller('HomeCtrl', HomeController);
-    HomeController.$inject = ['$scope', '$location', '$mdSidenav', '$mdToast', '$mdDialog', 'LoginSrvc'];
-    function HomeController($scope, $location, $mdSidenav, $mdToast, $mdDialog, LoginSrvc) {
+    HomeController.$inject = ['$rootScope', '$scope', '$location', '$mdSidenav', '$mdToast', '$mdDialog', 'LoginSrvc'];
+    function HomeController($rootScope, $scope, $location, $mdSidenav, $mdToast, $mdDialog, LoginSrvc) {
         const remote = require('electron').remote;
         remote.getGlobal('dados').configs.usuario = '';
         remote.getGlobal('dados').configs.senha = '';
@@ -17,11 +17,13 @@
             LoginSrvc.login(lg.dados).then(function (response) {
                 if (response.data.message == 'Acesso Liberado') {
                     if (lg.dados.empresa === 1) {
-                        remote.getGlobal('dados').configs.razao='FLORESTAL FERRAGENS';
-                    }                    
+                        remote.getGlobal('dados').configs.razao = 'FLORESTAL FERRAGENS';
+                        $rootScope.NOMELOJA = 'FLORESTAL FERRAGENS';
+                    }
                     if (lg.dados.empresa === 2) {
-                        remote.getGlobal('dados').configs.razao='LOCALDECOR FERRAGENS';
-                    }          
+                        remote.getGlobal('dados').configs.razao = 'LOCALDECOR FERRAGENS';
+                        $rootScope.NOMELOJA = 'LOCALDECOR FERRAGENS';
+                    }
                     console.log($location.url());
                     $location.path('/caixa');
                 }

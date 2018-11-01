@@ -160,7 +160,7 @@
         danfe.comVolumes(volumes);
 
 
-        danfe.comTipo('saida');       
+        danfe.comTipo('saida');
         danfe.comFinalidade('normal');
 
 
@@ -171,7 +171,14 @@
         if (venda.operacao == 3 && danfe.getDestinatario().getEndereco().getUf() !== danfe.getEmitente().getEndereco().getUf()) {
           naturezaOperacao = ' Devolução de venda de mercadoria fora do estado sujeita ao regime de substituição tributária'
           danfe.comFinalidade('devolução');
-        }        
+        }
+        if (venda.operacao == 5 && danfe.getDestinatario().getEndereco().getUf() !== danfe.getEmitente().getEndereco().getUf()) {
+          naturezaOperacao = ' AMOSTRA GRÁTIS'
+        }
+        if (venda.operacao == 6 && danfe.getDestinatario().getEndereco().getUf() !== danfe.getEmitente().getEndereco().getUf()) {
+          naturezaOperacao = 'Retorno de bem recebido por conta de contrato de comodato'
+          danfe.comFinalidade('devolução');
+        }
         if (venda.operacao == 1 && danfe.getDestinatario().getEndereco().getUf() !== danfe.getEmitente().getEndereco().getUf()) {
           naturezaOperacao = 'VENDA DE MERCADORIA FORA DO ESTADO'
         }
@@ -1131,6 +1138,47 @@
         page: 1
       };
       $scope.Relatorio = function (vendas) {
+        let hoje = new Date();
+        let ano = (hoje.getMonth() != 11) ? hoje.getFullYear() : hoje.getFullYear()+1 ;
+        let mes = '';
+        switch (hoje.getMonth()) {
+          case 0:
+            mes = '01';
+            break;
+          case 1:
+            mes = '02';
+            break;
+          case 2:
+            mes = '03';
+            break;
+          case 3:
+            mes = '04';
+            break;
+          case 4:
+            mes = '05';
+            break;
+          case 5:
+            mes = '06';
+            break;
+          case 6:
+            mes = '07';
+            break;
+          case 7:
+            mes = '08';
+            break;
+          case 8:
+            mes = '09';
+            break;
+          case 9:
+            mes = '10';
+            break;
+          case 10:
+            mes = '11';
+            break;
+          case 11:
+            mes = '12';
+            break;
+        }
         console.log(vendas)
         VendaSrvc.carregaNPcli(vendas).then(function (res) {
           let venda = res;
@@ -1138,7 +1186,7 @@
           console.log(venda.descontoPrev())
           console.log(venda)
           var html = "<html><head><style>@media print{@page {size:A4}}page {background: white;display: block;margin: 0 auto; margin-bottom: 0.5cm;}page[size='A4'] { width: 21cm; height: 29.7cm; }table,td,tr,span{font-size:11pt;font-family:Arial;}table{width: 100%;}td {min-width:4mm;}hr{border-top:1pt dashed #000;} </style></head><body>"
-          html += "<h2>FLORESTAL</h2><span>Relatório de Movimento de Contas</span></br><span>Período 01/09/2018 a 30/09/2018</span><hr><span>Cliente: " + venda.CODCLI + "  -  " + venda.RAZAO + "</span><hr>"
+          html += "<h2>FLORESTAL</h2><span>Relatório de Movimento de Contas</span></br><span>Período 01/10/2018 a 30/10/2018</span><hr><span>Cliente: " + venda.CODCLI + "  -  " + venda.RAZAO + "</span><hr>"
           html += "<table><thead>"
           html += "<tr><td>Documento</td><td>Data</td><td>Vencimento</td><td>Valor Entrada</td><td>Valor Saida</td><td></td></tr>"
           html += "</thead><tbody>"
@@ -1148,11 +1196,11 @@
               saida.soma(item.VALORSAIDA)
             }
             console.log(saida)
-            html += "<tr><td>" + (item.LCTO || '') + "</td><td>" + item.DATA.toLocaleDateString() + "</td><td>" + item.VENCIMENTO.toLocaleDateString() + "</td><td>" + item.VALOR.toString() + "</td><td>" + item.VALORSAIDA.toString() + "</td><td></td></tr>"
+            html += "<tr><td>" + (item.LCTO || '') + "</td><td>" + item.DATA.toLocaleDateString('pt-BR') + "</td><td>" + item.VENCIMENTO.toLocaleDateString('pt-BR') + "</td><td>" + item.VALOR.toString() + "</td><td>" + item.VALORSAIDA.toString() + "</td><td></td></tr>"
           }
           html += "</tbody><tfoot><tr><td colspan='6'><hr></td></tr>"
           html += "<tr><td>TOTAIS</td><td colspan='2'><td>" + venda.TOTALDESC.soma(venda.DESCONTOITEM).valor + "</td><td>" + saida.valor + "</td><th>= " + venda.TOTALDESC.subtrai(saida).toString() + "</th></tr>"
-          html += "<tr><td colspan='5'>Desconto para pagamento até 15/09/2018</td><th>= " + venda.descontoPrev().soma(venda.DESCONTOITEM.desconto(4)).subtrai(saida).toString() + "</th></tr>"
+          html += "<tr><td colspan='5'>Desconto para pagamento até 15/"+mes+"/"+ano+"</td><th>= " + venda.descontoPrev().soma(venda.DESCONTOITEM.desconto(4)).subtrai(saida).toString() + "</th></tr>"
           html += "</tfoot></table></body></html>"
           var pdf = require('html-pdf');
 
@@ -1174,7 +1222,52 @@
 
       }
 
-      $scope.enviaEmail = function () {
+
+
+
+      $scope.janelaEmail = function (ev) {
+        $mdDialog.show({
+          controller: janelaEmailCtrl,
+          templateUrl: './app/features/janelas/enviaEmail.tmpl.html',
+          parent: angular.element(document.body),
+          targetEvent: ev,
+          focusOnOpen: true,
+          clickOutsideToClose: true,
+          multiple: true,
+          fullscreen: false, // Only for -xs, -sm breakpoints.,
+          locals: {
+      
+          }
+        })
+          .then(function (dados) {
+            $scope.enviaEmail(dados);
+            console.log(valor);
+          }, function () {
+            // console.log('You cancelled the dialog.');
+          });
+      };
+
+
+      function janelaEmailCtrl($scope, $mdDialog, locals) {
+        // $scope.param = remote.getGlobal('dados').param;
+        $scope.dados = {'email':'','texto':'','assunto':''};
+        //controla o modal que faz o pagamento
+        $scope.hide = function () {
+          $mdDialog.hide($scope.dados);
+        };
+        $scope.cancel = function () {
+          $mdDialog.cancel();
+        };
+      }
+
+
+
+
+
+
+
+
+      $scope.enviaEmail = function (dados) {
         // Generate test SMTP service account from ethereal.email
         // Only needed if you don't have a real mail account for testing
         nodemailer.createTestAccount((err, account) => {
@@ -1184,19 +1277,20 @@
             port: 465,
             secure: true, // true for 465, false for other ports
             auth: {
-              user: "suporte@florestalferragens.com.br", // generated ethereal user
-              pass: "Shin0t4m4" // generated ethereal password
+              user: "financeiro@florestalferragens.com.br", // generated ethereal user
+              pass: "Campinas11" // generated ethereal password
             }
           });
 
           // setup email data with unicode symbols
+          const homedir = require('os').homedir();
           let mailOptions = {
-            from: '"Suporte Florestal" <suporte@florestalferragens.com.br>', // sender address
-            to: 'vanius@live.com', // list of receivers
-            subject: 'aaaaa', // Subject line
-            text: 'Hello world?', // plain text body
+            from: '"Financeiro Florestal Ferragens" <financeiro@florestalferragens.com.br>', // sender address
+            to: dados.email, // list of receivers
+            subject: dados.assunto, // Subject line
+            text: dados.texto, // plain text body
             attachments: [{ // file on disk as an attachment
-              path: './relatorio.pdf' // stream this file
+              path: homedir+'/desktop/relatorio.pdf' // stream this file
             }]
           };
 

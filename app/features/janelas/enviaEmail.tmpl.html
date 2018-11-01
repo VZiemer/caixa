@@ -1,0 +1,43 @@
+<md-dialog class="dialog" layout-padding aria-label="Mango (Fruit)" layout='column'>
+    <form ng-cloak>
+      <md-toolbar>
+        <div class="md-toolbar-tools">
+          <h2>Email do clinte</h2>
+          <span flex></span>
+          <md-button class="md-icon-button" ng-click="cancel()">
+            <md-icon class="material-icons" style="color: white;">close</md-icon>
+          </md-button>
+        </div>
+      </md-toolbar>
+      <form name="item.form" ng-submit="" class="ng-pristine ng-invalid ng-invalid-required ng-valid-min ng-valid-max" style="">
+        <div layout="row" class="input-row layout-row">
+          <md-input-container flex="" class="flex">
+            <label for="input_55">Email</label>
+            <input name="name"  ng-model="dados.email" required="" class="ng-pristine ng-untouched md-input ng-invalid ng-invalid-required" id="input_55" aria-required="true" aria-invalid="true" ng-trim="false">
+          <div class="md-errors-spacer"><div class="md-char-counter">0/20</div></div>
+        </md-input-container>
+        </div>
+        <div layout="row" class="input-row layout-row">
+          <md-input-container flex="" class="flex">
+            <label for="input_57">Assunto</label>
+            <input name="fat" ng-model="dados.assunto" required="" class="ng-pristine ng-untouched md-input ng-valid-min ng-valid-max ng-invalid ng-invalid-required" id="input_57" aria-required="true" aria-invalid="true" style="">
+          <div class="md-errors-spacer"></div>
+        </md-input-container>
+        </div>
+        <div layout="row" class="input-row layout-row">
+          <md-input-container flex="" class="flex">
+            <label for="input_60">mensagem</label>
+            <input name="sodium" ng-model="dados.texto" required="" class="ng-pristine ng-untouched md-input ng-valid-min ng-valid-max ng-invalid ng-invalid-required" id="input_60" aria-required="true" aria-invalid="true" style="">
+          <div class="md-errors-spacer"></div>
+        </md-input-container>
+        </div>
+      </form>
+      </md-dialog-content>
+      <md-dialog-actions layout="row" layout-align="end">
+        <span flex></span>
+        <md-button ng-click="hide()">
+          OK
+        </md-button>
+      </md-dialog-actions>
+    </form>    
+  </md-dialog>

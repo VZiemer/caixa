@@ -20,6 +20,8 @@
           <md-option value="2">Venda de Ativo</md-option>
           <md-option value="3">Devolução de Mercadoria</md-option>
           <md-option value="4">Remessa Para Conserto</md-option>
+          <md-option value="5">Remessa de Amostra Grátis</md-option>
+          <md-option value="6">Retorno de Bem em Comodato</md-option>
         </md-select>
       </md-input-container>
       <!-- </div> -->
@@ -244,6 +246,9 @@
                       <th md-column>
                         <span>V. Unit</span>
                       </th>
+                      <th md-column>
+                        <span>V ICMS</span>
+                      </th>
                     </tr>
                   </thead>
                   <tbody md-body>
@@ -257,6 +262,7 @@
                       <td md-cell>{{item.getUnidade()}}</td>
                       <td md-cell>{{item.getValorUnitario() | currency}}</td>
                       <td md-cell>{{item.getValorTotal() | currency}}</td>
+                      <td md-cell>{{item.getIcms().getValorDoIcms()}}</td>
                     </tr>
                   </tbody>
                 </table>

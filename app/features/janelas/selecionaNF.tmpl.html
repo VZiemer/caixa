@@ -336,15 +336,41 @@
                     </div>
                   </fieldset>
                   <fieldset>
+                    <legend>NFe Referência</legend>
+                    <div layout-gt-xs="row">
+                      <md-input-container class="md-block" flex-gt-xs>
+                        <label>Numero</label>
+                        <input name="especie" ng-model="dadosRef.numNota">
+                      </md-input-container>
+                      <md-input-container class="md-block" flex-gt-xs>
+                        <label>Chave</label>
+                        <input name="Num" ng-model="dadosRef.chNota">
+                      </md-input-container>
+                      <md-input-container class="md-block" flex-gt-xs>
+                        <md-button aria-label="Adicionar" class="md-warn md-raised " ng-click="nota.comNfRef(dadosRef);dadosRef=[];console.log(nota)">
+                          Adicionar
+                        </md-button>
+                      </md-input-container>                      
+                    </div>
+                    <div layout-gt-xs="row">
+                      <md-input-container md-detect-hidden="true" flex-gt-xs>
+                        <label>Notas Referência</label>
+                        <textarea ng-model="x.refNFe" rows="1" ng-repeat=nota._NfRef></textarea>
+                      </md-input-container>
+                    </div>
+                  </fieldset>
+                  <fieldset>
                     <legend>Informações Adicionais</legend>
                     <div layout-gt-xs="row">
                       <md-input-container md-detect-hidden="true" flex-gt-xs>
                         <label>Informações</label>
-                        <textarea ng-model="nota._informacoesComplementares" rows="5"></textarea>
+                        <textarea ng-model="nota._informacoesComplementares" rows="4"></textarea>
                         <!-- <input name="codcli" ng-value=""> -->
                       </md-input-container>
                     </div>
                   </fieldset>
+
+
                 </form>
               </div>
             </md-content>

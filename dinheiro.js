@@ -33,4 +33,5 @@ Dinheiro.prototype.toString = function () {
     return "R$ " + this.valor.toFixed(2).replace('.', ',').replace(/(\d)(?=(\d{3})+\,)/g, "$1.");
 }
 
+
 module.exports = Dinheiro;

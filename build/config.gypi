@@ -5,7 +5,9 @@
     "default_configuration": "Release",
     "defines": [],
     "include_dirs": [],
-    "libraries": []
+    "libraries": [],
+    "msbuild_toolset": "v141",
+    "msvs_windows_target_platform_version": "10.0.17763.0"
   },
   "variables": {
     "asan": 0,
@@ -47,7 +49,7 @@
     "openssl_fips": "",
     "openssl_no_asm": 0,
     "shlib_suffix": "so.57",
-    "target_arch": "ia32",
+    "target_arch": "x64",
     "v8_enable_gdbjit": 0,
     "v8_enable_i18n_support": 1,
     "v8_enable_inspector": 1,
@@ -59,15 +61,9 @@
     "v8_use_snapshot": "false",
     "want_separate_host_toolset": 0,
     "want_separate_host_toolset_mkpeephole": 0,
-    "nodedir": "C:\\Users\\suporte_florestal.SRV-FRT-WEB\\.electron-gyp\\iojs-1.8.4",
+    "nodedir": "C:\\Users\\vaniu\\.node-gyp\\iojs-1.8.4",
     "standalone_static_library": 1,
-    "build_from_source": "true",
-    "disturl": "https://atom.io/download/electron",
-    "fallback_to_build": "true",
-    "platform": "win32",
-    "runtime": "electron",
-    "target": "1.8.4",
-    "target_platform": "win32",
-    "update_binary": "true"
+    "msbuild_path": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools\\MSBuild\\15.0\\Bin\\MSBuild.exe",
+    "target": "1.8.4"
   }
 }

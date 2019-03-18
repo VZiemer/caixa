@@ -6,7 +6,7 @@ var os = require('os')
 var int = ref.types.int
 let DLL = 'MP2032';
 
-// if (os.arch() == 'x64') DLL = 'MP2064';
+if (os.arch() == 'x64') DLL = 'MP2064';
 console.log(os.arch());
 console.log(DLL)
 const mp2032 = ffi.Library(DLL, {
@@ -38,42 +38,42 @@ let contador = 0;
 let venda = []
 let prodvenda = []
 let formaPgto = []
-let textoPedido =   "              RELATORIO PARA CONFERENCIA              \n";
-// textoPedido    +=   'Data emissao: 08/03/2019  -  13:48:15 \n';
-textoPedido    +=   '------------------------------------------------\n';
-// textoPedido    +=   'Item Cod.  Descricao               QtdeUn VlrUnit VlrTot\n';
-// textoPedido    +=   '--------------------------------------------------------\n';
-// textoPedido    +=   '--------------------------------------------------------\n';
-// textoPedido    +=   'TOTAL R$ :                                        999.99\n';
-// textoPedido    +=   'Dinheiro :                                        999.99\n';
-// textoPedido    +=   'TROCO :                                             0.00\n';
-// textoPedido    +=   '\n';
-// textoPedido    +=   '                   VOLTE SEMPRE!!                       \n';
-// textoPedido    +=   '\n';
-// textoPedido    +=   '**********************************************************';
-// textoPedido    +=   '        IMPRESSAO DO CUPOM FISCAL ELETRONICO            \n';
-// textoPedido    +=   '**********************************************************';
-// textoPedido    +=   '\n';
-// textoPedido    +=   '      LOCALDECOR COMERCIO DE FERRAGENS LTDA EPP         \n';
-// textoPedido    +=   ' Rua Salto Grande, 583 - Jardim do Trevo, Campinas - SP \n';
-// textoPedido    +=   'CNPJ: 18477591000159     IE: 795391300119     IM:       \n';
-// textoPedido    +=   '--------------------------------------------------------\n';
-// textoPedido    +=   '                 Extrato No. 9999999                    \n';
-// textoPedido    +=   '              CUPOM FISCAL ELETRONICO - SAT             \n';
-// textoPedido    +=   '--------------------------------------------------------\n';
-// textoPedido    +=   'CONSUMIDOR NAO IDENTIFICADO                             \n';
-// textoPedido    +=   'TOTAL R$   999.99                                       \n';
-// textoPedido    +=   '\n';
-// textoPedido    +=   '--------------------------------------------------------\n';
-// textoPedido    +=   'OBSERVACOES DO CONTRIBUINTE:                            \n';
-// textoPedido    +=   'Valor aprox. dos tributos desde cupom R$ 99.99(99.99%)  \n';
-// textoPedido    +=   'Federal 99.99% Estadual 99.99% Municipal 99.99%         \n';
-// textoPedido    +=   '(Conforme Lei Fed. 12.741/2012)                         \n';
-// textoPedido    +=   '--------------------------------------------------------\n';
-// textoPedido    +=   '                     SAT No. 9999999                    \n';
-// textoPedido    +=   '                    09/03/2019 - 11:00                  \n';
-// textoPedido    +=   '\n';
-// textoPedido    +=   ' 9999 9999 9999 9999 9999 9999 9999 9999 9999 9999 9999 \n';
+let textoPedido =   "              RELATORIO PARA CONFERENCIA                \n";
+textoPedido    +=   'Data emissao: 08/03/2019  -  13:48:15                   \n';
+textoPedido    +=   '--------------------------------------------------------\n';
+textoPedido    +=   'Item Cod.  Descricao               QtdeUn VlrUnit VlrTot\n';
+textoPedido    +=   '--------------------------------------------------------\n';
+textoPedido    +=   '--------------------------------------------------------\n';
+textoPedido    +=   'TOTAL R$ :                                        999.99\n';
+textoPedido    +=   'Dinheiro :                                        999.99\n';
+textoPedido    +=   'TROCO :                                             0.00\n';
+textoPedido    +=   '\n';
+textoPedido    +=   '                     VOLTE SEMPRE!!                     \n';
+textoPedido    +=   '\n';
+textoPedido    +=   '********************************************************\n';
+textoPedido    +=   '        IMPRESSAO DO CUPOM FISCAL ELETRONICO            \n';
+textoPedido    +=   '********************************************************\n';
+textoPedido    +=   '\n';
+textoPedido    +=   '      LOCALDECOR COMERCIO DE FERRAGENS LTDA EPP         \n';
+textoPedido    +=   ' Rua Salto Grande, 583 - Jardim do Trevo, Campinas - SP \n';
+textoPedido    +=   'CNPJ: 18477591000159     IE: 795391300119     IM:       \n';
+textoPedido    +=   '--------------------------------------------------------\n';
+textoPedido    +=   '                 Extrato No. 9999999                    \n';
+textoPedido    +=   '              CUPOM FISCAL ELETRONICO - SAT             \n';
+textoPedido    +=   '--------------------------------------------------------\n';
+textoPedido    +=   'CONSUMIDOR NAO IDENTIFICADO                             \n';
+textoPedido    +=   'TOTAL R$   999.99                                       \n';
+textoPedido    +=   '\n';
+textoPedido    +=   '--------------------------------------------------------\n';
+textoPedido    +=   'OBSERVACÕES DO CONTRIBUINTE:                            \n';
+textoPedido    +=   'Valor aprox. dos tributos desde cupom R$ 99.99(99.99%)  \n';
+textoPedido    +=   'Federal 99.99% Estadual 99.99% Municipal 99.99%         \n';
+textoPedido    +=   '(Conforme Lei Fed. 12.741/2012)                         \n';
+textoPedido    +=   '--------------------------------------------------------\n';
+textoPedido    +=   '                     SAT No. 9999999                    \n';
+textoPedido    +=   '                    09/03/2019 - 11:00                  \n';
+textoPedido    +=   '\n';
+textoPedido    +=   ' 9999 9999 9999 9999 9999 9999 9999 9999 9999 9999 9999 \n';
 
 
 function asyncLoop (o){
@@ -99,7 +99,7 @@ function AjustaLarguraPapel () {
 
 
 function iniciaPorta () {
-    mp2032.IniciaPorta.async("COM8",AjustaLarguraPapel)
+    mp2032.IniciaPorta.async("192.168.15.168",AjustaLarguraPapel)
 }
 function alinhamento (err,res) {
     let cent = String.fromCharCode(27,64);
@@ -107,24 +107,23 @@ function alinhamento (err,res) {
 }
 
 function defineTexto (err,res) {
-    let cent = String.fromCharCode(27,15);
+    let cent = String.fromCharCode(27,77,49);
     mp2032.ComandoTX.async(cent,cent.length,imprimeTexto);
 }
 
 function imprimeTexto (err,res) {
     console.log('iniciaImpressao' + err+res)
-    // mp2032.FormataTX.async(textoPedido,1,0,0,0,1,ConfiguraCodigoBarras)
-    mp2032.BematechTX.async(textoPedido,ConfiguraCodigoBarras)
-
+    mp2032.FormataTX.async(textoPedido,3,0,0,0,1,ConfiguraCodigoBarras)
+    // mp2032.BematechTX.async(textoPedido,ConfiguraCodigoBarras)
 }
 
 function ConfiguraCodigoBarras (err,res) {
-    console.log('impress�o de QR code' + err+res)
+    console.log('impressão de QR code' + err+res)
     mp2032.ConfiguraCodigoBarras.async(50,0,0,1,0,ImprimeCodbar128)
 }
 
 function ImprimeCodbar128 (err,res) {
-    console.log('impress�o de QR code' + err+res)
+    console.log('impressão de QR code' + err+res)
     mp2032.ImprimeCodigoBarrasCODE128.async("99999999999999999999",Centraliza)
 }
 
@@ -134,7 +133,7 @@ function Centraliza (err,res) {
 }
 
 function ImprimeQR (err,res) {
-    console.log('impress�o de QR code',err,res)
+    console.log('impressão de QR code',err,res)
     mp2032.ImprimeCodigoQRCODE.async(1,6,0,10,1,"999999999999999999999999999999999999999999|20190903110000|99999||12312321",cortaVia)
 }
 

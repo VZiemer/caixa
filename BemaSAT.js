@@ -22,6 +22,7 @@ const bemafi = ffi.Library(DLL, {
   // relatórios
   // 'Bematech_FI_LeituraX': ['int', []],
   'ConsultarStatusOperacional': ['string', ['int', 'string']],
+  'EnviarDadosVenda': ['string',['int','string','string','string']]
   //cupom fiscal
   // 'Bematech_FI_AbreCupom': ['int', ['string']],
   // 'Bematech_FI_VendeItem': ['int', ['string', 'string', 'string', 'string', 'string', 'int', 'string', 'string', 'string']],
@@ -40,6 +41,8 @@ const bemafi = ffi.Library(DLL, {
   // 'Bematech_FI_NumeroCupom': ['int', [stringPtr]]
 });
 
+var randomnumber = Math.floor(Math.random() * 9999 ) + 10000;
+console.log(randomnumber)
 
 
 //consulta de equipamento
@@ -49,8 +52,19 @@ async function ConsultarStatusOperacional(numeroSessao,codigoDeAtivacao) {
   return cancela;
 }
 
-var randomnumber = Math.floor(Math.random() * 9999 ) + 10000;
-console.log(randomnumber)
+async function EnviarDadosVenda (dadosvenda) {
+  let nCupom = ref.allocCString('      ')
+  const cupom = await bemafi.ConsultarStatusOperacional(numeroSessao,codigoDeAtivacao,)
+  console.log('Nucupom ' + cupom)
+  console.log(ref.readCString(nCupom, 0))
+  return ref.readCString(nCupom, 0)
+
+}
+
+
+
+
+
 ConsultarStatusOperacional(randomnumber,'local000578221')
 
 // //cancelamento retorna o código
@@ -95,12 +109,12 @@ ConsultarStatusOperacional(randomnumber,'local000578221')
 //   const fechacupom = await bemafi.Bematech_FI_FechaCupom('Dinheiro', 'D', '$', '0000', venda.TOTALDESC.valueStr(), 'Obrigado, volte sempre !!!')
 //   console.log('fecha resumido ' + fechacupom);
 
-//   // retorna o numero do cupom após o fechamento
-//   let nCupom = ref.allocCString('      ')
-//   const cupom = await bemafi.Bematech_FI_NumeroCupom(nCupom)
-//   console.log('Nucupom ' + cupom)
-//   console.log(ref.readCString(nCupom, 0))
-//   return ref.readCString(nCupom, 0)
+  // retorna o numero do cupom após o fechamento
+  // let nCupom = ref.allocCString('      ')
+  // const cupom = await bemafi.Bematech_FI_NumeroCupom(nCupom)
+  // console.log('Nucupom ' + cupom)
+  // console.log(ref.readCString(nCupom, 0))
+  // return ref.readCString(nCupom, 0)
 // }
 
 // exports.gravaECF = gravaECF

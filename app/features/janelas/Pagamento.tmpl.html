@@ -10,6 +10,12 @@
         <md-button ng-if="acao=='V'" class="md-raised" ng-disabled="venda.PAGAR.valor" ng-click="concluir($event)">
           CONCLUIR
         </md-button>
+        <md-button ng-if="acao=='V'" class="md-raised" ng-disabled="venda.PAGAR.valor" ng-click="concluirMptest($event)">
+          CONCLUIRMPTEST
+        </md-button>
+        <md-button ng-if="acao=='V'" class="md-raised" ng-disabled="venda.PAGAR.valor" ng-click="geraNFe(venda)">
+          GERANFETESTE
+        </md-button>
         <md-button ng-if="acao=='V'" class="md-raised" ng-disabled="venda.PAGAR.valor" ng-click="concluirCupom($event)">
           CONCLUIR/CUPOM
         </md-button>

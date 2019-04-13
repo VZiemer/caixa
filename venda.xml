@@ -35,14 +35,14 @@
                 </ICMS40>
             </ICMS>
             <PIS>
-                <PISNT>
-                    <CST>04</CST>
-                </PISNT>
+                <PISSN>
+                    <CST>49</CST>
+                </PISSN>
             </PIS>
             <COFINS>
-                <COFINSNT> 
-                    <CST>04</CST>
-                </COFINSNT>
+                <COFINSSN> 
+                    <CST>49</CST>
+                </COFINSSN>
             </COFINS>
         </imposto>
     </det>

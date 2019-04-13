@@ -1,0 +1,57 @@
+<CFe>
+  <infCFe versaoDadosEnt="0.07">
+    <ide>
+      <CNPJ>18477591000158</CNPJ>
+      <signAC>GG/nwWgpRee32wk0D+kRuUroxB/6oWPJ1n9Yb3bH/Chi2Xma9yet1TnQZQ3KAagouxmqbQQidBp/S5MJuwbC8uvO29QsgbH0NsRXzaxtmkCUF9QmWG1DWBzfGY0Wum0dCRbq4A6zElRS18IQa9fXrF9S/hMHjXVoKFPuxU2vSMYnXdhmaZftI9nZNFyjMS1M19jvjLIeCPdV6f8qFuJ7xh0RzTJwDjlGCohBuaUm7hWmvaXgtG9g70o/C5atauhvrcIv4dgpj5KtnkweSo1GLbHKU+CPBYIts2+fv4Go1ttbPbVhDi0SyZzJM6Zwk4Ak663LIdVTCAHJaQPAnMNtHg==</signAC>
+      <!-- <signAC>SGR-SAT SISTEMA DE GESTAO E RETAGUARDA DO SAT</signAC> -->
+      <numeroCaixa>001</numeroCaixa>
+    </ide>
+    <emit>
+      <CNPJ>18477591000158</CNPJ>
+      <IE>795391300119</IE>
+      <indRatISSQN>N</indRatISSQN>
+    </emit>
+    <dest> 
+        <!-- <CPF/>  -->
+    </dest> 
+    <det nItem="1">
+      <prod>
+        <cProd>442</cProd>
+        <xProd>DOB FGV 110 RETA</xProd>
+        <CFOP>5102</CFOP>
+        <uCom>PC</uCom>
+        <qCom>1.0000</qCom>
+        <vUnCom>1.96</vUnCom>
+        <indRegra>A</indRegra>
+      </prod>
+      <imposto>
+        <vItem12741>0.00</vItem12741>
+        <ICMS>
+          <ICMSSN102>
+            <Orig>0</Orig>
+            <CSOSN>102</CSOSN>
+          </ICMSSN102>
+        </ICMS>
+        <PIS>
+          <PISSN>
+            <CST>49</CST>
+          </PISSN>
+        </PIS>
+        <COFINS>
+          <COFINSSN>
+            <CST>49</CST>
+          </COFINSSN>
+        </COFINS>
+      </imposto>
+    </det>
+    <total>
+      <vCFeLei12741>0.00</vCFeLei12741>
+    </total>
+    <pgto>
+      <MP>
+        <cMP>01</cMP>
+        <vMP>3.92</vMP>
+      </MP>
+    </pgto>
+  </infCFe>
+</CFe>

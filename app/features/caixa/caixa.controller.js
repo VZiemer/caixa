@@ -1827,15 +1827,13 @@
           var xml = builder.create('CFe')
             .ele('infCFe', { 'versaoDadosEnt': '0.07' })
             .ele('ide')
-            .ele('CNPJ', res.getEmitente().getRegistroNacional()).up()
+            // .ele('CNPJ', res.getEmitente().getRegistroNacional()).up()
             .ele('signAC', 'SGR-SAT SISTEMA DE GESTAO E RETAGUARDA DO SAT').up()
             .ele('numeroCaixa', '001').up().up()
             .ele('emit')
             .ele('CNPJ', res.getEmitente().getRegistroNacional()).up()
             .ele('IE', res.getEmitente().getInscricaoEstadual()).up()
-            // .ele('IM').up()
-            .ele('cRegTribISSQN',2).up()
-            .ele('indRatISSQN','N').up().up()
+            .ele('indRatISSQN', 'N').up().up()
             .ele('dest').up()
 
 
@@ -1854,6 +1852,7 @@
               .ele('vUnCom', itens[i].getValorUnitario()).up()
               .ele('indRegra', 'A').up().up()
               .ele('imposto')
+              .ele('vItem12741', '0.00').up()
               .ele('ICMS')
               .ele('ICMSSN' + itens[i].getIcms().getSituacaoTributaria())
               .ele('Orig', itens[i].getIcms().getOrigem()).up()
@@ -1865,17 +1864,14 @@
               .ele('COFINSSN')
               .ele('CST', 49).up().up().up().up()
               ;
-
-
-
-
           }
 
-          xml.ele('total').up()
-          .ele('pgto')
-          .ele('MP')
-          .ele('cMP', '01').up()
-          .ele('vMP', res.getValorTotalDaNota())
+          xml.ele('total')
+          .ele('vCFeLei12741','0.00').up().up()
+            .ele('pgto')
+            .ele('MP')
+            .ele('cMP', '01').up()
+            .ele('vMP', res.getValorTotalDaNota())
           // console.log(xml)
 
 

@@ -16,7 +16,7 @@
             <form name="login">
                 <md-input-container class="md-block">
                     <label for="empresa">Empresa</label>
-                    <md-select ng-model="lg.dados.empresa" placeholder="Empresa" required>
+                    <md-select ng-change='lg.alteratema()' ng-model="lg.dados.empresa" placeholder="Empresa" required>
                         <md-option ng-value="1" >Florestal</md-option>
                         <md-option ng-value="2" >Local</md-option>
                     </md-select>
@@ -31,7 +31,7 @@
                 </md-input-container>                
                 <md-input-container class="md-block">
                     <div layout="row" layout-align="center center">
-                        <md-button class="md-raised md-accent" flex="50" ng-click="lg.Login($event)">Login</md-button>
+                        <md-button type="submit" class="md-raised md-accent" flex="50" ng-click="lg.Login($event)">Login</md-button>
                     </div>
                 </md-input-container>                                
             </form>

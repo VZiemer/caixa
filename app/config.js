@@ -29,43 +29,42 @@
                       };
 
 
-
-
-                    $mdThemingProvider.definePalette('localdecor', {
-                      '50': 'e0e1ed',
-                      '100': 'b3b4d1',
-                      '200': '8083b3',
-                      '300': '4d5194',
-                      '400': '262b7d',
-                      '500': '000666',
-                      '600': '00055e',
-                      '700': '000453',
-                      '800': '000349',
-                      '900': '000238',
-                      'A100': '6e6eff',
-                      'A200': '3b3bff',
-                      'A400': '0808ff',
-                      'A700': '0000ee',
-                      'contrastDefaultColor': 'light',
-                      'contrastDarkColors': [
-                        '50',
-                        '100',
-                        '200'
-                      ],
-                      'contrastLightColors': [
-                        '300',
-                        '400',
-                        '500',
-                        '600',
-                        '700',
-                        '800',
-                        '900',
-                        'A100',
-                        'A200',
-                        'A400',
-                        'A700'
-                      ]
-                    });
+                      $mdThemingProvider.definePalette('localdecor', {
+                        '50': 'e2e4ef',
+                        '100': 'b6bbd7',
+                        '200': '868ebc',
+                        '300': '5561a1',
+                        '400': '303f8c',
+                        '500': '0c1d78',
+                        '600': '0a1a70',
+                        '700': '081565',
+                        '800': '06115b',
+                        '900': '030a48',
+                        'A100': '7c83ff',
+                        'A200': '4953ff',
+                        'A400': '1623ff',
+                        'A700': '000dfc',
+                        'contrastDefaultColor': 'light',
+                        'contrastDarkColors': [
+                          '50',
+                          '100',
+                          '200',
+                          'A100'
+                        ],
+                        'contrastLightColors': [
+                          '300',
+                          '400',
+                          '500',
+                          '600',
+                          '700',
+                          '800',
+                          '900',
+                          'A200',
+                          'A400',
+                          'A700'
+                        ]
+                      });
+                      
                     $mdThemingProvider.definePalette('florestal', {
                         '50': 'edf5ea',
                         '100': 'd2e5ca',
@@ -101,7 +100,6 @@
                           '900'
                         ]
                       });
-
                       $mdThemingProvider.theme('localdecor').primaryPalette('localdecor').accentPalette('localdecor').warnPalette('localdecor');
                       $mdThemingProvider.theme('default').primaryPalette('florestal').accentPalette('florestal').warnPalette('florestal');
                     $mdThemingProvider.alwaysWatchTheme(true);

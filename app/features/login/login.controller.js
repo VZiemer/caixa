@@ -12,6 +12,10 @@
         remote.getGlobal('dados').configs.razao = '';
         var lg = this;
         lg.Login = login;
+        lg.alteratema =function(){
+            $rootScope.tema = lg.dados.empresa == 1 ? 'default' : 'localdecor';
+            $rootScope.NOMELOJA = lg.dados.empresa == 1 ? 'FLORESTAL FERRAGENS' : 'LOCALDECOR FERRAGENS';
+        }
         lg.dados = remote.getGlobal('dados').configs;
         function login(ev) {
             LoginSrvc.login(lg.dados).then(function (response) {

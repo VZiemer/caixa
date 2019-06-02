@@ -180,8 +180,11 @@ function AppCtrl ($rootScope,$scope, $timeout, $mdSidenav,$location,VendaSrvc) {
   $scope.appVersion = window.require('electron').remote.app.getVersion()
   console.log ($scope.empresa)
   var vm = this;
-  vm.theme = 'localdecor'
+  $rootScope.tema = 'default'
   vm.msgs = [];
+  vm.Logout= function(){
+    $location.path('/login');
+  }
   vm.keys = {
     ENTER    : function(name, code) { vm.msgs.push({ name: name, code: code}); alert(name)},
     ESC      : function(name, code) { vm.msgs.push({ name: name, code: code}) },

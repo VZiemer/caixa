@@ -43,7 +43,7 @@
   const nodemailer = require('nodemailer');
   const remote = require('electron').remote;
   angular.module('ventronElectron').controller('VendasCtrl', VendasCtrl);
-  VendasCtrl.$inject = ['$scope', '$q', 'VendaSrvc', '$mdDialog', '$mdToast', '$location'];
+  VendasCtrl.$inject = ['$scope','$rootScope', '$q', 'VendaSrvc', '$mdDialog', '$mdToast', '$location'];
 
 
 
@@ -52,16 +52,15 @@
   // # gera nfe
   function geraNFCtrl($scope, VendaSrvc, $mdDialog, $mdToast, locals) {
     var empresaIniciada = remote.getGlobal('dados').configs.empresa;
-
-    if (empresaIniciada == 1) {
+    if (empresaIniciada == 1) { //seleciona qual a pasta de gravação 
       var caminhopasta = config.PASTAFLORESTAL
       console.log(caminhopasta)
     } else if (empresaIniciada == 2) {
       var caminhopasta = config.PASTALOCAL
       console.log(caminhopasta)
     }
-    var danfe = new NFe();
-    $scope.venda = locals.venda ? locals.venda : new venda()
+    var danfe = new NFe(); // variável que contem os dados da NF
+    $scope.venda = locals.venda ? locals.venda : new venda() // venda para geração da nota
     $scope.nota = new NFe();
     //cria as variáveis necessárias
     var emitente = new Emitente();
@@ -73,7 +72,7 @@
       return new Promise((resolve, reject) => {
         firebird.attach(conexao, function (err, db) {
           if (err) throw err;
-          db.query('select p.crt,c.razao,c.cgc,c.insc,c.endereco,c.bairro,c.cep,c.fone,c.email,ci.nom_cidade as cidade,ci.codibge,ci.estado from param p  join cliente c on p.codparc = c.codigo  join cidade ci on c.codcidade = ci.cod_cidade where p.codigo=?', empresa, function (err, result) {
+          db.query('select p.crt,c.razao,c.cgc,c.insc,c.endereco,c.bairro,c.cep,c.fone,c.email,ci.nom_cidade as cidade,ci.codibge,ci.estado,p.icms_simples from param p  join cliente c on p.codparc = c.codigo  join cidade ci on c.codcidade = ci.cod_cidade where p.codigo=?', empresa, function (err, result) {
             if (err) throw err;
             db.detach(function () {
               emitente.comNome(result[0].RAZAO)
@@ -82,6 +81,7 @@
                 .comTelefone(result[0].FONE)
                 .comEmail(result[0].EMAIL)
                 .comCrt(result[0].CRT)
+                .comIcmsSimples(result[0].ICMS_SIMPLES)
                 .comEndereco(new Endereco()
                   .comLogradouro(result[0].ENDERECO)
                   .comNumero(result[0].NUMERO)
@@ -297,19 +297,22 @@
             item.BASECALC,
             item.ALIQ,
             item.ORIG,
-            venda.operacao
+            venda.operacao,
+            danfe.getEmitente().getIcmsSimples()
           )
           danfe.adicionarItem(new Item()
-            .comCodigo(item.CODPRO)
+            .comCodigo(item.CODPROFISCAL)
             .comDescricao(item.DESCRICAO)
             .comNcmSh(item.NCM)
             .comIcms(icms)
             // .comOCst('020')
             // .comCfop('6101')
             .comUnidade(item.UNIDADE)
-            .comQuantidade(item.QTD)
-            .comValorUnitario(item.VALOR)
+            .comQuantidade(item.QTDFISCAL)
+            .comValorUnitario(item.VALORUNITFISCAL)
             .comValorDoFrete(item.FRETEPROD)
+            .comValorDoIpiDevolucao(venda.operacao == 3 ? item.ALIQIPI / 100 * item.BASECALC : 0)
+
           );
         }
         resolve(venda);
@@ -339,17 +342,58 @@
         impostos.comBaseDeCalculoDoIssqn(0);
         impostos.comValorTotalDoIssqn(0);
         danfe.comImpostos(impostos);
+
+        danfe.comValorTotalDoIpiDevol(danfe.getItens().reduce(function (a, item) {
+          return a.soma(item.getValorDoIpiDevolucao());
+        }, new dinheiro(0)));
+        danfe.comValorTotalDaNota(danfe.getValorTotalDoIpiDevol().valor + danfe.getItens().reduce(function (a, item) {
+          return a.soma(item.getValorDoFrete()).soma(item.getValorTotal());
+        }, new dinheiro(0)));
+        danfe.comValorTotalDosProdutos(danfe.getItens().reduce(function (a, item) {
+          return a.soma(item.getValorTotal());
+        }, new dinheiro(0)));
+        danfe.comValorBaseCalculoDoIpiDevol(danfe.getItens().reduce(function (a, item) {
+          if (item.getPorcentagemDoIpiDevolucao()) {
+            return a.soma(item.getValorTotal());
+          } else {
+            return a.soma(0);
+          }
+        }, new dinheiro(0)));
+        danfe.comValorTotalDoIcmsSn(danfe.getItens().reduce(function (a, item) {
+          return a.soma(item.getIcms().getvalorCredICMSSN());
+        }, new dinheiro(0)));        
+        danfe.comValorTotalDosServicos(0);
+        danfe.comValorDoFrete(danfe.getItens().reduce(function (a, item) {
+          return a.soma(item.getValorDoFrete());
+        }, new dinheiro(0)));
+        danfe.comValorDoSeguro(0);
+        danfe.comDesconto(0);
+        danfe.comOutrasDespesas(0);
+
+
+
         var infoComplementar = 'Documento emitido por ME ou EPP optante pelo simples nacional;';
         console.log('codregime', danfe.getEmitente().getCodigoRegimeTributario())
         if (danfe.getEmitente().getCodigoRegimeTributario() === '1') {
           infoComplementar += 'Valor dos produtos Tributado pelo Simples Nacional R$' + (danfe.getItens().reduce(function (a, item) {
             return a.soma(item.getValorTotal());
           }, new dinheiro(0))) + ';';
+          infoComplementar += 'Valor dos produtos Substituicao Tributaria ' + danfe.getImpostos().getBaseDeCalculoDoIcmsStFormatada() + ';';
+          infoComplementar += 'PERMITE O APROVEITAMENTO DO CRÉDITO DE ICMS NO VALOR DE R$'+ danfe.getValorTotalDoIcmsSn()+'; CORRESPONDENTE À ALÍQUOTA DE '+danfe.getEmitente().getIcmsSimples()+'%, NOS TERMOS DO ARTIGO 23 DA LC 123'
+
         } else if (danfe.getEmitente().getCodigoRegimeTributario() === '2') {
           infoComplementar += 'Estabelecimento impedido de recolher o ICMS pelo simples nacional no inciso 1 do art. 2 da LC 123/2006;'
           infoComplementar += 'Imposto recolhido por substituição ART 313-Y DO RICMS;'
-          infoComplementar += 'Valor dos produtos Tributado pelo Simples Nacional ' + danfe.getImpostos().getBaseDeCalculoDoIcmsFormatada() + ';';
-          infoComplementar += 'Valor dos produtos Substituicao Tributaria ' + danfe.getImpostos().getBaseDeCalculoDoIcmsStFormatada() + ';';
+          if (venda.operacao == 1) {
+            infoComplementar += 'Valor dos produtos Tributado pelo Simples Nacional ' + danfe.getImpostos().getBaseDeCalculoDoIcmsFormatada() + ';';
+            infoComplementar += 'Valor dos produtos Substituicao Tributaria ' + danfe.getImpostos().getBaseDeCalculoDoIcmsStFormatada() + ';';
+            infoComplementar += 'PERMITE O APROVEITAMENTO DO CRÉDITO DE ICMS NO VALOR DE R$'+ danfe.getValorTotalDoIcmsSn()+'; CORRESPONDENTE À ALÍQUOTA DE '+danfe.getEmitente.getIcmsSimples()+'%, NOS TERMOS DO ARTIGO 23 DA LC 123'
+          }
+        }
+        if (venda.operacao == 3) {
+          infoComplementar += 'Valor da Base de calculo do IPI devolvido R$ ' + danfe.getValorBaseCalculoDoIpiDevol().valor + ';';
+          infoComplementar += 'Valor do IPI Devolvido R$ ' + danfe.getValorTotalDoIpiDevol().valor + ';';
+        
         }
         if (venda.DESCONTOITEM.valor) {
           infoComplementar += 'Valor Pago com crédito na loja ' + venda.DESCONTOITEM.valor * (-1) + ';';
@@ -358,19 +402,9 @@
 
         danfe.comInformacoesComplementares(infoComplementar);
 
-        danfe.comValorTotalDaNota(danfe.getItens().reduce(function (a, item) {
-          return a.soma(item.getValorDoFrete()).soma(item.getValorTotal());
-        }, new dinheiro(0)));
-        danfe.comValorTotalDosProdutos(danfe.getItens().reduce(function (a, item) {
-          return a.soma(item.getValorTotal());
-        }, new dinheiro(0)));
-        danfe.comValorTotalDosServicos(0);
-        danfe.comValorDoFrete(danfe.getItens().reduce(function (a, item) {
-          return a.soma(item.getValorDoFrete());
-        }, new dinheiro(0)));
-        danfe.comValorDoSeguro(0);
-        danfe.comDesconto(0);
-        danfe.comOutrasDespesas(0);
+
+
+
         resolve(danfe);
       })
     };
@@ -401,6 +435,7 @@
       dadosEmitente(remote.getGlobal('dados').configs.empresa, venda).then(dadosNota).then(criaNf).then(itensNota).then(pagamentosNota).then(totalizadorNfe).then(function (res) {
         // depos gerar o objeto salva no scope do angular para verificação
         $scope.nota = res;
+        console.log($scope.nota)
         $scope.$apply();
         alert = $mdDialog.alert({
           title: 'Atenção',
@@ -610,6 +645,7 @@
                 vDesc: res.getDesconto(),
                 vII: '',
                 vIPI: '',
+                vIPIDevol: res.getValorTotalDoIpiDevol().valor || 0,
                 vPIS: '',
                 vCOFINS: '',
                 vOutro: res.getOutrasDespesas(),
@@ -695,8 +731,8 @@
                 nItemPed: '',
                 nFCI: '',
                 nRECOPI: '',
-                pDevol: '',
-                vIPIDevol: '',
+                pDevol: itens[i].getPorcentagemDoIpiDevolucao(),
+                vIPIDevol: itens[i].getValorDoIpiDevolucao(),
                 vTotTrib: '',
                 infAdProd: ''
               }
@@ -1061,7 +1097,7 @@
 
 
 
-  function VendasCtrl($scope, $q, VendaSrvc, $mdDialog, $mdToast, $location) {
+  function VendasCtrl($scope,$rootScope, $q, VendaSrvc, $mdDialog, $mdToast, $location) {
     $scope.param = remote.getGlobal('dados').param;
 
     const screenElectron = electron.screen;
@@ -1101,7 +1137,7 @@
     };
 
 
-    function alteraValorCtrl($scope, $mdDialog, $mdToast, locals) {
+    function alteraValorCtrl($scope,$rootScope, $mdDialog, $mdToast, locals) {
       $scope.produto = locals.produto;
       $scope.hide = function () {
         $mdDialog.hide();
@@ -1140,7 +1176,7 @@
         });
     };
 
-    function alteraValorVendaCtrl($scope, $mdDialog, $mdToast, locals) {
+    function alteraValorVendaCtrl($scope,$rootScope, $mdDialog, $mdToast, locals) {
       $scope.VALOR = 0;
       $scope.hide = function () {
         $mdDialog.hide();
@@ -1153,7 +1189,7 @@
       };
     }
 
-    function puxaLocalCtrl($scope, $mdDialog, $mdToast, locals) {
+    function puxaLocalCtrl($scope,$rootScope, $mdDialog, $mdToast, locals) {
       // $scope.param = remote.getGlobal('dados').param;
       $scope.pedido = '';
       //controla o modal que faz o pagamento
@@ -1166,7 +1202,7 @@
       };
     }
 
-    function PesquisaVendaFechamentoCtrl($scope, $mdDialog, $mdToast, locals) {
+    function PesquisaVendaFechamentoCtrl($scope,$rootScope, $mdDialog, $mdToast, locals) {
       // $scope.param = remote.getGlobal('dados').param;
       //controla o modal que pesquisa vendas
       $scope.status = locals.status;
@@ -1290,7 +1326,7 @@
       };
 
 
-      function janelaEmailCtrl($scope, $mdDialog, locals) {
+      function janelaEmailCtrl($scope,$rootScope, $mdDialog, locals) {
         // $scope.param = remote.getGlobal('dados').param;
         $scope.dados = { 'email': '', 'texto': '', 'assunto': '' };
         //controla o modal que faz o pagamento
@@ -1372,7 +1408,7 @@
       };
     }
 
-    function PesquisaVendaCtrl($scope, $mdDialog, $mdToast, locals) {
+    function PesquisaVendaCtrl($scope,$rootScope, $mdDialog, $mdToast, locals) {
       // $scope.param = remote.getGlobal('dados').param;
       //controla o modal que pesquisa vendas
       $scope.status = locals.status;
@@ -1419,7 +1455,7 @@
       };
     }
 
-    function buscaCtrl($scope, $mdDialog) {
+    function buscaCtrl($scope,$rootScope, $mdDialog) {
       $scope.param = remote.getGlobal('dados').param;
       //controla o modal que faz o pagamento
       $scope.mainScreen = screenElectron.getPrimaryDisplay().size.height;
@@ -1453,7 +1489,7 @@
       };
     }
 
-    function insereCPFCtrl($scope, $mdDialog, locals) {
+    function insereCPFCtrl($scope,$rootScope, $mdDialog, locals) {
       // $scope.param = remote.getGlobal('dados').param;
       $scope.cliente = locals.venda.CGC;
       //controla o modal que faz o pagamento
@@ -1465,7 +1501,7 @@
       };
     }
 
-    function inserePgtoCtrl($scope, $mdDialog, $mdToast, locals) { //controla o modal que faz o pagamento
+    function inserePgtoCtrl($scope,$rootScope, $mdDialog, $mdToast, locals) { //controla o modal que faz o pagamento
       $scope.param = remote.getGlobal('dados').param;
       // $scope.venda = locals.dados;
       console.log(locals.venda)
@@ -1509,373 +1545,280 @@
       };
     }
 
-    function PagamentoCtrl($scope, $mdDialog, locals, $timeout, $mdToast) { //controla o modal que faz o pagamento       
+    function PagamentoCtrl($scope, $mdDialog, locals, $mdToast) { //controla o modal que faz o pagamento       
+
+      // var danfe = new NFe();
+      // // $scope.venda = locals.venda ? locals.venda : new venda()
+      // $scope.nota = new NFe();
+      // //cria as variáveis necessárias
+      // var emitente = new Emitente();
+      // var destinatario = new Destinatario();
+      // var transportador = new Transportador();
+      // var volumes = new Volumes();
+      // // funções de criação da nota
+      // function dadosEmitente(empresa, venda) {
+      //   return new Promise((resolve, reject) => {
+      //     firebird.attach(conexao, function (err, db) {
+      //       if (err) throw err;
+      //       db.query('select p.crt,c.razao,c.cgc,c.insc,c.endereco,c.bairro,c.cep,c.fone,c.email,ci.nom_cidade as cidade,ci.codibge,ci.estado from param p  join cliente c on p.codparc = c.codigo  join cidade ci on c.codcidade = ci.cod_cidade where p.codigo=?', empresa, function (err, result) {
+      //         if (err) throw err;
+      //         db.detach(function () {
+      //           emitente.comNome(result[0].RAZAO)
+      //             .comRegistroNacional(result[0].CGC)
+      //             .comInscricaoEstadual(result[0].INSC)
+      //             .comTelefone(result[0].FONE)
+      //             .comEmail(result[0].EMAIL)
+      //             .comCrt(result[0].CRT)
+      //             .comEndereco(new Endereco()
+      //               .comLogradouro(result[0].ENDERECO)
+      //               .comNumero(result[0].NUMERO)
+      //               .comComplemento('')
+      //               .comCep(result[0].CEP)
+      //               .comBairro(result[0].BAIRRO)
+      //               .comMunicipio(result[0].CIDADE)
+      //               .comCidade(result[0].CIDADE)
+      //               .comCodMunicipio(result[0].CODIBGE)
+      //               .comUf(result[0].ESTADO));
+      //           console.log(emitente);
+      //           resolve(venda);
+      //         })
+      //       })
+      //     })
+      //   });
+      // }
+
+      // function dadosNota(venda) {
+      //   return new Promise((resolve, reject) => {
+      //     if (venda.CPFCupom) {
+      //       destinatario.comRegistroNacional(venda.CPFCupom)
+      //         .comEndereco(new Endereco()
+      //           .comUf(venda.ESTADO));
+      //     }
+      //     else {
+      //       destinatario.comTipoRegistro(2)
+      //         .comEndereco(new Endereco()
+      //           .comUf(venda.ESTADO));
+
+      //     }
+      //     resolve(venda);
+      //   })
+      // }
+
+      // function criaNf(venda) {
+      //   return new Promise((resolve, reject) => {
+      //     danfe = new NFe();
+      //     var tipoFrete = '';
+      //     switch (venda.TRANSPORTE.TIPOFRETE) {
+      //       case "0":
+      //         tipoFrete = 'porContaDoEmitente';
+      //         break;
+      //       case "1":
+      //         tipoFrete = 'porContaDoDestinatarioRemetente';
+      //         break;
+      //       case "2":
+      //         tipoFrete = 'porContaDeTerceiros';
+      //         break;
+      //       case "3":
+      //         tipoFrete = 'porContaProprioRemetente';
+      //         break;
+      //       case "4":
+      //         tipoFrete = 'porContaProprioDestinatario';
+      //         break;
+      //       default:
+      //         tipoFrete = 'semFrete'
+      //     }
+
+      //     danfe.comEmitente(emitente);
+      //     danfe.comDestinatario(destinatario);
+      //     danfe.comTransportador(transportador);
+      //     danfe.comVolumes(volumes);
 
 
-      //teste teste teste
-
-      var danfe = new NFe();
-      // $scope.venda = locals.venda ? locals.venda : new venda()
-      $scope.nota = new NFe();
-      //cria as variáveis necessárias
-      var emitente = new Emitente();
-      var destinatario = new Destinatario();
-      var transportador = new Transportador();
-      var volumes = new Volumes();
-      // funções de criação da nota
-      function dadosEmitente(empresa, venda) {
-        return new Promise((resolve, reject) => {
-          firebird.attach(conexao, function (err, db) {
-            if (err) throw err;
-            db.query('select p.crt,c.razao,c.cgc,c.insc,c.endereco,c.bairro,c.cep,c.fone,c.email,ci.nom_cidade as cidade,ci.codibge,ci.estado from param p  join cliente c on p.codparc = c.codigo  join cidade ci on c.codcidade = ci.cod_cidade where p.codigo=?', empresa, function (err, result) {
-              if (err) throw err;
-              db.detach(function () {
-                emitente.comNome(result[0].RAZAO)
-                  .comRegistroNacional(result[0].CGC)
-                  .comInscricaoEstadual(result[0].INSC)
-                  .comTelefone(result[0].FONE)
-                  .comEmail(result[0].EMAIL)
-                  .comCrt(result[0].CRT)
-                  .comEndereco(new Endereco()
-                    .comLogradouro(result[0].ENDERECO)
-                    .comNumero(result[0].NUMERO)
-                    .comComplemento('')
-                    .comCep(result[0].CEP)
-                    .comBairro(result[0].BAIRRO)
-                    .comMunicipio(result[0].CIDADE)
-                    .comCidade(result[0].CIDADE)
-                    .comCodMunicipio(result[0].CODIBGE)
-                    .comUf(result[0].ESTADO));
-                console.log(emitente);
-                resolve(venda);
-              })
-            })
-          })
-        });
-      }
-
-      function dadosNota(venda) {
-        return new Promise((resolve, reject) => {
-          if (venda.CPFCupom) {
-            destinatario.comRegistroNacional(venda.CPFCupom)
-              .comEndereco(new Endereco()
-                .comUf(venda.ESTADO));
-          }
-          else {
-            destinatario.comTipoRegistro(2)
-              .comEndereco(new Endereco()
-                .comUf(venda.ESTADO));
-
-          }
-          resolve(venda);
-        })
-      }
-
-      function criaNf(venda) {
-        return new Promise((resolve, reject) => {
-          danfe = new NFe();
-          var tipoFrete = '';
-          switch (venda.TRANSPORTE.TIPOFRETE) {
-            case "0":
-              tipoFrete = 'porContaDoEmitente';
-              break;
-            case "1":
-              tipoFrete = 'porContaDoDestinatarioRemetente';
-              break;
-            case "2":
-              tipoFrete = 'porContaDeTerceiros';
-              break;
-            case "3":
-              tipoFrete = 'porContaProprioRemetente';
-              break;
-            case "4":
-              tipoFrete = 'porContaProprioDestinatario';
-              break;
-            default:
-              tipoFrete = 'semFrete'
-          }
-
-          danfe.comEmitente(emitente);
-          danfe.comDestinatario(destinatario);
-          danfe.comTransportador(transportador);
-          danfe.comVolumes(volumes);
+      //     danfe.comTipo('saida');
+      //     danfe.comFinalidade('normal');
 
 
-          danfe.comTipo('saida');
-          danfe.comFinalidade('normal');
+      //     var naturezaOperacao = 'VENDA DE MERCADORIA NO ESTADO';
+      //     if (venda.operacao == 2) {
+      //       naturezaOperacao = 'VENDA DE ATIVO'
+      //     }
+      //     if (venda.operacao == 3 && danfe.getDestinatario().getEndereco().getUf() !== danfe.getEmitente().getEndereco().getUf()) {
+      //       naturezaOperacao = ' Devolução de venda de mercadoria fora do estado'
+      //       danfe.comFinalidade('devolução');
+      //     }
+      //     if (venda.operacao == 5 && danfe.getDestinatario().getEndereco().getUf() !== danfe.getEmitente().getEndereco().getUf()) {
+      //       naturezaOperacao = ' AMOSTRA GRÁTIS'
+      //     }
+      //     if (venda.operacao == 6 && danfe.getDestinatario().getEndereco().getUf() !== danfe.getEmitente().getEndereco().getUf()) {
+      //       naturezaOperacao = 'Retorno de bem recebido por conta de contrato de comodato'
+      //       danfe.comFinalidade('devolução');
+      //     }
+      //     if (venda.operacao == 1 && danfe.getDestinatario().getEndereco().getUf() !== danfe.getEmitente().getEndereco().getUf()) {
+      //       naturezaOperacao = 'VENDA DE MERCADORIA FORA DO ESTADO'
+      //     }
+      //     danfe.comNaturezaDaOperacao(naturezaOperacao);
+      //     danfe.comSerie('001');
+      //     danfe.comDataDaEmissao(new Date());
+      //     danfe.comDataDaEntradaOuSaida(new Date());
+      //     danfe.comModalidadeDoFrete(tipoFrete);
+      //     // danfe.comInscricaoEstadualDoSubstitutoTributario('102959579');
+      //     resolve(venda);
+      //   })
+      // }
+
+      // function pagamentosNota(venda) {
+      //   console.log('com pagamento')
+      //   var _numDuplicata = 0;
+      //   var _vlFat = new dinheiro(0);
 
 
-          var naturezaOperacao = 'VENDA DE MERCADORIA NO ESTADO';
-          if (venda.operacao == 2) {
-            naturezaOperacao = 'VENDA DE ATIVO'
-          }
-          if (venda.operacao == 3 && danfe.getDestinatario().getEndereco().getUf() !== danfe.getEmitente().getEndereco().getUf()) {
-            naturezaOperacao = ' Devolução de venda de mercadoria fora do estado'
-            danfe.comFinalidade('devolução');
-          }
-          if (venda.operacao == 5 && danfe.getDestinatario().getEndereco().getUf() !== danfe.getEmitente().getEndereco().getUf()) {
-            naturezaOperacao = ' AMOSTRA GRÁTIS'
-          }
-          if (venda.operacao == 6 && danfe.getDestinatario().getEndereco().getUf() !== danfe.getEmitente().getEndereco().getUf()) {
-            naturezaOperacao = 'Retorno de bem recebido por conta de contrato de comodato'
-            danfe.comFinalidade('devolução');
-          }
-          if (venda.operacao == 1 && danfe.getDestinatario().getEndereco().getUf() !== danfe.getEmitente().getEndereco().getUf()) {
-            naturezaOperacao = 'VENDA DE MERCADORIA FORA DO ESTADO'
-          }
-          danfe.comNaturezaDaOperacao(naturezaOperacao);
-          danfe.comSerie('001');
-          danfe.comDataDaEmissao(new Date());
-          danfe.comDataDaEntradaOuSaida(new Date());
-          danfe.comModalidadeDoFrete(tipoFrete);
-          // danfe.comInscricaoEstadualDoSubstitutoTributario('102959579');
-          resolve(venda);
-        })
-      }
+      //   return new Promise((resolve, reject) => {
+      //     if (venda.operacao != 3) {
+      //       for (let item of venda.PAGAMENTO) {
+      //         let _formaPagto = "",
+      //           _meioPagto = "",
+      //           _integracaoPagto = "",
+      //           _bandeiraCartao = "",
+      //           _valorTroco = 0;
+      //         if (item.tipo === "BL") {
+      //           _vlFat.soma(item.valor);
+      //           _formaPagto = "Á Prazo",
+      //             _meioPagto = "Boleto Bancário",
+      //             _integracaoPagto = "Não Integrado",
+      //             _numDuplicata++;
+      //           let duplicata = new Duplicata();
+      //           duplicata.comNumero(zeroEsq(_numDuplicata, 3, 0))
+      //             .comValor(item.valor.valor)
+      //             .comVencimento(item.vencimento)
+      //           danfe._duplicatas.push(duplicata)
+      //         } else if (item.tipo === "CC") {
+      //           _formaPagto = "Á Prazo",
+      //             _meioPagto = "Cartão de Crédito",
+      //             _integracaoPagto = "Não Integrado",
+      //             _bandeiraCartao = "Visa";
+      //         } else if (item.tipo === "CM") {
+      //           _formaPagto = "Á Prazo",
+      //             _meioPagto = "Cartão de Crédito",
+      //             _integracaoPagto = "Não Integrado",
+      //             _bandeiraCartao = "Mastercard";
+      //         } else if (item.tipo === "DA") {
+      //           _formaPagto = "Á Vista",
+      //             _meioPagto = "Cartão de Débito",
+      //             _integracaoPagto = "Não Integrado",
+      //             _bandeiraCartao = "Visa";
+      //         } else if (item.tipo === "DM") {
+      //           _formaPagto = "Á Vista",
+      //             _meioPagto = "Cartão de Débito",
+      //             _integracaoPagto = "Não Integrado",
+      //             _bandeiraCartao = "Mastercard";
+      //         } else if (item.tipo === "CH") {
+      //           _formaPagto = "Á Vista",
+      //             _meioPagto = "Cheque",
+      //             _integracaoPagto = "Não Integrado";
+      //         } else { //se nenhum atender considerar Dinheiro
+      //           _formaPagto = "Á Vista",
+      //             _meioPagto = "Dinheiro",
+      //             _integracaoPagto = "Não Integrado";
+      //         }
+      //         let pagamento = new Pagamento();
+      //         pagamento.comFormaDePagamento(_formaPagto)
+      //           .comValor(item.valor)
+      //           .comMeioDePagamento(_meioPagto)
+      //           .comIntegracaoDePagamento(_integracaoPagto)
+      //           .comBandeiraDoCartao(_bandeiraCartao ? _bandeiraCartao : '')
+      //           .comValorDoTroco(_valorTroco)
+      //           .comVencimento(item.vencimento);
+      //         danfe._pagamentos.push(pagamento)
 
-      function pagamentosNota(venda) {
-        console.log('com pagamento')
-        var _numDuplicata = 0;
-        var _vlFat = new dinheiro(0);
+      //       }
+      //       if (_vlFat.valor) {
+      //         var fatura = new Fatura();
+      //         fatura.comNumero('0001')
+      //           .comValorOriginal(_vlFat.valor + 0.01)
+      //           .comValorDoDesconto(0.01)
+      //           .comValorLiquido(_vlFat.valor)
+      //         danfe.comFatura(fatura)
+      //       }
+      //     }
+      //     else {
+      //       let pagamento = new Pagamento();
+      //       pagamento.comFormaDePagamento("Á Vista")
+      //         .comMeioDePagamento("Sem Pagamento")
+      //         .comValor("")
+      //         .comIntegracaoDePagamento("Não Integrado")
+      //         .comBandeiraDoCartao("")
+      //         .comValorDoTroco("")
+      //         .comVencimento("");
+      //       danfe._pagamentos.push(pagamento)
+      //     }
 
-
-        return new Promise((resolve, reject) => {
-          if (venda.operacao != 3) {
-            for (let item of venda.PAGAMENTO) {
-              let _formaPagto = "",
-                _meioPagto = "",
-                _integracaoPagto = "",
-                _bandeiraCartao = "",
-                _valorTroco = 0;
-              if (item.tipo === "BL") {
-                _vlFat.soma(item.valor);
-                _formaPagto = "Á Prazo",
-                  _meioPagto = "Boleto Bancário",
-                  _integracaoPagto = "Não Integrado",
-                  _numDuplicata++;
-                let duplicata = new Duplicata();
-                duplicata.comNumero(zeroEsq(_numDuplicata, 3, 0))
-                  .comValor(item.valor.valor)
-                  .comVencimento(item.vencimento)
-                danfe._duplicatas.push(duplicata)
-              } else if (item.tipo === "CC") {
-                _formaPagto = "Á Prazo",
-                  _meioPagto = "Cartão de Crédito",
-                  _integracaoPagto = "Não Integrado",
-                  _bandeiraCartao = "Visa";
-              } else if (item.tipo === "CM") {
-                _formaPagto = "Á Prazo",
-                  _meioPagto = "Cartão de Crédito",
-                  _integracaoPagto = "Não Integrado",
-                  _bandeiraCartao = "Mastercard";
-              } else if (item.tipo === "DA") {
-                _formaPagto = "Á Vista",
-                  _meioPagto = "Cartão de Débito",
-                  _integracaoPagto = "Não Integrado",
-                  _bandeiraCartao = "Visa";
-              } else if (item.tipo === "DM") {
-                _formaPagto = "Á Vista",
-                  _meioPagto = "Cartão de Débito",
-                  _integracaoPagto = "Não Integrado",
-                  _bandeiraCartao = "Mastercard";
-              } else if (item.tipo === "CH") {
-                _formaPagto = "Á Vista",
-                  _meioPagto = "Cheque",
-                  _integracaoPagto = "Não Integrado";
-              } else { //se nenhum atender considerar Dinheiro
-                _formaPagto = "Á Vista",
-                  _meioPagto = "Dinheiro",
-                  _integracaoPagto = "Não Integrado";
-              }
-              let pagamento = new Pagamento();
-              pagamento.comFormaDePagamento(_formaPagto)
-                .comValor(item.valor)
-                .comMeioDePagamento(_meioPagto)
-                .comIntegracaoDePagamento(_integracaoPagto)
-                .comBandeiraDoCartao(_bandeiraCartao ? _bandeiraCartao : '')
-                .comValorDoTroco(_valorTroco)
-                .comVencimento(item.vencimento);
-              danfe._pagamentos.push(pagamento)
-
-            }
-            if (_vlFat.valor) {
-              var fatura = new Fatura();
-              fatura.comNumero('0001')
-                .comValorOriginal(_vlFat.valor + 0.01)
-                .comValorDoDesconto(0.01)
-                .comValorLiquido(_vlFat.valor)
-              danfe.comFatura(fatura)
-            }
-          }
-          else {
-            let pagamento = new Pagamento();
-            pagamento.comFormaDePagamento("Á Vista")
-              .comMeioDePagamento("Sem Pagamento")
-              .comValor("")
-              .comIntegracaoDePagamento("Não Integrado")
-              .comBandeiraDoCartao("")
-              .comValorDoTroco("")
-              .comVencimento("");
-            danfe._pagamentos.push(pagamento)
-          }
-
-          resolve(venda);
-        })
-      }
-
-      function itensNota(venda) {
-        return new Promise((resolve, reject) => {
-          for (let item of venda.PRODUTOS) {
-            var prodst = (item.SITTRIB === "060") ? true : false;
-            var icms = new Icms().CalculaIcms(
-              prodst,
-              danfe.getEmitente().getCodigoRegimeTributario(),
-              danfe.getEmitente().getEndereco().getUf(),
-              danfe.getDestinatario().getEndereco().getUf(),
-              danfe.getDestinatario().getIdenfificaContribuinteIcms(),
-              1,
-              item.BASECALC,
-              item.ALIQ,
-              item.ORIG,
-              venda.operacao
-            )
-            danfe.adicionarItem(new Item()
-              .comCodigo(item.CODPRO)
-              .comDescricao(item.DESCRICAO)
-              .comNcmSh(item.NCM)
-              .comIcms(icms)
-              // .comOCst('020')
-              // .comCfop('6101')
-              .comUnidade(item.UNIDADE)
-              .comQuantidade(item.QTD)
-              .comValorUnitario(item.VALOR)
-              .comValorDoFrete(item.FRETEPROD)
-            );
-          }
-          resolve(venda);
-        })
-      }
-
-      function totalizadorNfe(venda) {
-        console.log('totalizador' + venda)
-        return new Promise((resolve, reject) => {
-          var impostos = new Impostos();
-          impostos.comBaseDeCalculoDoIcms(danfe.getItens().reduce(function (a, item) {
-            return a.soma(item.getIcms().getBaseDeCalculoDoIcms());
-          }, new dinheiro(0)));
-          impostos.comValorDoIcms(danfe.getItens().reduce(function (a, item) {
-            return a.soma(item.getIcms().getValorDoIcms());
-          }, new dinheiro(0)));
-          impostos.comBaseDeCalculoDoIcmsSt(danfe.getItens().reduce(function (a, item) {
-            return a.soma(item.getIcms().getBaseDeCalculoDoIcmsSt());
-          }, new dinheiro(0)));
-          impostos.comValorDoIcmsSt(danfe.getItens().reduce(function (a, item) {
-            return a.soma(item.getIcms().getValorDoIcmsSt());
-          }, new dinheiro(0)));
-          impostos.comValorDoImpostoDeImportacao(0);
-          impostos.comValorDoPis(0);
-          impostos.comValorTotalDoIpi(0);
-          impostos.comValorDaCofins(0);
-          impostos.comBaseDeCalculoDoIssqn(0);
-          impostos.comValorTotalDoIssqn(0);
-          danfe.comImpostos(impostos);
-          var infoComplementar = 'Documento emitido por ME ou EPP optante pelo simples nacional;';
-          console.log('codregime', danfe.getEmitente().getCodigoRegimeTributario())
-          if (danfe.getEmitente().getCodigoRegimeTributario() === '1') {
-            infoComplementar += 'Valor dos produtos Tributado pelo Simples Nacional R$' + (danfe.getItens().reduce(function (a, item) {
-              return a.soma(item.getValorTotal());
-            }, new dinheiro(0))) + ';';
-          } else if (danfe.getEmitente().getCodigoRegimeTributario() === '2') {
-            infoComplementar += 'Estabelecimento impedido de recolher o ICMS pelo simples nacional no inciso 1 do art. 2 da LC 123/2006;'
-            infoComplementar += 'Imposto recolhido por substituição ART 313-Y DO RICMS;'
-            infoComplementar += 'Valor dos produtos Tributado pelo Simples Nacional ' + danfe.getImpostos().getBaseDeCalculoDoIcmsFormatada() + ';';
-            infoComplementar += 'Valor dos produtos Substituicao Tributaria ' + danfe.getImpostos().getBaseDeCalculoDoIcmsStFormatada() + ';';
-          }
-          if (venda.DESCONTOITEM.valor) {
-            infoComplementar += 'Valor Pago com crédito na loja ' + venda.DESCONTOITEM.valor * (-1) + ';';
-          }
-
-
-          danfe.comInformacoesComplementares(infoComplementar);
-
-          danfe.comValorTotalDaNota(danfe.getItens().reduce(function (a, item) {
-            return a.soma(item.getValorDoFrete()).soma(item.getValorTotal());
-          }, new dinheiro(0)));
-          danfe.comValorTotalDosProdutos(danfe.getItens().reduce(function (a, item) {
-            return a.soma(item.getValorTotal());
-          }, new dinheiro(0)));
-          danfe.comValorTotalDosServicos(0);
-          danfe.comValorDoFrete(danfe.getItens().reduce(function (a, item) {
-            return a.soma(item.getValorDoFrete());
-          }, new dinheiro(0)));
-          danfe.comValorDoSeguro(0);
-          danfe.comDesconto(0);
-          danfe.comOutrasDespesas(0);
-          resolve(danfe);
-        })
-      };
-
-      $scope.nota = new NFe()
-      var builder = require('xmlbuilder');
-      $scope.geraNFe = function (venda) {
-        //dados do Emitente
-        venda.operacao = 1;
-        dadosEmitente(remote.getGlobal('dados').configs.empresa, venda).then(dadosNota).then(criaNf).then(itensNota).then(pagamentosNota).then(totalizadorNfe).then(function (res) {
-          // depos gerar o objeto salva no scope do angular para verificação
-          $scope.nota = res;
-          console.log(res)
-          var xml = builder.create('CFe')
-            .ele('infCFe', { 'versaoDadosEnt': '0.07' })
-            .ele('ide')
-            // .ele('CNPJ', res.getEmitente().getRegistroNacional()).up()
-            .ele('signAC', 'SGR-SAT SISTEMA DE GESTAO E RETAGUARDA DO SAT').up()
-            .ele('numeroCaixa', '001').up().up()
-            .ele('emit')
-            .ele('CNPJ', res.getEmitente().getRegistroNacional()).up()
-            .ele('IE', res.getEmitente().getInscricaoEstadual()).up()
-            .ele('indRatISSQN', 'N').up().up()
-            .ele('dest').up()
+      //     resolve(venda);
+      //   })
+      // }
 
 
 
-          var itens = res.getItens();
-          console.log(itens)
-          for (var i = 0; i < itens.length; i++) {
-            var item = xml.ele('det', { 'nItem': i + 1 })
-              .ele('prod')
-              .ele('cProd', itens[i].getCodigo()).up()
-              // .ele('cEAN', itens[i].getCodigoCest()).up()
-              .ele('xProd', itens[i].getDescricao()).up()
-              .ele('CFOP', itens[i].getIcms().getCfop()).up()
-              .ele('uCom', itens[i].getUnidade()).up()
-              .ele('qCom', itens[i].getQuantidade()).up()
-              .ele('vUnCom', itens[i].getValorUnitario()).up()
-              .ele('indRegra', 'A').up().up()
-              .ele('imposto')
-              .ele('vItem12741', '0.00').up()
-              .ele('ICMS')
-              .ele('ICMSSN' + itens[i].getIcms().getSituacaoTributaria())
-              .ele('Orig', itens[i].getIcms().getOrigem()).up()
-              .ele('CSOSN', itens[i].getIcms().getSituacaoTributaria()).up().up().up()
-              .ele('PIS')
-              .ele('PISSN')
-              .ele('CST', 49).up().up().up()
-              .ele('COFINS')
-              .ele('COFINSSN')
-              .ele('CST', 49).up().up().up().up()
-              ;
-          }
-
-          xml.ele('total')
-          .ele('vCFeLei12741','0.00').up().up()
-            .ele('pgto')
-            .ele('MP')
-            .ele('cMP', '01').up()
-            .ele('vMP', res.getValorTotalDaNota())
-          // console.log(xml)
+      // $scope.nota = new NFe()
+      // var builder = require('xmlbuilder');
+      // $scope.geraNFe = function (venda) {
+      //   //dados do Emitente
+      //   venda.operacao = 1;
+      //   dadosEmitente(remote.getGlobal('dados').configs.empresa, venda).then(dadosNota).then(criaNf).then(itensNota).then(pagamentosNota).then(totalizadorNfe).then(function (res) {
+      //     // depos gerar o objeto salva no scope do angular para verificação
+      //     $scope.nota = res;
+      //     console.log(res)
+      //     var xml = builder.create('CFe')
+      //       .ele('infCFe', { 'versaoDadosEnt': '0.07' })
+      //       .ele('ide')
+      //       // .ele('CNPJ', res.getEmitente().getRegistroNacional()).up()
+      //       .ele('signAC', 'SGR-SAT SISTEMA DE GESTAO E RETAGUARDA DO SAT').up()
+      //       .ele('numeroCaixa', '001').up().up()
+      //       .ele('emit')
+      //       .ele('CNPJ', res.getEmitente().getRegistroNacional()).up()
+      //       .ele('IE', res.getEmitente().getInscricaoEstadual()).up()
+      //       .ele('indRatISSQN', 'N').up().up()
+      //       .ele('dest').up()
 
 
-          console.log(xml.end({ pretty: true }))
+
+      //     var itens = res.getItens();
+      //     console.log(itens)
+      //     for (var i = 0; i < itens.length; i++) {
+      //       var item = xml.ele('det', { 'nItem': i + 1 })
+      //         .ele('prod')
+      //         .ele('cProd', itens[i].getCodigo()).up()
+      //         // .ele('cEAN', itens[i].getCodigoCest()).up()
+      //         .ele('xProd', itens[i].getDescricao()).up()
+      //         .ele('CFOP', itens[i].getIcms().getCfop()).up()
+      //         .ele('uCom', itens[i].getUnidade()).up()
+      //         .ele('qCom', itens[i].getQuantidade()).up()
+      //         .ele('vUnCom', itens[i].getValorUnitario()).up()
+      //         .ele('indRegra', 'A').up().up()
+      //         .ele('imposto')
+      //         .ele('vItem12741', '0.00').up()
+      //         .ele('ICMS')
+      //         .ele('ICMSSN' + itens[i].getIcms().getSituacaoTributaria())
+      //         .ele('Orig', itens[i].getIcms().getOrigem()).up()
+      //         .ele('CSOSN', itens[i].getIcms().getSituacaoTributaria()).up().up().up()
+      //         .ele('PIS')
+      //         .ele('PISSN')
+      //         .ele('CST', 49).up().up().up()
+      //         .ele('COFINS')
+      //         .ele('COFINSSN')
+      //         .ele('CST', 49).up().up().up().up()
+      //         ;
+      //     }
+
+      //     xml.ele('total')
+      //       .ele('vCFeLei12741', '0.00').up().up()
+      //       .ele('pgto')
+      //       .ele('MP')
+      //       .ele('cMP', '01').up()
+      //       .ele('vMP', res.getValorTotalDaNota())
+      //     // console.log(xml)
+
+
+      //     console.log(xml.end({ pretty: true }))
 
 
 
@@ -1897,38 +1840,35 @@
 
 
 
-          console.log($scope.nota)
-          $scope.$apply();
-          alert = $mdDialog.alert({
-            title: 'Atenção',
-            multiple: true,
-            textContent: 'Gerado com sucesso',
-            ok: 'Ok'
-          });
-          $mdDialog
-            .show(alert)
-            .finally(function () {
-              alert = undefined;
-            });
+      //     console.log($scope.nota)
+      //     $scope.$apply();
+      //     alert = $mdDialog.alert({
+      //       title: 'Atenção',
+      //       multiple: true,
+      //       textContent: 'Gerado com sucesso',
+      //       ok: 'Ok'
+      //     });
+      //     $mdDialog
+      //       .show(alert)
+      //       .finally(function () {
+      //         alert = undefined;
+      //       });
 
-        }, function (motivo) { //se alguma função foi rejeitada (erros)
-          alert = $mdDialog.alert({
-            title: 'Atenção',
-            multiple: true,
-            textContent: motivo,
-            ok: 'Fechar'
-          });
+      //   }, function (motivo) { //se alguma função foi rejeitada (erros)
+      //     alert = $mdDialog.alert({
+      //       title: 'Atenção',
+      //       multiple: true,
+      //       textContent: motivo,
+      //       ok: 'Fechar'
+      //     });
 
-          $mdDialog
-            .show(alert)
-            .finally(function () {
-              alert = undefined;
-            });
-        })
-      }
-
-      //teste teste teste teste
-
+      //     $mdDialog
+      //       .show(alert)
+      //       .finally(function () {
+      //         alert = undefined;
+      //       });
+      //   })
+      // }
 
       $scope.hoje = new Date();
       $scope.acao = locals.acao
@@ -1972,13 +1912,11 @@
             console.log('You cancelled the dialog.');
           });
       };
-
-
-
       $scope.hide = function () {
         $mdDialog.hide();
       };
       $scope.cancel = function () {
+
         $mdDialog.cancel();
       };
       $scope.seleciona = function (pedido) {
@@ -2350,9 +2288,9 @@
           console.log(response)
         });
     };
-    cx.Logout = function () {
-      $location.path('/login');
-    }
+    // cx.Logout = function () {
+    //   $location.path('/login');
+    // }
     cx.leiturax = function (ev) {
       console.log(bemafi.leituraX())
     }
@@ -2415,6 +2353,8 @@
           };
           $scope.prodVenda = [];
         }, function () {
+          $scope.venda.PAGAR = $scope.venda.TOTALDESC;
+          $scope.venda.PAGAMENTO = [];
           console.log('You cancelled the dialog.');
         });
     };

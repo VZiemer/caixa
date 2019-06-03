@@ -35,7 +35,7 @@
 
 
   const mp2032 = require('./Mp2032.js');
-  const bemaSAT = require('./bemaSAT.js');
+  // const bemaSAT = require('./bemaSAT.js');
   const electron = require('electron');
   const Pagto = require('./pagamentos');
   const dinheiro = require('./dinheiro');
@@ -379,15 +379,15 @@
             return a.soma(item.getValorTotal());
           }, new dinheiro(0))) + ';';
           infoComplementar += 'Valor dos produtos Substituicao Tributaria ' + danfe.getImpostos().getBaseDeCalculoDoIcmsStFormatada() + ';';
-          infoComplementar += 'PERMITE O APROVEITAMENTO DO CRÉDITO DE ICMS NO VALOR DE R$'+ danfe.getValorTotalDoIcmsSn()+'; CORRESPONDENTE À ALÍQUOTA DE '+danfe.getEmitente().getIcmsSimples()+'%, NOS TERMOS DO ARTIGO 23 DA LC 123'
-
+          if (danfe.getDestinatario().getIdenfificaContribuinteIcms() == 1) {
+            infoComplementar += 'PERMITE O APROVEITAMENTO DO CRÉDITO DE ICMS NO VALOR DE R$'+ danfe.getValorTotalDoIcmsSn()+'; CORRESPONDENTE À ALÍQUOTA DE '+danfe.getEmitente().getIcmsSimples()+'%, NOS TERMOS DO ARTIGO 23 DA LC 123'
+          }
         } else if (danfe.getEmitente().getCodigoRegimeTributario() === '2') {
           infoComplementar += 'Estabelecimento impedido de recolher o ICMS pelo simples nacional no inciso 1 do art. 2 da LC 123/2006;'
           infoComplementar += 'Imposto recolhido por substituição ART 313-Y DO RICMS;'
           if (venda.operacao == 1) {
             infoComplementar += 'Valor dos produtos Tributado pelo Simples Nacional ' + danfe.getImpostos().getBaseDeCalculoDoIcmsFormatada() + ';';
             infoComplementar += 'Valor dos produtos Substituicao Tributaria ' + danfe.getImpostos().getBaseDeCalculoDoIcmsStFormatada() + ';';
-            infoComplementar += 'PERMITE O APROVEITAMENTO DO CRÉDITO DE ICMS NO VALOR DE R$'+ danfe.getValorTotalDoIcmsSn()+'; CORRESPONDENTE À ALÍQUOTA DE '+danfe.getEmitente.getIcmsSimples()+'%, NOS TERMOS DO ARTIGO 23 DA LC 123'
           }
         }
         if (venda.operacao == 3) {
@@ -756,8 +756,8 @@
                 vBCSTRet: '',
                 vICMSSTRet: '',
                 motDesICMS: '',
-                pCredSN: '',
-                vCredICMSSN: '',
+                pCredSN: itens[i].getIcms().getAliquotaCredICMSSN(),
+                vCredICMSSN: itens[i].getIcms().getvalorCredICMSSN(),
                 vBCSTDest: '',
                 vICMSSTDest: '',
                 vICMSDeson: '',
@@ -1216,45 +1216,64 @@
         page: 1
       };
       $scope.Relatorio = function (vendas) {
+        var retUltimoDia = function(year, month){
+          var ultimoDia = (new Date(year, month, 0)).getDate();
+          return ultimoDia;
+          }
         let hoje = new Date();
         let ano = (hoje.getMonth() != 11) ? hoje.getFullYear() : hoje.getFullYear() + 1;
         let mes = '';
+        let mesAnterior = '';
+        let anoFech = (hoje.getMonth() != 1) ? hoje.getFullYear() : hoje.getFullYear() - 1
+        let diaFech =  retUltimoDia(anoFech,hoje.getMonth()-1)
         switch (hoje.getMonth()) {
           case 0:
             mes = '01';
+            mesAnterior = '12';
             break;
           case 1:
             mes = '02';
+            mesAnterior = '01';
             break;
-          case 2:
+          case 2: {}
             mes = '03';
+            mesAnterior = '02';
             break;
           case 3:
             mes = '04';
+            mesAnterior = '03';
             break;
           case 4:
             mes = '05';
+            mesAnterior = '04';
             break;
           case 5:
             mes = '06';
+            mesAnterior = '05';
             break;
           case 6:
             mes = '07';
+            mesAnterior = '06';
             break;
           case 7:
             mes = '08';
+            mesAnterior = '07';
             break;
           case 8:
             mes = '09';
+            mesAnterior = '08';
             break;
           case 9:
             mes = '10';
+            mesAnterior = '09';
             break;
           case 10:
             mes = '11';
+            mesAnterior = '10';
             break;
           case 11:
             mes = '12';
+            mesAnterior = '11';
             break;
         }
         console.log(vendas)
@@ -1264,7 +1283,7 @@
           console.log(venda.descontoPrev())
           console.log(venda)
           var html = "<html><head><style>@media print{@page {size:A4}}page {background: white;display: block;margin: 0 auto; margin-bottom: 0.5cm;}page[size='A4'] { width: 21cm; height: 29.7cm; }table,td,tr,span{font-size:11pt;font-family:Arial;}table{width: 100%;}td {min-width:4mm;}hr{border-top:1pt dashed #000;} </style></head><body>"
-          html += "<h2>FLORESTAL</h2><span>Relatório de Movimento de Contas</span></br><span>Período 01/10/2018 a 30/10/2018</span><hr><span>Cliente: " + venda.CODCLI + "  -  " + venda.RAZAO + "</span><hr>"
+          html += "<h2>FLORESTAL</h2><span>Relatório de Movimento de Contas</span></br><span>Período 01/"+mesAnterior+"/"+anoFech+" a "+diaFech+"/"+mesAnterior+"/"+anoFech+"</span><hr><span>Cliente: " + venda.CODCLI + "  -  " + venda.RAZAO + "</span><hr>"
           html += "<table><thead>"
           html += "<tr><td>Documento</td><td>Data</td><td>Vencimento</td><td>Valor Entrada</td><td>Valor Saida</td><td></td></tr>"
           html += "</thead><tbody>"
@@ -1547,328 +1566,6 @@
 
     function PagamentoCtrl($scope, $mdDialog, locals, $mdToast) { //controla o modal que faz o pagamento       
 
-      // var danfe = new NFe();
-      // // $scope.venda = locals.venda ? locals.venda : new venda()
-      // $scope.nota = new NFe();
-      // //cria as variáveis necessárias
-      // var emitente = new Emitente();
-      // var destinatario = new Destinatario();
-      // var transportador = new Transportador();
-      // var volumes = new Volumes();
-      // // funções de criação da nota
-      // function dadosEmitente(empresa, venda) {
-      //   return new Promise((resolve, reject) => {
-      //     firebird.attach(conexao, function (err, db) {
-      //       if (err) throw err;
-      //       db.query('select p.crt,c.razao,c.cgc,c.insc,c.endereco,c.bairro,c.cep,c.fone,c.email,ci.nom_cidade as cidade,ci.codibge,ci.estado from param p  join cliente c on p.codparc = c.codigo  join cidade ci on c.codcidade = ci.cod_cidade where p.codigo=?', empresa, function (err, result) {
-      //         if (err) throw err;
-      //         db.detach(function () {
-      //           emitente.comNome(result[0].RAZAO)
-      //             .comRegistroNacional(result[0].CGC)
-      //             .comInscricaoEstadual(result[0].INSC)
-      //             .comTelefone(result[0].FONE)
-      //             .comEmail(result[0].EMAIL)
-      //             .comCrt(result[0].CRT)
-      //             .comEndereco(new Endereco()
-      //               .comLogradouro(result[0].ENDERECO)
-      //               .comNumero(result[0].NUMERO)
-      //               .comComplemento('')
-      //               .comCep(result[0].CEP)
-      //               .comBairro(result[0].BAIRRO)
-      //               .comMunicipio(result[0].CIDADE)
-      //               .comCidade(result[0].CIDADE)
-      //               .comCodMunicipio(result[0].CODIBGE)
-      //               .comUf(result[0].ESTADO));
-      //           console.log(emitente);
-      //           resolve(venda);
-      //         })
-      //       })
-      //     })
-      //   });
-      // }
-
-      // function dadosNota(venda) {
-      //   return new Promise((resolve, reject) => {
-      //     if (venda.CPFCupom) {
-      //       destinatario.comRegistroNacional(venda.CPFCupom)
-      //         .comEndereco(new Endereco()
-      //           .comUf(venda.ESTADO));
-      //     }
-      //     else {
-      //       destinatario.comTipoRegistro(2)
-      //         .comEndereco(new Endereco()
-      //           .comUf(venda.ESTADO));
-
-      //     }
-      //     resolve(venda);
-      //   })
-      // }
-
-      // function criaNf(venda) {
-      //   return new Promise((resolve, reject) => {
-      //     danfe = new NFe();
-      //     var tipoFrete = '';
-      //     switch (venda.TRANSPORTE.TIPOFRETE) {
-      //       case "0":
-      //         tipoFrete = 'porContaDoEmitente';
-      //         break;
-      //       case "1":
-      //         tipoFrete = 'porContaDoDestinatarioRemetente';
-      //         break;
-      //       case "2":
-      //         tipoFrete = 'porContaDeTerceiros';
-      //         break;
-      //       case "3":
-      //         tipoFrete = 'porContaProprioRemetente';
-      //         break;
-      //       case "4":
-      //         tipoFrete = 'porContaProprioDestinatario';
-      //         break;
-      //       default:
-      //         tipoFrete = 'semFrete'
-      //     }
-
-      //     danfe.comEmitente(emitente);
-      //     danfe.comDestinatario(destinatario);
-      //     danfe.comTransportador(transportador);
-      //     danfe.comVolumes(volumes);
-
-
-      //     danfe.comTipo('saida');
-      //     danfe.comFinalidade('normal');
-
-
-      //     var naturezaOperacao = 'VENDA DE MERCADORIA NO ESTADO';
-      //     if (venda.operacao == 2) {
-      //       naturezaOperacao = 'VENDA DE ATIVO'
-      //     }
-      //     if (venda.operacao == 3 && danfe.getDestinatario().getEndereco().getUf() !== danfe.getEmitente().getEndereco().getUf()) {
-      //       naturezaOperacao = ' Devolução de venda de mercadoria fora do estado'
-      //       danfe.comFinalidade('devolução');
-      //     }
-      //     if (venda.operacao == 5 && danfe.getDestinatario().getEndereco().getUf() !== danfe.getEmitente().getEndereco().getUf()) {
-      //       naturezaOperacao = ' AMOSTRA GRÁTIS'
-      //     }
-      //     if (venda.operacao == 6 && danfe.getDestinatario().getEndereco().getUf() !== danfe.getEmitente().getEndereco().getUf()) {
-      //       naturezaOperacao = 'Retorno de bem recebido por conta de contrato de comodato'
-      //       danfe.comFinalidade('devolução');
-      //     }
-      //     if (venda.operacao == 1 && danfe.getDestinatario().getEndereco().getUf() !== danfe.getEmitente().getEndereco().getUf()) {
-      //       naturezaOperacao = 'VENDA DE MERCADORIA FORA DO ESTADO'
-      //     }
-      //     danfe.comNaturezaDaOperacao(naturezaOperacao);
-      //     danfe.comSerie('001');
-      //     danfe.comDataDaEmissao(new Date());
-      //     danfe.comDataDaEntradaOuSaida(new Date());
-      //     danfe.comModalidadeDoFrete(tipoFrete);
-      //     // danfe.comInscricaoEstadualDoSubstitutoTributario('102959579');
-      //     resolve(venda);
-      //   })
-      // }
-
-      // function pagamentosNota(venda) {
-      //   console.log('com pagamento')
-      //   var _numDuplicata = 0;
-      //   var _vlFat = new dinheiro(0);
-
-
-      //   return new Promise((resolve, reject) => {
-      //     if (venda.operacao != 3) {
-      //       for (let item of venda.PAGAMENTO) {
-      //         let _formaPagto = "",
-      //           _meioPagto = "",
-      //           _integracaoPagto = "",
-      //           _bandeiraCartao = "",
-      //           _valorTroco = 0;
-      //         if (item.tipo === "BL") {
-      //           _vlFat.soma(item.valor);
-      //           _formaPagto = "Á Prazo",
-      //             _meioPagto = "Boleto Bancário",
-      //             _integracaoPagto = "Não Integrado",
-      //             _numDuplicata++;
-      //           let duplicata = new Duplicata();
-      //           duplicata.comNumero(zeroEsq(_numDuplicata, 3, 0))
-      //             .comValor(item.valor.valor)
-      //             .comVencimento(item.vencimento)
-      //           danfe._duplicatas.push(duplicata)
-      //         } else if (item.tipo === "CC") {
-      //           _formaPagto = "Á Prazo",
-      //             _meioPagto = "Cartão de Crédito",
-      //             _integracaoPagto = "Não Integrado",
-      //             _bandeiraCartao = "Visa";
-      //         } else if (item.tipo === "CM") {
-      //           _formaPagto = "Á Prazo",
-      //             _meioPagto = "Cartão de Crédito",
-      //             _integracaoPagto = "Não Integrado",
-      //             _bandeiraCartao = "Mastercard";
-      //         } else if (item.tipo === "DA") {
-      //           _formaPagto = "Á Vista",
-      //             _meioPagto = "Cartão de Débito",
-      //             _integracaoPagto = "Não Integrado",
-      //             _bandeiraCartao = "Visa";
-      //         } else if (item.tipo === "DM") {
-      //           _formaPagto = "Á Vista",
-      //             _meioPagto = "Cartão de Débito",
-      //             _integracaoPagto = "Não Integrado",
-      //             _bandeiraCartao = "Mastercard";
-      //         } else if (item.tipo === "CH") {
-      //           _formaPagto = "Á Vista",
-      //             _meioPagto = "Cheque",
-      //             _integracaoPagto = "Não Integrado";
-      //         } else { //se nenhum atender considerar Dinheiro
-      //           _formaPagto = "Á Vista",
-      //             _meioPagto = "Dinheiro",
-      //             _integracaoPagto = "Não Integrado";
-      //         }
-      //         let pagamento = new Pagamento();
-      //         pagamento.comFormaDePagamento(_formaPagto)
-      //           .comValor(item.valor)
-      //           .comMeioDePagamento(_meioPagto)
-      //           .comIntegracaoDePagamento(_integracaoPagto)
-      //           .comBandeiraDoCartao(_bandeiraCartao ? _bandeiraCartao : '')
-      //           .comValorDoTroco(_valorTroco)
-      //           .comVencimento(item.vencimento);
-      //         danfe._pagamentos.push(pagamento)
-
-      //       }
-      //       if (_vlFat.valor) {
-      //         var fatura = new Fatura();
-      //         fatura.comNumero('0001')
-      //           .comValorOriginal(_vlFat.valor + 0.01)
-      //           .comValorDoDesconto(0.01)
-      //           .comValorLiquido(_vlFat.valor)
-      //         danfe.comFatura(fatura)
-      //       }
-      //     }
-      //     else {
-      //       let pagamento = new Pagamento();
-      //       pagamento.comFormaDePagamento("Á Vista")
-      //         .comMeioDePagamento("Sem Pagamento")
-      //         .comValor("")
-      //         .comIntegracaoDePagamento("Não Integrado")
-      //         .comBandeiraDoCartao("")
-      //         .comValorDoTroco("")
-      //         .comVencimento("");
-      //       danfe._pagamentos.push(pagamento)
-      //     }
-
-      //     resolve(venda);
-      //   })
-      // }
-
-
-
-      // $scope.nota = new NFe()
-      // var builder = require('xmlbuilder');
-      // $scope.geraNFe = function (venda) {
-      //   //dados do Emitente
-      //   venda.operacao = 1;
-      //   dadosEmitente(remote.getGlobal('dados').configs.empresa, venda).then(dadosNota).then(criaNf).then(itensNota).then(pagamentosNota).then(totalizadorNfe).then(function (res) {
-      //     // depos gerar o objeto salva no scope do angular para verificação
-      //     $scope.nota = res;
-      //     console.log(res)
-      //     var xml = builder.create('CFe')
-      //       .ele('infCFe', { 'versaoDadosEnt': '0.07' })
-      //       .ele('ide')
-      //       // .ele('CNPJ', res.getEmitente().getRegistroNacional()).up()
-      //       .ele('signAC', 'SGR-SAT SISTEMA DE GESTAO E RETAGUARDA DO SAT').up()
-      //       .ele('numeroCaixa', '001').up().up()
-      //       .ele('emit')
-      //       .ele('CNPJ', res.getEmitente().getRegistroNacional()).up()
-      //       .ele('IE', res.getEmitente().getInscricaoEstadual()).up()
-      //       .ele('indRatISSQN', 'N').up().up()
-      //       .ele('dest').up()
-
-
-
-      //     var itens = res.getItens();
-      //     console.log(itens)
-      //     for (var i = 0; i < itens.length; i++) {
-      //       var item = xml.ele('det', { 'nItem': i + 1 })
-      //         .ele('prod')
-      //         .ele('cProd', itens[i].getCodigo()).up()
-      //         // .ele('cEAN', itens[i].getCodigoCest()).up()
-      //         .ele('xProd', itens[i].getDescricao()).up()
-      //         .ele('CFOP', itens[i].getIcms().getCfop()).up()
-      //         .ele('uCom', itens[i].getUnidade()).up()
-      //         .ele('qCom', itens[i].getQuantidade()).up()
-      //         .ele('vUnCom', itens[i].getValorUnitario()).up()
-      //         .ele('indRegra', 'A').up().up()
-      //         .ele('imposto')
-      //         .ele('vItem12741', '0.00').up()
-      //         .ele('ICMS')
-      //         .ele('ICMSSN' + itens[i].getIcms().getSituacaoTributaria())
-      //         .ele('Orig', itens[i].getIcms().getOrigem()).up()
-      //         .ele('CSOSN', itens[i].getIcms().getSituacaoTributaria()).up().up().up()
-      //         .ele('PIS')
-      //         .ele('PISSN')
-      //         .ele('CST', 49).up().up().up()
-      //         .ele('COFINS')
-      //         .ele('COFINSSN')
-      //         .ele('CST', 49).up().up().up().up()
-      //         ;
-      //     }
-
-      //     xml.ele('total')
-      //       .ele('vCFeLei12741', '0.00').up().up()
-      //       .ele('pgto')
-      //       .ele('MP')
-      //       .ele('cMP', '01').up()
-      //       .ele('vMP', res.getValorTotalDaNota())
-      //     // console.log(xml)
-
-
-      //     console.log(xml.end({ pretty: true }))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      //     console.log($scope.nota)
-      //     $scope.$apply();
-      //     alert = $mdDialog.alert({
-      //       title: 'Atenção',
-      //       multiple: true,
-      //       textContent: 'Gerado com sucesso',
-      //       ok: 'Ok'
-      //     });
-      //     $mdDialog
-      //       .show(alert)
-      //       .finally(function () {
-      //         alert = undefined;
-      //       });
-
-      //   }, function (motivo) { //se alguma função foi rejeitada (erros)
-      //     alert = $mdDialog.alert({
-      //       title: 'Atenção',
-      //       multiple: true,
-      //       textContent: motivo,
-      //       ok: 'Fechar'
-      //     });
-
-      //     $mdDialog
-      //       .show(alert)
-      //       .finally(function () {
-      //         alert = undefined;
-      //       });
-      //   })
-      // }
 
       $scope.hoje = new Date();
       $scope.acao = locals.acao
@@ -1880,6 +1577,7 @@
         })
       VendaSrvc.valeCliente(locals.dados.CODCLI).then(function (response) {
         if (locals.acao = 'V') {
+          $scope.vale = 0;
           $scope.vale = response.reduce(function (acumulador, atual) {
             if (atual.ENT_SAI == 'S') {
               atual.TOTAL = atual.TOTAL * (-1)

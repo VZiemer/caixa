@@ -1,7 +1,7 @@
 {
   "name": "caixa",
   "productName": "Caixa",
-  "version": "1.5.8",
+  "version": "1.5.9",
   "description": "Sistema Loja",
   "main": "main.js",
   "scripts": {

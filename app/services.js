@@ -56,7 +56,6 @@ const remote = require('electron').remote;
                         if (err)
                             throw err;
                         if (err) throw err;
-                        // db.query("SELECT PRODUTO.CODIGO,PRODUTO.CODINTERNO,PRODUTO.ALIQ,PRODUTO.SITTRIB,PRODUTO.LOCAL,PRODUTO.DESCRICAO,PRODUTO.UNIDADE,PRODVENDA.CODIGO AS CODPRODVENDA,PRODVENDA.QTD AS QTDPEDIDO,PRODVENDA.qtdreserva,PRODVENDA.valor,(prodvenda.VALOR*prodvenda.QTD) as total,prodvenda.valorini FROM PRODVENDA JOIN PRODUTO ON PRODVENDA.CODPRO = PRODUTO.CODIGO WHERE PRODVENDA.CODVENDA = ?", venda, function (err, result) {
                         db.query("select * from LISTAPRODVENDAS(?)", venda, function (err, result) {
                             if (err) throw err;
                             console.log(result)
@@ -72,7 +71,7 @@ const remote = require('electron').remote;
                     let listaPedido = vendas.map(function (item, index) {
                         return item.LCTO;
                     }).toString()
-                    venda = new Venda(vendas[0].LCTO, vendas[0].DATA, vendas[0].ID_TRANSITO, vendas[0].CGC, vendas[0].INSC, vendas[0].CODCLI, vendas[0].NOMECLI, '', '', vendas[0].EMAIL, vendas[0].FONE, vendas[0].RAZAO, vendas[0].ENDERECO, vendas[0].NUMERO, vendas[0].BAIRRO, vendas[0].CEP, vendas[0].CODIBGE, vendas[0].CODCIDADE, vendas[0].CIDADE, vendas[0].ESTADO, vendas[0].COMPLEMENTO, vendas[0].DESCONTO, vendas[0].FRETE, vendas[0].SEGURO, vendas[0].TOTAL);
+                    venda = new Venda(vendas[0].LCTO, vendas[0].DATA, vendas[0].ID_TRANSITO, vendas[0].CGC, vendas[0].INSC, vendas[0].CODCLI, vendas[0].NOMECLI, '', '', vendas[0].EMAIL, vendas[0].FONE, vendas[0].RAZAO, vendas[0].ENDERECO, vendas[0].NUMERO, vendas[0].BAIRRO, vendas[0].CEP, vendas[0].CODIBGE, vendas[0].CODCIDADE, vendas[0].CIDADE, vendas[0].ESTADO, vendas[0].COMPLEMENTO, vendas[0].DESCONTO, vendas[0].FRETE, vendas[0].SEGURO, vendas[0].TOTAL,0,vendas[0].LIBERAFAT,vendas[0].LIBERANP);
                     vendas.forEach(function (item, index) {
                         if (index) {
                             venda.insereLcto(item.LCTO, item.ID_TRANSITO)
@@ -401,10 +400,10 @@ const remote = require('electron').remote;
                         Firebird.attach(options, function (err, db) {
                             if (err)
                                 reject(new Error(err));
-                            db.query("select v.lcto,v.codcli,v.empresa,v.total,tr.peso,tr.volumes,tr.frete,tr.outra_desp,tr.desconto,tr.total_nota,tr.tipofrete,c.cgc,c.razao,c.insc,c.endereco,c.numero,c.bairro,c.complemento,c.cidade,c.cep,c.fone,c.email,ci.codibge,c.codcidade,ci.estado,ci.cod_estado,mb.valor,  mb.vcto as vencimento,mb.codban,mb.tipopag,transp.codigo as codtransp, transp.transportador from venda v join transito tr on v.lcto = tr.documento join cliente c on c.codigo=v.codcli join cidade ci on c.codcidade = ci.cod_cidade join movban mb on mb.lctosaida = v.lcto left join transp on tr.codtransp = transp.codigo where lcto = ? order by mb.codigo", pedido, function (err, res) {
+                            db.query("select v.lcto,v.data,v.codcli,v.nomecli,v.empresa,v.codvend,v.frete,v.total,f.nome,tr.id_transito,tr.status, tr.peso,tr.volumes,tr.outra_desp,tr.desconto,tr.total_nota,tr.tipofrete,c.liberafat,c.liberanp,c.cgc,c.razao,c.insc,c.endereco,c.numero,c.bairro,c.complemento,c.cidade,c.cep,c.fone,c.email,ci.codibge,c.codcidade,ci.estado,ci.cod_estado,mb.valor, mb.vcto as vencimento,mb.codban,f.nome as nomevend,prazocompra.descricao as faturamento from venda v join transito tr on v.lcto = tr.documento join cliente c on c.codigo=v.codcli join func f on f.codigo = v.codvend left join cidade ci on c.codcidade = ci.cod_cidade left join movban mb on mb.lctosaida = v.lcto left join transp on tr.codtransp = transp.codigo left join prazocompra on v.cdcondpagto = prazocompra.codigo where lcto =? order by mb.codigo", pedido, function (err, res) {
                                 if (err) reject(new Error(err));
                                 if (!res.length) reject(new Error('Venda não existe ou não está fechada'));
-                                venda = new Venda(res[0].LCTO, res[0].DATA, res[0].ID_TRANSITO, res[0].CGC, res[0].INSC, res[0].CODCLI, res[0].NOMECLI, res[0].CODVEND, res[0].NOMEVEND, res[0].EMAIL, res[0].FONE, res[0].RAZAO, res[0].ENDERECO, res[0].NUMERO, res[0].BAIRRO, res[0].CEP, res[0].CODIBGE, res[0].CODCIDADE, res[0].CIDADE, res[0].ESTADO, res[0].COMPLEMENTO, res[0].DESCONTO, res[0].FRETE, res[0].SEGURO, res[0].TOTAL);
+                                venda = new Venda(res[0].LCTO, res[0].DATA, res[0].ID_TRANSITO, res[0].CGC, res[0].INSC, res[0].CODCLI, res[0].NOMECLI, res[0].CODVEND, res[0].NOMEVEND, res[0].EMAIL, res[0].FONE, res[0].RAZAO, res[0].ENDERECO, res[0].NUMERO, res[0].BAIRRO, res[0].CEP, res[0].CODIBGE, res[0].CODCIDADE, res[0].CIDADE, res[0].ESTADO, res[0].COMPLEMENTO, res[0].DESCONTO, res[0].FRETE, res[0].SEGURO, res[0].TOTAL,res[0].FATURAMENTO,res[0].LIBERAFAT,res[0].LIBERANP);
                                 venda.insereTransporte(res[0].VOLUMES, res[0].PESO, res[0].TIPOFRETE, res[0].TRANSPORTADOR)
                                 res.forEach(function (item) {
                                     venda.inserePagamento({

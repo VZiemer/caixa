@@ -188,6 +188,7 @@ function createWindow () {
   
 // });
 app.on('ready', function() { createWindow();
+  console.log('abre atualizador')
   autoUpdater.checkForUpdates();
   autoUpdater.on('update-available', (ev, info) => {
     console.log(info)

@@ -36,7 +36,7 @@
     <md-dialog-content>
       <div class="md-dialog-content" layout="row">
         <md-card flex=20>
-          <md-button ng-repeat="fPagto in FormaPagto" class="md-raised" ng-click="InserePgto($event,fPagto)" ng-disabled="(fPagto.TIPO == 'NP' && venda.TOTAL >= 0 && !venda.LIBERANP && !vale ) || (fPagto.TIPO == 'BL' && !venda.LIBERAFAT)">
+          <md-button ng-repeat="fPagto in FormaPagto" class="md-raised" ng-click="InserePgto($event,fPagto)" ng-disabled="(fPagto.TIPO == 'NP' && venda.TOTAL >= 0 && !venda.LIBERANP && 0>=vale) || (fPagto.TIPO == 'BL' && !venda.LIBERAFAT)">
             {{fPagto.NOME}}
             <span ng-if="fPagto.NOME == 'NP' && vale < 0"> ({{ vale* (-1)|currency:'R$'}})</span>
           </md-button>

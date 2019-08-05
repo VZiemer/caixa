@@ -10,11 +10,10 @@
         </div>
       </md-toolbar>
       <md-dialog-content >
-        <div class="md-dialog-content" layout="column" >        
-          <!-- <md-card flex> -->
+        <div class="md-dialog-content" layout="column">        
             <md-input-container>
               <label>Á Pagar</label>
-              <input type="text" ui-money-mask="R$" style="font-weight: bold" ng-model="pagamento.VALORAPAGAR.valor" md-autofocus ng-max="max">
+              <input type="text" ui-money-mask="R$" style="font-weight: bold" ng-model="pagamento.VALORAPAGAR.valor" md-autofocus>
             </md-input-container>           
             <md-input-container ng-if="pagamento.QTD_PARCELAS-1">
                 <label>Parcelas</label>
@@ -58,17 +57,11 @@
                   </div>                  
                 </fieldset>              
 
-
-
-          <!-- </md-card> -->
         </div>
       </md-dialog-content>
       <md-dialog-actions layout="row" layout-align="end">
-        <!-- <md-button href="http://en.wikipedia.org/wiki/Mango" target="_blank" md-autofocus>
-          More on Wikipedia
-        </md-button> -->
         <span flex></span>
-        <md-button ng-click="paga(pagamento)">
+        <md-button ng-click="paga(pagamento)" ng-disabled= "pagamento.VALORAPAGAR.valor > max.valor && pagamento.TIPO != 'DI'">
           OK
         </md-button>
       </md-dialog-actions>

@@ -200,8 +200,10 @@
 
 
       return new Promise((resolve, reject) => {
+        console.log('entrou no ifpag')
         if (venda.operacao != 3) {
           for (let item of venda.PAGAMENTO) {
+            console.log(item)
             let _formaPagto = "",
               _meioPagto = "",
               _integracaoPagto = "",
@@ -284,8 +286,10 @@
     }
 
     function itensNota(venda) {
+      console.log('itensnota')
       return new Promise((resolve, reject) => {
         for (let item of venda.PRODUTOS) {
+          console.log(item)
           var prodst = (item.SITTRIB === "060") ? true : false;
           var icms = new Icms().CalculaIcms(
             prodst,
@@ -1540,8 +1544,13 @@
       if (locals.fpagto.TIPO == 'DI') {
         $scope.max = new dinheiro(locals.venda.PAGAR.valor).soma(100)
       };
-      if (locals.fpagto.TIPO == 'VL') {
-        if ($scope.max < $scope.pagamento.VALORAPAGAR) $scope.pagamento.VALORAPAGAR = $scope.max;
+      if (locals.fpagto.TIPO == 'NP' && !locals.venda.LIBERANP) {
+        // if ($scope.max < $scope.pagamento.VALORAPAGAR) $scope.pagamento.VALORAPAGAR = $scope.max;
+        $scope.max = new dinheiro (locals.vale);
+        $scope.pagamento.VALORAPAGAR = new dinheiro (locals.vale);
+        console.log ('apagar',$scope.venda.PAGAR)
+        console.log('pagamento',$scope.pagamento.VALORAPAGAR);
+        console.log('maximo',$scope.max)
       }
       $scope.calculaParcela = function (parcelas, valortotal) {
         console.log(parcelas)
@@ -1557,7 +1566,7 @@
         $mdDialog.cancel();
       };
       $scope.paga = function (pagamento) {
-        if (pagamento.VALORAPAGAR > Valor) pagamento.VALORAPAGAR = Valor;
+        if (pagamento.VALORAPAGAR.valor > Valor.valor) pagamento.VALORAPAGAR = Valor;
         var valor = new dinheiro(pagamento.VALORAPAGAR / pagamento.PARCELAS);
         pagamento.VALORPARCELA = valor
         $mdDialog.hide(pagamento);
@@ -1565,8 +1574,6 @@
     }
 
     function PagamentoCtrl($scope, $mdDialog, locals, $mdToast) { //controla o modal que faz o pagamento       
-
-
       $scope.hoje = new Date();
       $scope.acao = locals.acao
       $scope.param = remote.getGlobal('dados').param;
@@ -1578,12 +1585,12 @@
       VendaSrvc.valeCliente(locals.dados.CODCLI).then(function (response) {
         if (locals.acao = 'V') {
           $scope.vale = 0;
-          $scope.vale = response.reduce(function (acumulador, atual) {
+          $scope.vale =new dinheiro( response.reduce(function (acumulador, atual) {
             if (atual.ENT_SAI == 'S') {
               atual.TOTAL = atual.TOTAL * (-1)
             }
             return acumulador += atual.TOTAL;
-          }, 0);
+          }, 0)*-1);
         }
         console.log($scope.vale)
       })
@@ -1781,10 +1788,15 @@
           fullscreen: false, // Only for -xs, -sm breakpoints.,
           locals: {
             venda: $scope.venda,
-            fpagto: pagto
+            fpagto: pagto,
+            vale : $scope.vale
           }
         })
           .then(function (pgto) {
+            if(pgto.TIPO == 'NP' && $scope.vale.valor) {
+              $scope.vale.subtrai(pgto.VALORAPAGAR)
+            }
+            console.log('vale atual',$scope.vale)
             console.log(pgto);
             $scope.venda.PAGAR.subtrai(pgto.VALORAPAGAR);
             Array.prototype.push.apply($scope.venda.PAGAMENTO, Pagto.Pagamentos(pgto.VALORAPAGAR, pgto.VALORPARCELA, pgto.PARCELAS, pgto.TIPO, pgto.PERIODO, pgto.CODBAN, pagto.BANCO, pagto.AGENCIA, pagto.CONTA, pagto.NRCHEQUE, pagto.VENCTO, pagto.EMNOME));
@@ -1942,8 +1954,8 @@
           }
         })
           .then(function (pedido) {
-            var status = 'C';
-            var dados = [pedido.CODCLI, pedido.NOMECLI, pedido.CODVEND, pedido.OBS, status, pedido.LCTO];
+            // var status = 'C';
+            var dados = [pedido.CODCLI, pedido.NOMECLI, pedido.CODVEND, pedido.OBS, pedido.STATUS, pedido.LCTO];
             VendaSrvc.atualizaVenda(dados).then(function (res) {
               $scope.venda = res;
               console.log($scope.venda)

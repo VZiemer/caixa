@@ -1,7 +1,22 @@
-const {app, BrowserWindow, ipcMain, dialog, globalShortcut} = require('electron');
-const autoUpdater = require("electron-updater").autoUpdater
+const {app, BrowserWindow, ipcMain, dialog, globalShortcut, Menu, protocol} = require('electron');
+const log = require('electron-log');
+const {autoUpdater} = require("electron-updater");
 const PDFWindow = require('electron-pdf-window')
 const homedir = require('os').homedir();
+
+// Log do autoupdater
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = 'info';
+log.info('App starting...');
+
+
+
+
+
+
+
+
+
 global.dados={ 
   'configs' : {
     computador: '059ed89922706c792646',
@@ -65,11 +80,34 @@ var testeurl = url.format({
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
+
+function sendStatusToWindow(text) {
+  log.info(text);
+  mainWindow.webContents.send('message', text);
+}
 function createWindow () {
   // Create the browser window.
+  autoUpdater.on('checking-for-update', () => {
+    sendStatusToWindow('Checking for update...');
+  })
+  autoUpdater.on('update-available', (ev, info) => {
+    sendStatusToWindow('Update available.');
+  })
+  autoUpdater.on('update-not-available', (ev, info) => {
+    sendStatusToWindow('Update not available.');
+  })
+  autoUpdater.on('error', (ev, err) => {
+    sendStatusToWindow('Error in auto-updater.');
+  })
+  autoUpdater.on('download-progress', (ev, progressObj) => {
+    sendStatusToWindow('Download progress...');
+  })
+  autoUpdater.on('update-downloaded', (ev, info) => {
+    sendStatusToWindow('Update downloaded; will install in 5 seconds');
+  });
 
   globalShortcut.register('shift + f9', function() {
-		console.log('f9 is pressed')
+		console.log('Shift + f9 is pressed')
 		mainWindow.webContents.openDevTools()
 	})
 
@@ -98,6 +136,9 @@ function createWindow () {
   }))
   // Open the DevTools.
   //  mainWindow.webContents.openDevTools()
+
+
+
   mainWindow.webContents.on('new-window', (event, url, frameName, disposition, options, additionalFeatures) => {
     if (frameName === 'Danfe') {
       //abre a janela de impressão
@@ -187,22 +228,46 @@ function createWindow () {
 // app.on('ready', function()  {
   
 // });
-app.on('ready', function() { createWindow();
+app.on('ready', function() { 
+  //Menu do updater
+
+let template = []
+if (process.platform === 'darwin') {
+  // OS X
+  const name = app.getName();
+  template.unshift({
+    label: name,
+    submenu: [
+      {
+        label: 'About ' + name,
+        role: 'about'
+      },
+      {
+        label: 'Quit',
+        accelerator: 'Command+Q',
+        click() { app.quit(); }
+      },
+    ]
+  })
+}
+  // const menu = Menu.buildFromTemplate(template);
+  // Menu.setApplicationMenu(menu);
+  createWindow();
   console.log('abre atualizador')
   autoUpdater.checkForUpdates();
-  autoUpdater.on('update-available', (ev, info) => {
-    console.log(info)
-    dialog.showMessageBox({
-      type: 'info',
-      title: 'Found Updates',
-      message: info.releaseNotes,
-      buttons: ['Yes', 'No']
-    }, (buttonIndex) => {
-      if (buttonIndex === 0) {
-        autoUpdater.downloadUpdate()
-      }
-    })
-  })
+  // autoUpdater.on('update-available', (ev, info) => {
+  //   console.log(info)
+  //   dialog.showMessageBox({
+  //     type: 'info',
+  //     title: 'Found Updates',
+  //     message: info.releaseNotes,
+  //     buttons: ['Yes', 'No']
+  //   }, (buttonIndex) => {
+  //     if (buttonIndex === 0) {
+  //       autoUpdater.downloadUpdate()
+  //     }
+  //   })
+  // })
 })
 // Quit when all windows are closed.
 autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {

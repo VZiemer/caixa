@@ -7,7 +7,7 @@
         <md-button ng-if="acao=='V'" class="md-raised" ng-click="insereCPF($event)">
           CPF
         </md-button>
-        <md-button ng-if="acao=='V'" class="md-raised" ng-disabled="venda.PAGAR.valor" ng-click="concluir($event)">
+        <md-button ng-if="acao=='V'" class="md-raised" ng-disabled="venda.PAGAR.valor || !venda.PAGAMENTO.length" ng-click="concluir($event)">
           CONCLUIR
         </md-button>
         <!-- <md-button ng-if="acao=='V'" class="md-raised" ng-disabled="venda.PAGAR.valor" ng-click="concluirMptest($event)">
@@ -16,13 +16,13 @@
         <md-button ng-if="acao=='V'" class="md-raised" ng-disabled="venda.PAGAR.valor" ng-click="geraNFe(venda)">
           GERANFETESTE
         </md-button> -->
-        <md-button ng-if="acao=='V'" class="md-raised" ng-disabled="venda.PAGAR.valor" ng-click="concluirCupom($event)">
+        <md-button ng-if="acao=='V'" class="md-raised" ng-disabled="venda.PAGAR.valor || !venda.PAGAMENTO.length" ng-click="concluirCupom($event)">
           CONCLUIR/CUPOM
         </md-button>
-        <md-button ng-disabled="venda.PAGAR.valor || !venda.CODCIDADE" class="md-raised" ng-click="NFe($event,venda)">
+        <md-button ng-disabled="venda.PAGAR.valor || !venda.CODCIDADE || !venda.PAGAMENTO.length" class="md-raised" ng-click="NFe($event,venda)">
           NFE
         </md-button>
-        <md-button ng-if="acao=='F'" ng-disabled="venda.PAGAR.valor" class="md-raised" ng-click="concluirFech($event)">
+        <md-button ng-if="acao=='F'" ng-disabled="venda.PAGAR.valor || !venda.PAGAMENTO.length" class="md-raised" ng-click="concluirFech($event)">
           PAGAR FECHAMENTO
         </md-button>
         <md-button class="md-icon-button" ng-click="cancel()">
@@ -36,9 +36,9 @@
     <md-dialog-content>
       <div class="md-dialog-content" layout="row">
         <md-card flex=20>
-          <md-button ng-repeat="fPagto in FormaPagto" class="md-raised" ng-click="InserePgto($event,fPagto)" ng-disabled="(fPagto.TIPO == 'NP' && venda.TOTAL >= 0 && !venda.LIBERANP && 0>=vale) || (fPagto.TIPO == 'BL' && !venda.LIBERAFAT)">
+          <md-button ng-repeat="fPagto in FormaPagto" class="md-raised" ng-click="InserePgto($event,fPagto)" ng-disabled="(fPagto.TIPO == 'NP' && venda.TOTAL >= 0 && !venda.LIBERANP && vale.valor<=0) || (fPagto.TIPO == 'BL' && !venda.LIBERAFAT)">
             {{fPagto.NOME}}
-            <span ng-if="fPagto.NOME == 'NP' && vale < 0"> ({{ vale* (-1)|currency:'R$'}})</span>
+            <span ng-if="fPagto.NOME == 'NP' && vale.valor > 0"> ({{ vale.valor|currency:'R$'}})</span>
           </md-button>
         </md-card>
         <!-- <md-card flex layout="column" layout-align="top center">

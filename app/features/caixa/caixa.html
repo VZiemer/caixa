@@ -69,20 +69,10 @@
         <md-icon class="material-icons" style="color: black;">menu</md-icon>
         Fechamento (F6)
       </md-button>
-      <!-- <md-button class="md-accent md-raised" ng-click="cx.puxaLocal()">
-            <md-icon class="material-icons" style="color: green;">forward</md-icon>
-            Puxa Local
-          </md-button> -->
       <md-button class="md-accent md-raised" ng-click="cx.NFe($event)">
         <md-icon class="material-icons" style="color: black;">menu</md-icon>
         NF-e
-      </md-button>
-      <!-- <md-button class="md-raised md-icon-button md-accent" ng-click="cx.numerocupom()">
-              Nucupom
-          </md-button>
-          <md-button class="md-raised md-icon-button md-accent" ng-click="cx.leiturax()">
-              leitura
-          </md-button>                                        -->
+      </md-button>                    
     </div>
   </md-toolbar>
   <md-content layout="row" layout-fill>
@@ -128,25 +118,38 @@
         <table md-table>
           <thead fix-head md-head>
             <tr md-row>
-              <th md-column><span>CODIGO</span></th>
-              <th md-column><span>QTD</span></th>
-              <th md-column colspan="3">DESCRICAO</th>
-              <th md-column>VALOR UNIT.</th>
-              <th md-column>VALOR TOTAL</th>
+              <th md-column style="border-bottom: 1px solid black"><span>CODIGO</span></th>
+              <th md-column style="border-bottom: 1px solid black"><span>QTD</span></th>
+              <th md-column style="border-bottom: 1px solid black" colspan="3">DESCRICAO</th>
+              <th md-column style="border-bottom: 1px solid black">VALOR UNIT.</th>
+              <th md-column style="border-bottom: 1px solid black">VALOR TOTAL</th>
             </tr>
           </thead>
           <tbody md-body>
-            <tr md-row ng-repeat="item in venda.PRODUTOS">
-              <td md-cell>
+            <tr><th md-cell colspan="7" style="border-bottom: 1px solid black">ITENS Á RETIRAR</th></tr>
+            <tr md-row ng-repeat="item in venda.PRODUTOS" ng-if="item.QTD != item.QTDRESERVA">
+              <td md-cell style="border-bottom: 1px solid gray">
                   <md-button ng-if="param.admin" class="md-icon-button md-raised" ng-click="alteraValor($event,item,$index)">
                       <md-icon class="material-icons" style="color: red;">create</md-icon>
                     </md-button>                
                 {{item.CODPRO}}</td>
-              <td md-cell>{{item.QTD}} <i ng-if="item.MULTQTD!=1">emb. c/ {{item.MULTQTD}}</i> {{item.UNIDADE}}</td>
-              <td md-cell colspan="3">{{item.DESCRICAO}}</td>
-              <td md-cell>{{item.VALOR}}</td>
-              <td md-cell>{{item.TOTAL}}</td>
+              <td md-cell style="border-bottom: 1px solid gray">{{item.QTD}} <i ng-if="item.MULTQTD!=1">emb. c/ {{item.MULTQTD}}</i> {{item.UNIDADE}}</td>
+              <td md-cell style="border-bottom: 1px solid gray" colspan="3">{{item.DESCRICAO}}</td>
+              <td md-cell style="border-bottom: 1px solid gray">{{item.VALOR}}</td>
+              <td md-cell style="border-bottom: 1px solid gray">{{item.TOTAL}}</td>
             </tr>
+            <tr><th bgcolor="#ffff99" style="border-bottom: 1px solid black" md-cell colspan="7">ITENS DE RESERVA</th></tr>
+            <tr md-row ng-repeat="item in venda.PRODUTOS" ng-if="item.QTD == item.QTDRESERVA">
+              <td md-cell bgcolor="#ffff99" style="border-bottom: 1px solid gray">
+                  <md-button ng-if="param.admin" class="md-icon-button md-raised" ng-click="alteraValor($event,item,$index)">
+                      <md-icon class="material-icons" style="color: red;">create</md-icon>
+                    </md-button>                
+                {{item.CODPRO}}</td>
+              <td bgcolor="#ffff99" md-cell style="border-bottom: 1px solid gray">{{item.QTD}} <i ng-if="item.MULTQTD!=1">emb. c/ {{item.MULTQTD}}</i> {{item.UNIDADE}}</td>
+              <td bgcolor="#ffff99" md-cell style="border-bottom: 1px solid gray" colspan="3">{{item.DESCRICAO}}</td>
+              <td bgcolor="#ffff99" md-cell style="border-bottom: 1px solid gray" >{{item.VALOR}}</td>
+              <td bgcolor="#ffff99" md-cell style="border-bottom: 1px solid gray">{{item.TOTAL}}</td>
+            </tr>            
           </tbody>
         </table>
       </md-table-container>

@@ -134,25 +134,7 @@ const remote = require('electron').remote;
                     })
                     return deferred.promise;
                 }
-                // var puxaLocal = function (pedido) {
-                //     console.log(pedido)
-                //     var token = remote.getGlobal('dados').param.token;
-                //     var empresa = remote.getGlobal('dados').configs.empresa;
-                //     var deferred = $q.defer();
-                //     console.log(venda);
-                //     $http.post("http://sistema.florestalferragens.com.br/api/puxalocal", {
-                //             'token': token,
-                //             'pedido': pedido
-                //         })
-                //         .then(function (response) {
-                //             console.log(response);
-                //             venda = response.data;
-                //             deferred.resolve(response.data);
-                //         }, function (response) {
-                //             console.log(response)
-                //         });
-                //     return deferred.promise;
-                // }
+              
                 var atualizaProdVenda = function (prodvenda) {
                     var token = remote.getGlobal('dados').param.token;
                     var empresa = remote.getGlobal('dados').configs.empresa;
@@ -241,8 +223,6 @@ const remote = require('electron').remote;
                     return deferred.promise;
                 }
                 var valeCliente = function (cliente) {
-                    // var token = remote.getGlobal('dados').param.token;
-                    // var empresa = remote.getGlobal('dados').configs.empresa;
                     var deferred = $q.defer();
                     Firebird.attach(options, function (err, db) {
                         if (err)
@@ -255,13 +235,7 @@ const remote = require('electron').remote;
                             });
                         });
                     })
-                    // $http.post("http://sistema.florestalferragens.com.br/api/valecliente", { 'token': token, 'busca': cliente, 'empresa': empresa })
-                    //     .then(function (response) {
-                    //         console.log(response)
-                    //         if (response) {
-                    //             deferred.resolve(response.data[0].TOTAL);
-                    //         }
-                    //     }, function (response) { console.log(response) });
+
                     return deferred.promise;
                 }
                 var inserePacote = function (codbar) {
